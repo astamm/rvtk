@@ -42,6 +42,8 @@ jobs:
             mingw-w64-ucrt-x86_64-ninja \
             mingw-w64-ucrt-x86_64-gcc \
             mingw-w64-ucrt-x86_64-binutils
+          # Prepend UCRT64 bin so cmake/ninja/gcc are found before system tools
+          echo "export PATH=/ucrt64/bin:\$PATH" >> ~/.bash_profile
 
       - name: Download VTK source
         run: |
@@ -55,13 +57,11 @@ jobs:
       - name: Configure VTK
         run: |
           VER="${{ env.VTK_VERSION }}"
-          mkdir -p build
+          mkdir -p build install
+          INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
           cmake -G Ninja \
-            -DCMAKE_INSTALL_PREFIX="$(pwd)/../install" \
-            -DCMAKE_C_COMPILER=/ucrt64/bin/gcc \
-            -DCMAKE_CXX_COMPILER=/ucrt64/bin/g++ \
-            -DCMAKE_RC_COMPILER=/ucrt64/bin/windres \
+            -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
