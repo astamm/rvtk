@@ -13,5 +13,10 @@
      <https://github.com/astamm/rvtk/releases> as a fallback.
 * On Windows, pre-built UCRT64 static libraries are always downloaded
   automatically from <https://github.com/astamm/rvtk/releases>.
+* **Windows limitation:** `netcdf` and `libproj` are not available in the
+  Rtools45 UCRT64 environment. The following VTK modules are therefore
+  disabled in the Windows pre-built libraries: `VTK_IONetCDF`, `VTK_IOHDF`,
+  `VTK_GeovisCore`, `VTK_RenderingCore`. Downstream packages requiring these
+  modules cannot be built on Windows with **rvtk**'s pre-built libraries.
 * Downstream packages can retrieve compiler and linker flags via
   `rvtk::CppFlags()` and `rvtk::LdFlags()`.

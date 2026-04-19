@@ -51,5 +51,5 @@ read_vtk_conf <- function(path = NULL) {
   parsed <- strsplit(lines, "=", fixed = TRUE)
   vals <- vapply(parsed, function(x) paste(x[-1], collapse = "="), character(1))
   keys <- vapply(parsed, `[[`, character(1), 1)
-  setNames(as.list(vals), keys)
+  stats::setNames(as.list(vals), keys)
 }

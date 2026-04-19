@@ -34,6 +34,13 @@ as one succeeds:
 On Windows, pre-built UCRT64 static libraries are always downloaded
 automatically from the same URL.
 
+> **Windows limitation:** The Rtools45 UCRT64 environment does not
+> provide `netcdf` or `libproj`. Consequently, the following VTK modules
+> are **disabled** in the Windows pre-built libraries: `VTK_IONetCDF`,
+> `VTK_IOHDF`, `VTK_GeovisCore`, `VTK_RenderingCore`. Downstream
+> packages that require any of these modules cannot currently be built
+> on Windows with the pre-built libraries supplied by **rvtk**.
+
 Configuration results are stored in `inst/vtk.conf` and read at run time
 by `CppFlags()`, `LdFlags()`, and `VtkVersion()`.
 
