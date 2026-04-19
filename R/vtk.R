@@ -144,12 +144,12 @@ read_vtk_conf <- function(path = NULL) {
         sprintf('-L"%s"', lib_dir),
         "-Wl,--start-group",
         lib_flags,
-        ## Windows / Rtools45 UCRT64 static.posix system libraries required by VTK:
-        ## gdi32      - GDI functions (vtkWin32OutputWindow)
-        ## winpthread - nanosleep64 / POSIX threads (vtkloguru)
-        ## mingwex    - ftime64 and other POSIX wrappers (vtkCommonSystem)
-        ## ucrtbase   - __imp_fseeko64, __imp_ftello64 (vtkpugixml)
-        "-lgdi32 -lwinpthread -lmingwex -lucrtbase",
+        ## Windows system libraries required by VTK (static.posix build):
+        ## gdi32 - GDI functions used by vtkWin32OutputWindow.
+        ## POSIX threading / libc symbols (nanosleep, ftime64, fseeko64, ...)
+        ## are resolved automatically by the x86_64-w64-mingw32.static.posix
+        ## toolchain's default link libraries; no extra -l flags needed.
+        "-lgdi32",
         "-Wl,--end-group"
       )
     } else {

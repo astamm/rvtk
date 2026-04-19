@@ -106,12 +106,11 @@ vtk_libs <- paste(
   "-Wl,--start-group",
   lib_flags,
   "-Wl,--end-group",
-  ## Windows system libraries required by VTK modules:
-  ## gdi32      - GDI functions (vtkWin32OutputWindow)
-  ## winpthread - nanosleep64 / POSIX threads (vtkloguru)
-  ## mingwex    - ftime64 and other POSIX wrappers (vtkCommonSystem)
-  ## ucrtbase   - __imp_fseeko64, __imp_ftello64 (vtkpugixml)
-  "-lgdi32 -lwinpthread -lmingwex -lucrtbase"
+  ## Windows system library required by VTK (static.posix build):
+  ## gdi32 - GDI functions used by vtkWin32OutputWindow.
+  ## POSIX threading / libc symbols are resolved automatically by the
+  ## x86_64-w64-mingw32.static.posix toolchain's default link libraries.
+  "-lgdi32"
 )
 
 ## ── Write inst/vtk.conf ───────────────────────────────────────────────────────
