@@ -2,4 +2,5 @@
 
 export(CppFlags)
 export(LdFlags)
+export(LdFlagsFile)
 export(VtkVersion)

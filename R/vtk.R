@@ -32,6 +32,41 @@ LdFlags <- function() {
   cat(read_vtk_conf()[["VTK_LIBS"]])
 }
 
+#' Write VTK linker flags to a response file
+#'
+#' On Windows the full set of VTK linker flags can exceed the 8 191-character
+#' Windows command-line limit, causing the linker to drop flags at the end of
+#' the list.  This function writes the flags to a plain-text response file that
+#' the linker reads via the `@file` syntax, keeping the command line short.
+#'
+#' Intended to be called from a downstream package's `configure` script:
+#'
+#' ```sh
+#' VTK_LIBS="$("${R_HOME}/bin/Rscript" --vanilla -e \
+#'   "rvtk::LdFlagsFile('src/vtk_libs.rsp')")"
+#' # VTK_LIBS is now the short string "@src/vtk_libs.rsp"
+#' sed -e "s|@VTK_LIBS@|${VTK_LIBS}|g" src/Makevars.in > src/Makevars
+#' ```
+#'
+#' On non-Windows platforms the flags are still written to `path` (so the
+#' workflow is identical on all platforms), and the returned `@path` string
+#' is equally valid because GCC/Clang also support response files.
+#'
+#' @param path Path (relative to the package source root, i.e. where
+#'   `configure` runs) to the response file to write, e.g.
+#'   `"src/vtk_libs.rsp"`.
+#'
+#' @return Invisibly, the `@path` string to embed in `Makevars`.  The string
+#'   is also printed to stdout so that shell command substitution
+#'   (`$(Rscript -e "rvtk::LdFlagsFile(...)")`) captures it.
+#' @export
+LdFlagsFile <- function(path) {
+  flags <- read_vtk_conf()[["VTK_LIBS"]]
+  writeLines(flags, path)
+  cat(paste0("@", path))
+  invisible(paste0("@", path))
+}
+
 #' VTK version used by this package
 #'
 #' @return A character string with the VTK version, e.g. `"9.3.1"`.
