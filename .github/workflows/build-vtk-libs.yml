@@ -73,17 +73,20 @@ jobs:
           # x86_64-w64-mingw32.static.posix — the toolchain used by R CMD INSTALL
           # on CRAN/Rtools45.  Using it ensures symbols match what downstream
           # packages expect (no __imp_* DLL-import stubs, no UCRT-only symbols).
+          # Export CC/CXX/AR/RANLIB so CMake picks them up from the environment
+          # (avoids passing MSYS2 POSIX paths via -DCMAKE_*_COMPILER which CMake
+          # mis-identifies as non-absolute on Windows).
           TCHAIN=/x86_64-w64-mingw32.static.posix/bin
+          export CC="${TCHAIN}/gcc"
+          export CXX="${TCHAIN}/g++"
+          export AR="${TCHAIN}/ar"
+          export RANLIB="${TCHAIN}/ranlib"
           mkdir -p build install
           INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
-            -DCMAKE_C_COMPILER="${TCHAIN}/gcc" \
-            -DCMAKE_CXX_COMPILER="${TCHAIN}/g++" \
-            -DCMAKE_AR="${TCHAIN}/ar" \
-            -DCMAKE_RANLIB="${TCHAIN}/ranlib" \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
