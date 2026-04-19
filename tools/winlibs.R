@@ -113,8 +113,10 @@ vtk_libs <- paste(
   sprintf("-lvtkIOLegacy%s", lib_suffix),
   sprintf("-lvtkIOXML%s", lib_suffix),
   sprintf("-lvtkIOCore%s", lib_suffix),
-  sprintf("-lvtkCommonCore%s", lib_suffix),
+  sprintf("-lvtkCommonExecutionModel%s", lib_suffix),
   sprintf("-lvtkCommonDataModel%s", lib_suffix),
+  sprintf("-lvtkCommonMisc%s", lib_suffix),
+  sprintf("-lvtkCommonCore%s", lib_suffix),
   sprintf("-lvtksys%s", lib_suffix)
 )
 
