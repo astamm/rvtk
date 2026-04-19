@@ -127,6 +127,22 @@ Make them executable:
 chmod +x cleanup cleanup.win
 ```
 
+### Step 5 - Function import
+
+The **rvtk** package is meant to be used by downstream packages that
+link against VTK. It is most likely that its R functions will only be
+called from `configure` / `configure.win` scripts. `R CMD check` will
+complain because it means that you must list **rvtk** in the `Imports`
+field of your `DESCRIPTION` but do not actually import any of its
+functions in your R code. The solution is to import at least one of the
+functions in a dummy R script that is not used for anything else:
+
+``` r
+# R/rvtk_imports.R
+#' @importFrom rvtk CppFlags
+NULL
+```
+
 ## Querying the detected installation
 
 You can verify the detected installation at any time:
