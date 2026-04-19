@@ -115,6 +115,29 @@ Add generated `Makevars` to `.gitignore` so it is not committed:
 src/Makevars
 ```
 
+### Step 4 - `cleanup`(`.win`)
+
+Add a `cleanup` / `cleanup.win` script that removes the generated `Makevars`
+after installation so it is not accidentally committed:
+
+```sh
+# cleanup (macOS/Linux)
+#!/bin/sh
+rm -f src/Makevars
+```
+
+```sh
+# cleanup.win (Windows)
+#!/bin/sh
+./cleanup
+```
+
+Make them executable:
+
+```sh
+chmod +x cleanup cleanup.win
+```
+
 ## Querying the detected installation
 
 You can verify the detected installation at any time:
