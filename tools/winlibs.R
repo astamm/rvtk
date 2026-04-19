@@ -122,10 +122,10 @@ vtk_libs <- paste(
   lib_flags,
   "-Wl,--end-group",
   ## Windows system libraries required by VTK modules:
-  ## gdi32  - GDI functions (vtkWin32OutputWindow)
-  ## pthread - nanosleep64 and POSIX thread API (vtkloguru)
-  ## ucrt   - ftime64, fseeko64, ftello64 (vtkCommonSystem, vtkpugixml)
-  "-lgdi32 -lpthread -lucrt"
+  ## gdi32      - GDI functions (vtkWin32OutputWindow)
+  ## winpthread - nanosleep64 / POSIX threads (vtkloguru)
+  ## ucrtbase   - ftime64, fseeko64, ftello64 (vtkCommonSystem, vtkpugixml)
+  "-lgdi32 -lwinpthread -lucrtbase"
 )
 
 ## ── Write inst/vtk.conf ───────────────────────────────────────────────────────
