@@ -56,15 +56,24 @@ LdFlags <- function() {
 #'   `configure` runs) to the response file to write, e.g.
 #'   `"src/vtk_libs.rsp"`.
 #'
-#' @return Invisibly, the `@path` string to embed in `Makevars`.  The string
-#'   is also printed to stdout so that shell command substitution
-#'   (`$(Rscript -e "rvtk::LdFlagsFile(...)")`) captures it.
+#' @return Invisibly, the string to embed in `Makevars` (either `@path` on
+#'   Windows or the raw flags on other platforms).  The string is also printed
+#'   to stdout so that shell command substitution captures it.
 #' @export
 LdFlagsFile <- function(path) {
   flags <- read_vtk_conf()[["VTK_LIBS"]]
-  writeLines(flags, path)
-  cat(paste0("@", path))
-  invisible(paste0("@", path))
+  if (.Platform$OS.type == "windows") {
+    ## On Windows the flags string can exceed the 8191-char cmd.exe limit.
+    ## Write them to a response file and return the short @path reference.
+    writeLines(flags, path)
+    result <- paste0("@", path)
+  } else {
+    ## On macOS/Linux Apple ld and GNU ld do not reliably support @file at the
+    ## compiler-driver level; return the flags directly (no length problem here).
+    result <- flags
+  }
+  cat(result)
+  invisible(result)
 }
 
 #' VTK version used by this package
