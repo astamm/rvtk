@@ -1,0 +1,8 @@
+^vtk\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^README\.Rmd$
+^LICENSE\.md$
+^[.]?air[.]toml$
+^\.vscode$
+^cran-comments\.md$

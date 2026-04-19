@@ -9,17 +9,27 @@ Authors@R: c(
         email = "aymeric.stamm@cnrs.fr",
         comment = c(ORCID = "0000-0002-8725-3654")
     ))
-Description: Provides pre-compiled static VTK libraries and headers for
-    Windows; on macOS and Linux it locates a system-installed VTK. Downstream
-    packages can declare 'Imports: vtk' and obtain the correct compiler and
-    linker flags at install time via 'vtk::CppFlags()' and 'vtk::LdFlags()'.
+Description: Provides pre-compiled static VTK libraries and headers so that
+    downstream R packages can link against the Visualization Toolkit without
+    requiring users to install VTK manually. On all platforms the package
+    first honours a user-supplied 'VTK_DIR' environment variable. On macOS it
+    then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config
+    and well-known system prefixes ('/usr', '/usr/local'). If no suitable
+    system installation is found on macOS or Linux, pre-built static libraries
+    are downloaded automatically from the package's GitHub releases. On
+    Windows, pre-built static libraries compiled with Rtools (UCRT64) are
+    always downloaded from the same source. Downstream packages can declare
+    'Imports: vtk' and obtain the correct compiler and linker flags at install
+    time via 'vtk::CppFlags()' and 'vtk::LdFlags()'.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 URL: https://github.com/astamm/vtk
 BugReports: https://github.com/astamm/vtk/issues
-SystemRequirements: VTK (>= 9.1.0) on macOS and Linux. On Windows, pre-built
-    static libraries are downloaded automatically from
-    <https://github.com/astamm/vtk/releases>.
+SystemRequirements: On macOS and Linux, VTK (>= 9.1.0) is used when already
+    installed (via Homebrew, pkg-config, or standard prefixes); otherwise
+    pre-built static libraries are downloaded automatically from
+    <https://github.com/astamm/vtk/releases>. On Windows, pre-built static
+    libraries are always downloaded automatically from the same URL.
 NeedsCompilation: no
