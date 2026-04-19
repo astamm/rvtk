@@ -33,3 +33,5 @@ SystemRequirements: On macOS and Linux, VTK (>= 9.1.0) is used when already
     <https://github.com/astamm/vtk/releases>. On Windows, pre-built static
     libraries are always downloaded automatically from the same URL.
 NeedsCompilation: no
+Suggests: 
+    tinytest

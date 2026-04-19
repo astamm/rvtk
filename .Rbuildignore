@@ -6,3 +6,4 @@
 ^[.]?air[.]toml$
 ^\.vscode$
 ^cran-comments\.md$
+^codecov\.yml$

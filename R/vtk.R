@@ -42,9 +42,11 @@ VtkVersion <- function() {
 
 # Internal helper -------------------------------------------------------
 
-read_vtk_conf <- function() {
-  conf_file <- system.file("vtk.conf", package = "vtk", mustWork = TRUE)
-  lines <- readLines(conf_file, warn = FALSE)
+read_vtk_conf <- function(path = NULL) {
+  if (is.null(path)) {
+    path <- system.file("vtk.conf", package = "vtk", mustWork = TRUE)
+  }
+  lines <- readLines(path, warn = FALSE)
   lines <- lines[nzchar(trimws(lines)) & !startsWith(trimws(lines), "#")]
   parsed <- strsplit(lines, "=", fixed = TRUE)
   vals <- vapply(parsed, function(x) paste(x[-1], collapse = "="), character(1))
