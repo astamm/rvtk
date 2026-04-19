@@ -22,7 +22,7 @@ Description: Provides pre-compiled static VTK libraries and headers so that
     'VTK_IONetCDF', 'VTK_IOHDF', 'VTK_GeovisCore', and 'VTK_RenderingCore'
     are disabled because 'netcdf' and 'libproj' are not available in the
     Rtools45 UCRT64 environment. Downstream packages can declare
-    'Imports: vtk' and obtain the correct compiler and linker flags at install
+    'Imports: rvtk' and obtain the correct compiler and linker flags at install
     time via 'rvtk::CppFlags()' and 'rvtk::LdFlags()'.
 License: MIT + file LICENSE
 Encoding: UTF-8

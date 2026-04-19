@@ -69,19 +69,50 @@ Add **rvtk** to the `Imports` field of your `DESCRIPTION`:
 Imports: rvtk
 ```
 
-Then call `rvtk::CppFlags()` and `rvtk::LdFlags()` from your
-`src/Makevars` (macOS / Linux):
+Because `$(shell ...)` is a GNU make extension that is **not** allowed in
+`Makevars`, the correct approach is to query `rvtk::CppFlags()` and
+`rvtk::LdFlags()` from a `configure` / `configure.win` script and write the
+results into `src/Makevars` at install time.
+
+### Step 1 — `src/Makevars.in` (template, committed to version control)
 
 ```makefile
-PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::CppFlags()")
-PKG_LIBS     = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::LdFlags()")
+PKG_CPPFLAGS = @VTK_CPPFLAGS@
+PKG_LIBS     = @VTK_LIBS@
 ```
 
-And from `src/Makevars.win` (Windows):
+### Step 2 — `configure`(`.win`)
 
-```makefile
-PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" -e "rvtk::CppFlags()")
-PKG_LIBS     = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" -e "rvtk::LdFlags()")
+```sh
+# configure (macOS/Linux)
+#!/bin/sh
+set -e
+: "${R_HOME:=$(R RHOME)}"
+VTK_CPPFLAGS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::CppFlags()")"
+VTK_LIBS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::LdFlags()")"
+sed -e "s|@VTK_CPPFLAGS@|${VTK_CPPFLAGS}|g" \
+    -e "s|@VTK_LIBS@|${VTK_LIBS}|g" \
+    src/Makevars.in > src/Makevars
+```
+
+:::sh
+# configure.win (Windows)
+#!/bin/sh
+./configure
+:::
+
+Make them executable:
+
+```sh
+chmod +x configure configure.win
+```
+
+### Step 3 — `.gitignore` / `.Rbuildignore`
+
+Add generated `Makevars` to `.gitignore` so it is not committed:
+
+```
+src/Makevars
 ```
 
 You can verify the detected installation at any time:
