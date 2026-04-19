@@ -1,8 +1,8 @@
 ## tools/winlibs.R
 ## Called by configure.win.
 ## Downloads pre-built VTK static libraries and headers from:
-##   https://github.com/astamm/vtk-rwinlib/releases
-## and writes inst/vtk.conf so that vtk::CppFlags() / vtk::LdFlags() work.
+##   https://github.com/astamm/rvtk/releases
+## and writes inst/vtk.conf so that rvtk::CppFlags() / rvtk::LdFlags() work.
 
 vtk_version <- "9.5.2"
 
@@ -31,7 +31,7 @@ toolchain <- switch(
 
 zip_name <- sprintf("vtk-%s-%s-%s.zip", vtk_version, toolchain, arch)
 url <- sprintf(
-  "https://github.com/astamm/vtk/releases/download/v%s/%s",
+  "https://github.com/astamm/rvtk/releases/download/v%s/%s",
   vtk_version,
   zip_name
 )
@@ -59,7 +59,7 @@ if (!dir.exists(dest_dir)) {
         "If you have a local VTK installation, set the VTK_DIR environment\n",
         "variable to its prefix and re-install.\n",
         "Pre-built binaries are available at\n",
-        "<https://github.com/astamm/vtk/releases>.\n",
+        "<https://github.com/astamm/rvtk/releases>.\n",
         "Original error: ",
         conditionMessage(e)
       )

@@ -1,8 +1,8 @@
 #!/bin/sh
-# configure -- macOS / Linux configuration for the vtk R package.
+# configure -- macOS / Linux configuration for the rvtk R package.
 # Detects a system-installed VTK (>= 9.1.0) via Homebrew (macOS) or
-# pkg-config, then writes inst/vtk.conf so that vtk::CppFlags() and
-# vtk::LdFlags() return the correct flags for downstream packages.
+# pkg-config, then writes inst/vtk.conf so that rvtk::CppFlags() and
+# rvtk::LdFlags() return the correct flags for downstream packages.
 
 set -e
 
@@ -166,7 +166,7 @@ fi
 # 4. Fallback: download pre-built static libraries from GitHub releases
 # ---------------------------------------------------------------------------
 VTK_PREBUILT_VERSION="9.5.2"
-VTK_PREBUILT_BASE_URL="https://github.com/astamm/vtk/releases/download/v${VTK_PREBUILT_VERSION}"
+VTK_PREBUILT_BASE_URL="https://github.com/astamm/rvtk/releases/download/v${VTK_PREBUILT_VERSION}"
 
 if test "${vtk_found}" = "no"; then
     echo "No system VTK found. Trying pre-built static libraries from GitHub..."

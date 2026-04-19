@@ -1,8 +1,8 @@
-# Tests for the vtk R package
+# Tests for the rvtk R package
 # Uses a fixture conf file to exercise read_vtk_conf() independently of any
 # installed VTK, achieving 100% line coverage.
 
-library(vtk)
+library(rvtk)
 
 # ── Fixture helpers ──────────────────────────────────────────────────────────
 
@@ -21,7 +21,7 @@ conf <- write_conf(
   "VTK_INCLUDE_DIR=/opt/vtk/include/vtk-9.5"
 )
 
-result <- vtk:::read_vtk_conf(conf)
+result <- rvtk:::read_vtk_conf(conf)
 
 expect_equal(result[["VTK_VERSION"]], "9.5.2")
 expect_equal(result[["VTK_CPPFLAGS"]], "-isystem/opt/vtk/include/vtk-9.5")
@@ -33,7 +33,7 @@ expect_equal(length(result), 4L)
 # ── read_vtk_conf: values containing '=' are preserved intact ────────────────
 
 conf_eq <- write_conf("KEY=a=b=c")
-expect_equal(vtk:::read_vtk_conf(conf_eq)[["KEY"]], "a=b=c")
+expect_equal(rvtk:::read_vtk_conf(conf_eq)[["KEY"]], "a=b=c")
 
 # ── read_vtk_conf: blank lines are ignored ───────────────────────────────────
 
@@ -43,7 +43,7 @@ conf_blank <- write_conf(
   "VTK_VERSION=1.2.3",
   ""
 )
-res_blank <- vtk:::read_vtk_conf(conf_blank)
+res_blank <- rvtk:::read_vtk_conf(conf_blank)
 expect_equal(length(res_blank), 1L)
 expect_equal(res_blank[["VTK_VERSION"]], "1.2.3")
 
@@ -54,14 +54,14 @@ conf_comment <- write_conf(
   "  # indented comment",
   "VTK_VERSION=3.2.1"
 )
-res_comment <- vtk:::read_vtk_conf(conf_comment)
+res_comment <- rvtk:::read_vtk_conf(conf_comment)
 expect_equal(length(res_comment), 1L)
 expect_equal(res_comment[["VTK_VERSION"]], "3.2.1")
 
 # ── read_vtk_conf: default path uses installed vtk.conf ──────────────────────
 # This exercises the NULL -> system.file() branch at runtime.
 
-res_default <- vtk:::read_vtk_conf()
+res_default <- rvtk:::read_vtk_conf()
 expect_true(is.list(res_default))
 expect_true("VTK_VERSION" %in% names(res_default))
 expect_true("VTK_CPPFLAGS" %in% names(res_default))

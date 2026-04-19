@@ -375,7 +375,7 @@ jobs:
           generate_release_notes: false
           body: |
             Pre-built VTK **${{ env.VTK_VERSION }}** static (`.a`) libraries for
-            use with the [`vtk`](https://github.com/astamm/vtk) R package.
+            use with the [`rvtk`](https://github.com/astamm/rvtk) R package.
 
             ## Archives
 

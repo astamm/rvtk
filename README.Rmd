@@ -7,51 +7,81 @@ output: github_document
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  comment = "#>"
 )
 ```
 
-# vtk
+# rvtk
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/astamm/vtk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/astamm/vtk/actions/workflows/R-CMD-check.yaml)
-[![Codecov test coverage](https://codecov.io/gh/astamm/vtk/graph/badge.svg)](https://app.codecov.io/gh/astamm/vtk)
+[![R-CMD-check](https://github.com/astamm/rvtk/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/astamm/rvtk/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/astamm/rvtk/graph/badge.svg)](https://app.codecov.io/gh/astamm/rvtk)
 <!-- badges: end -->
 
-The goal of vtk is to ...
+**rvtk** is an infrastructure package that makes the
+[Visualization Toolkit (VTK)](https://vtk.org/) available to other R packages
+that need to link against it. It provides three utility functions —
+`CppFlags()`, `LdFlags()`, and `VtkVersion()` — that return the correct
+compiler and linker flags for however VTK was found or installed on the
+current machine.
+
+## How VTK is located
+
+On macOS and Linux the package runs a `configure` script at install time that
+tries each of the following strategies in order, stopping as soon as one
+succeeds:
+
+1. The environment variable `VTK_DIR` (path to a VTK build or install tree).
+2. [Homebrew](https://brew.sh/) (`brew --prefix vtk`).
+3. `pkg-config` (`vtk-9.5`, `vtk-9.4`, …, `vtk-9.1`).
+4. Common system prefixes (`/usr/local`, `/usr`, `/opt/local`).
+5. Download pre-built static libraries from
+   <https://github.com/astamm/rvtk/releases>.
+
+On Windows, pre-built UCRT64 static libraries are always downloaded
+automatically from the same URL.
+
+Configuration results are stored in `inst/vtk.conf` and read at run time by
+`CppFlags()`, `LdFlags()`, and `VtkVersion()`.
 
 ## Installation
 
-You can install the development version of vtk from [GitHub](https://github.com/) with:
-
-``` r
+```r
 # install.packages("pak")
-pak::pak("astamm/vtk")
+pak::pak("astamm/rvtk")
 ```
 
-## Example
+A system VTK installation (≥ 9.1.0) is not required: if none is found the
+package downloads pre-built static libraries automatically.
 
-This is a basic example which shows you how to solve a common problem:
+## Usage for downstream package developers
 
-```{r example}
-library(vtk)
-## basic example code
+Add **rvtk** to the `Imports` field of your `DESCRIPTION`:
+
+```
+Imports: rvtk
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+Then call `rvtk::CppFlags()` and `rvtk::LdFlags()` from your
+`src/Makevars` (macOS / Linux):
 
-```{r cars}
-summary(cars)
+```makefile
+PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::CppFlags()")
+PKG_LIBS     = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::LdFlags()")
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+And from `src/Makevars.win` (Windows):
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```makefile
+PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" -e "rvtk::CppFlags()")
+PKG_LIBS     = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript.exe" -e "rvtk::LdFlags()")
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+You can verify the detected installation at any time:
+
+```{r}
+library(rvtk)
+CppFlags()
+LdFlags()
+VtkVersion()
+```

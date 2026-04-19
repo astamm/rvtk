@@ -1,4 +1,4 @@
-# vtk 9.5.2
+# rvtk 0.1.0
 
 * Initial CRAN submission.
 * Bundles VTK 9.5.2 pre-built static libraries (`.a`) for Windows (Rtools45
@@ -10,8 +10,8 @@
   3. `pkg-config`.
   4. Well-known system prefixes (`/usr`, `/usr/local`) (Linux only).
   5. Automatic download of pre-built static libraries from
-     <https://github.com/astamm/vtk/releases> as a fallback.
+     <https://github.com/astamm/rvtk/releases> as a fallback.
 * On Windows, pre-built UCRT64 static libraries are always downloaded
-  automatically from <https://github.com/astamm/vtk/releases>.
+  automatically from <https://github.com/astamm/rvtk/releases>.
 * Downstream packages can retrieve compiler and linker flags via
-  `vtk::CppFlags()` and `vtk::LdFlags()`.
+  `rvtk::CppFlags()` and `rvtk::LdFlags()`.

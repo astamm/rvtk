@@ -7,7 +7,7 @@
 ## Notes
 
 * The package downloads pre-built VTK 9.5.2 static libraries at install time
-  from <https://github.com/astamm/vtk/releases/tag/v9.5.2> in two cases:
+  from <https://github.com/astamm/rvtk/releases/tag/v9.5.2> in two cases:
   (a) always on Windows, and (b) on macOS/Linux when no suitable system VTK
   installation is detected. This follows the established pattern used by
   packages such as 'curl', 'openssl', and 'rwinlib'-style packages.
@@ -19,6 +19,6 @@
 
 ## Downstream usage
 
-Downstream packages declare `Imports: vtk` and use `vtk::CppFlags()` /
-`vtk::LdFlags()` in their `src/Makevars[.win]` to obtain the correct compiler
+Downstream packages declare `Imports: rvtk` and use `rvtk::CppFlags()` /
+`rvtk::LdFlags()` in their `src/Makevars[.win]` to obtain the correct compiler
 and linker flags for the detected or downloaded VTK installation.

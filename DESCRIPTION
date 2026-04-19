@@ -1,6 +1,6 @@
-Package: vtk
-Title: System Dependencies for the Visualization Toolkit (VTK)
-Version: 9.5.2
+Package: rvtk
+Title: Bindings for the Visualization Toolkit (VTK)
+Version: 0.1.0
 Authors@R: c(
     person(
         given = "Aymeric",
@@ -20,17 +20,17 @@ Description: Provides pre-compiled static VTK libraries and headers so that
     Windows, pre-built static libraries compiled with Rtools (UCRT64) are
     always downloaded from the same source. Downstream packages can declare
     'Imports: vtk' and obtain the correct compiler and linker flags at install
-    time via 'vtk::CppFlags()' and 'vtk::LdFlags()'.
+    time via 'rvtk::CppFlags()' and 'rvtk::LdFlags()'.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-URL: https://github.com/astamm/vtk
-BugReports: https://github.com/astamm/vtk/issues
+URL: https://github.com/astamm/rvtk
+BugReports: https://github.com/astamm/rvtk/issues
 SystemRequirements: On macOS and Linux, VTK (>= 9.1.0) is used when already
     installed (via Homebrew, pkg-config, or standard prefixes); otherwise
     pre-built static libraries are downloaded automatically from
-    <https://github.com/astamm/vtk/releases>. On Windows, pre-built static
+    <https://github.com/astamm/rvtk/releases>. On Windows, pre-built static
     libraries are always downloaded automatically from the same URL.
 NeedsCompilation: no
 Suggests: 

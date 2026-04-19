@@ -5,7 +5,7 @@
 #' package's `src/Makevars` or `src/Makevars.win`:
 #'
 #' ```makefile
-#' PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "vtk::CppFlags()")
+#' PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::CppFlags()")
 #' ```
 #'
 #' @return A single character string of compiler flags, printed to stdout (so
@@ -22,7 +22,7 @@ CppFlags <- function() {
 #' package's `src/Makevars` or `src/Makevars.win`:
 #'
 #' ```makefile
-#' PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "vtk::LdFlags()")
+#' PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::LdFlags()")
 #' ```
 #'
 #' @return A single character string of linker flags, printed to stdout (so
@@ -44,7 +44,7 @@ VtkVersion <- function() {
 
 read_vtk_conf <- function(path = NULL) {
   if (is.null(path)) {
-    path <- system.file("vtk.conf", package = "vtk", mustWork = TRUE)
+    path <- system.file("vtk.conf", package = "rvtk", mustWork = TRUE)
   }
   lines <- readLines(path, warn = FALSE)
   lines <- lines[nzchar(trimws(lines)) & !startsWith(trimws(lines), "#")]
