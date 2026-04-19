@@ -82,7 +82,9 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
+            -DVTK_MODULE_ENABLE_VTK_libproj=NO \
             -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
+            -DVTK_MODULE_USE_EXTERNAL_VTK_libproj=NO \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
