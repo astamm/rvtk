@@ -12,9 +12,9 @@ LdFlagsFile(path)
 \code{"src/vtk_libs.rsp"}.}
 }
 \value{
-Invisibly, the \verb{@path} string to embed in \code{Makevars}.  The string
-is also printed to stdout so that shell command substitution
-(\verb{$(Rscript -e "rvtk::LdFlagsFile(...)")}) captures it.
+Invisibly, the string to embed in \code{Makevars} (either \verb{@path} on
+Windows or the raw flags on other platforms).  The string is also printed
+to stdout so that shell command substitution captures it.
 }
 \description{
 On Windows the full set of VTK linker flags can exceed the 8 191-character

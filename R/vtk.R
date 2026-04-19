@@ -64,9 +64,12 @@ LdFlagsFile <- function(path) {
   flags <- read_vtk_conf()[["VTK_LIBS"]]
   if (.Platform$OS.type == "windows") {
     ## On Windows the flags string can exceed the 8191-char cmd.exe limit.
-    ## Write them to a response file and return the short @path reference.
+    ## Write them to a response file and return the short @file reference.
+    ## configure writes the file relative to the package root (e.g.
+    ## "src/vtk_libs.rsp"), but the linker runs from src/, so the @reference
+    ## must use only the basename.
     writeLines(flags, path)
-    result <- paste0("@", path)
+    result <- paste0("@", basename(path))
   } else {
     ## On macOS/Linux Apple ld and GNU ld do not reliably support @file at the
     ## compiler-driver level; return the flags directly (no length problem here).
