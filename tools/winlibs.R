@@ -37,6 +37,7 @@ url <- sprintf(
 )
 
 dest_dir <- file.path(
+  "inst",
   "windows",
   sprintf("vtk-%s-%s-%s", vtk_version, toolchain, arch)
 )
@@ -67,7 +68,7 @@ if (!dir.exists(dest_dir)) {
   )
 
   dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
-  unzip(tmp, exdir = "windows")
+  unzip(tmp, exdir = file.path("inst", "windows"))
   unlink(tmp)
 } else {
   message("Using cached VTK at: ", dest_dir)
@@ -118,20 +119,20 @@ vtk_libs <- paste(
 )
 
 ## ── Write inst/vtk.conf ───────────────────────────────────────────────────────
+## Store only the version and suffix — CppFlags() / LdFlags() will compute
+## the actual installed paths at runtime via system.file().
 dir.create(inst_dir, showWarnings = FALSE)
 conf_path <- file.path(inst_dir, "vtk.conf")
 writeLines(
   c(
     sprintf("VTK_VERSION=%s", vtk_version),
-    sprintf("VTK_CPPFLAGS=%s", vtk_cppflags),
-    sprintf("VTK_LIBS=%s", vtk_libs),
-    sprintf("VTK_INCLUDE_DIR=%s", include_dir)
+    sprintf("VTK_SUFFIX=%s", lib_suffix),
+    sprintf("VTK_SUBDIR=%s", basename(dest_dir))
   ),
   con = conf_path
 )
 
 message("Written: ", conf_path)
 message("  VTK_VERSION=", vtk_version)
-message("  VTK_CPPFLAGS=", vtk_cppflags)
-message("  VTK_LIBS=", vtk_libs)
-message("  VTK_INCLUDE_DIR=", include_dir)
+message("  VTK_SUFFIX=", lib_suffix)
+message("  VTK_SUBDIR=", basename(dest_dir))

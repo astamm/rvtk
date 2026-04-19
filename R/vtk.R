@@ -51,5 +51,43 @@ read_vtk_conf <- function(path = NULL) {
   parsed <- strsplit(lines, "=", fixed = TRUE)
   vals <- vapply(parsed, function(x) paste(x[-1], collapse = "="), character(1))
   keys <- vapply(parsed, `[[`, character(1), 1)
-  stats::setNames(as.list(vals), keys)
+  conf <- stats::setNames(as.list(vals), keys)
+
+  ## On Windows the VTK headers and libs live under inst/windows/ inside the
+  ## installed package.  Resolve them at runtime so the paths are always valid
+  ## regardless of where the package was installed.
+  if (.Platform$OS.type == "windows" && !is.null(conf[["VTK_SUBDIR"]])) {
+    subdir <- conf[["VTK_SUBDIR"]]
+    lib_sfx <- conf[["VTK_SUFFIX"]]
+    base_dir <- system.file(
+      file.path("windows", subdir),
+      package = "rvtk",
+      mustWork = TRUE
+    )
+    base_dir <- normalizePath(base_dir, winslash = "/")
+
+    ## Look for a versioned include sub-directory (e.g. vtk-9.5)
+    inc_root <- file.path(base_dir, "include")
+    vdirs <- list.dirs(inc_root, recursive = FALSE, full.names = FALSE)
+    vdirs <- grep("^vtk-[0-9]", vdirs, value = TRUE)
+    if (length(vdirs) > 0L) {
+      inc_dir <- file.path(inc_root, vdirs[length(vdirs)])
+    } else {
+      inc_dir <- file.path(inc_root, "vtk")
+    }
+
+    lib_dir <- file.path(base_dir, "lib")
+    conf[["VTK_CPPFLAGS"]] <- sprintf('-I"%s"', inc_dir)
+    conf[["VTK_LIBS"]] <- paste(
+      sprintf('-L"%s"', lib_dir),
+      sprintf("-lvtkIOLegacy%s", lib_sfx),
+      sprintf("-lvtkIOXML%s", lib_sfx),
+      sprintf("-lvtkIOCore%s", lib_sfx),
+      sprintf("-lvtkCommonCore%s", lib_sfx),
+      sprintf("-lvtkCommonDataModel%s", lib_sfx),
+      sprintf("-lvtksys%s", lib_sfx)
+    )
+  }
+
+  conf
 }
