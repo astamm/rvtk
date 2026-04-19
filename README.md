@@ -86,13 +86,11 @@ sed -e "s|@VTK_CPPFLAGS@|${VTK_CPPFLAGS}|g" \
     src/Makevars.in > src/Makevars
 ```
 
-<div class="sh">
-
+``` sh
 # configure.win (Windows)
-
-\#!/bin/sh ./configure
-
-</div>
+#!/bin/sh
+./configure
+```
 
 Make them executable:
 
@@ -105,6 +103,8 @@ chmod +x configure configure.win
 Add generated `Makevars` to `.gitignore` so it is not committed:
 
     src/Makevars
+
+## Querying the detected installation
 
 You can verify the detected installation at any time:
 
