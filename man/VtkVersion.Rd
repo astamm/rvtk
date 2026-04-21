@@ -12,3 +12,6 @@ A character string with the VTK version, e.g. \code{"9.3.1"}.
 \description{
 VTK version used by this package
 }
+\examples{
+VtkVersion()
+}

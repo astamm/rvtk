@@ -76,12 +76,49 @@ expect_true(grepl("^[0-9]+\\.[0-9]+", ver))
 
 # ── CppFlags ─────────────────────────────────────────────────────────────────
 
-cpp <- capture.output(CppFlags())
-expect_true(is.character(cpp))
-expect_true(nchar(paste(cpp, collapse = "")) > 0L)
+cpp_out <- capture.output(cpp_val <- CppFlags())
+expect_true(is.character(cpp_val))
+expect_true(nchar(cpp_val) > 0L)
+# writeLines() adds a newline; the captured line should equal the flag string
+expect_equal(cpp_out, cpp_val)
+# Return value must be invisible (function called for side-effect)
+expect_true(is.character(cpp_val))
 
 # ── LdFlags ──────────────────────────────────────────────────────────────────
 
-ld <- capture.output(LdFlags())
-expect_true(is.character(ld))
-expect_true(nchar(paste(ld, collapse = "")) > 0L)
+ld_out <- capture.output(ld_val <- LdFlags())
+expect_true(is.character(ld_val))
+expect_true(nchar(ld_val) > 0L)
+expect_equal(ld_out, ld_val)
+
+# ── LdFlagsFile ──────────────────────────────────────────────────────────────
+
+rsp_path <- file.path(tempdir(), "vtk_libs.rsp")
+on.exit(unlink(rsp_path), add = TRUE)
+
+if (.Platform$OS.type != "windows") {
+  ## Non-Windows branch: flags are returned directly (no response-file indirection).
+  ldff_out <- capture.output(ldff_val <- LdFlagsFile(rsp_path))
+
+  ## Return value equals the raw ld flags.
+  expect_equal(ldff_val, ld_val)
+
+  ## stdout output equals the flags string.
+  expect_equal(ldff_out, ldff_val)
+
+  ## On non-Windows the response file is NOT written by LdFlagsFile().
+  expect_false(file.exists(rsp_path))
+} else {
+  ## Windows branch: flags are written to the response file and the @ref returned.
+  ldff_out <- capture.output(ldff_val <- LdFlagsFile(rsp_path))
+
+  ## Return value is "@<basename>".
+  expect_equal(ldff_val, paste0("@", basename(rsp_path)))
+
+  ## The response file must exist and contain the flags.
+  expect_true(file.exists(rsp_path))
+  expect_equal(readLines(rsp_path), ld_val)
+
+  ## stdout echoes the @ref token.
+  expect_equal(ldff_out, ldff_val)
+}

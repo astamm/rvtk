@@ -13,7 +13,7 @@ LdFlagsFile(path)
 }
 \value{
 Invisibly, the string to embed in \code{Makevars} (either \verb{@path} on
-Windows or the raw flags on other platforms).  The string is also printed
+Windows or the raw flags on other platforms).  The string is also written
 to stdout so that shell command substitution captures it.
 }
 \description{
@@ -34,4 +34,8 @@ sed -e "s|@VTK_LIBS@|$\{VTK_LIBS\}|g" src/Makevars.in > src/Makevars
 On non-Windows platforms the flags are still written to \code{path} (so the
 workflow is identical on all platforms), and the returned \verb{@path} string
 is equally valid because GCC/Clang also support response files.
+}
+\examples{
+rsp <- file.path(tempdir(), "vtk_libs.rsp")
+ref <- LdFlagsFile(rsp)
 }

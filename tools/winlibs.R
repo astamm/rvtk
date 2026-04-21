@@ -29,35 +29,51 @@ dest_dir <- file.path(
 inst_dir <- "inst"
 
 ## ── Download and extract ─────────────────────────────────────────────────────
-if (!dir.exists(dest_dir)) {
-  message("Downloading VTK ", vtk_version, " (", toolchain, "/", arch, ")")
-  message("  URL: ", url)
+message("Downloading VTK ", vtk_version, " (", toolchain, "/", arch, ")")
+message("  URL: ", url)
 
-  tmp <- tempfile(fileext = ".zip")
-  tryCatch(
-    download.file(url, destfile = tmp, quiet = FALSE, mode = "wb"),
-    error = function(e) {
-      stop(
-        "Failed to download VTK libraries.\n",
-        "  URL: ",
-        url,
-        "\n",
-        "If you have a local VTK installation, set the VTK_DIR environment\n",
-        "variable to its prefix and re-install.\n",
-        "Pre-built binaries are available at\n",
-        "<https://github.com/astamm/rvtk/releases>.\n",
-        "Original error: ",
-        conditionMessage(e)
-      )
-    }
+tmp <- tempfile(fileext = ".zip")
+tryCatch(
+  download.file(url, destfile = tmp, quiet = FALSE, mode = "wb"),
+  error = function(e) {
+    stop(
+      "Failed to download VTK libraries.\n",
+      "  URL: ",
+      url,
+      "\n",
+      "If you have a local VTK installation, set the VTK_DIR environment\n",
+      "variable to its prefix and re-install.\n",
+      "Pre-built binaries are available at\n",
+      "<https://github.com/astamm/rvtk/releases>.\n",
+      "Original error: ",
+      conditionMessage(e)
+    )
+  }
+)
+
+## Extract to a temporary directory first, then copy to inst/windows/.
+## This avoids writing stale intermediate files to the package source tree.
+tmp_extract <- tempfile("rvtk_vtk_")
+dir.create(tmp_extract, recursive = TRUE, showWarnings = FALSE)
+unzip(tmp, exdir = tmp_extract)
+unlink(tmp)
+
+## Copy extracted content into inst/windows/, creating it if needed.
+dir.create(
+  file.path(inst_dir, "windows"),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+extracted <- list.files(tmp_extract, full.names = TRUE)
+for (item in extracted) {
+  file.copy(
+    item,
+    file.path(inst_dir, "windows"),
+    recursive = TRUE,
+    overwrite = TRUE
   )
-
-  dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
-  unzip(tmp, exdir = file.path("inst", "windows"))
-  unlink(tmp)
-} else {
-  message("Using cached VTK at: ", dest_dir)
 }
+unlink(tmp_extract, recursive = TRUE)
 
 ## ── Locate include and lib dirs inside the extracted archive ─────────────────
 include_root <- file.path(dest_dir, "include")

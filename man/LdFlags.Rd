@@ -7,8 +7,9 @@
 LdFlags()
 }
 \value{
-A single character string of linker flags, printed to stdout (so
-that it can be captured by \verb{$(shell ...)} in a \code{Makefile}).
+A single character string of linker flags, written to stdout (so
+that it can be captured by \verb{$(shell ...)} in a \code{Makefile}) and returned
+invisibly.
 }
 \description{
 Returns the linker flags (\code{-L} paths and \code{-l} library names) required to
@@ -18,4 +19,7 @@ package's \code{src/Makevars} or \code{src/Makevars.win}:
 \details{
 \if{html}{\out{<div class="sourceCode makefile">}}\preformatted{PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::LdFlags()")
 }\if{html}{\out{</div>}}
+}
+\examples{
+flags <- LdFlags()
 }

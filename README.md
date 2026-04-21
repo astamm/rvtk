@@ -113,7 +113,8 @@ chmod +x configure configure.win
 
 ### Step 3 — `.gitignore` / `.Rbuildignore`
 
-Add the generated files to `.gitignore` so they are not committed:
+Add the generated files to `.gitignore` and `.Rbuildignore` so they are
+not committed:
 
     src/Makevars
     src/vtk_libs.rsp

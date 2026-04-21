@@ -7,8 +7,9 @@
 CppFlags()
 }
 \value{
-A single character string of compiler flags, printed to stdout (so
-that it can be captured by \verb{$(shell ...)} in a \code{Makefile}).
+A single character string of compiler flags, written to stdout (so
+that it can be captured by \verb{$(shell ...)} in a \code{Makefile}) and returned
+invisibly.
 }
 \description{
 Returns the C pre-processor flags (\code{-I} paths) required to compile C++ code
@@ -18,4 +19,7 @@ package's \code{src/Makevars} or \code{src/Makevars.win}:
 \details{
 \if{html}{\out{<div class="sourceCode makefile">}}\preformatted{PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::CppFlags()")
 }\if{html}{\out{</div>}}
+}
+\examples{
+flags <- CppFlags()
 }

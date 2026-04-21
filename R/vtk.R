@@ -8,11 +8,16 @@
 #' PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::CppFlags()")
 #' ```
 #'
-#' @return A single character string of compiler flags, printed to stdout (so
-#'   that it can be captured by `$(shell ...)` in a `Makefile`).
+#' @return A single character string of compiler flags, written to stdout (so
+#'   that it can be captured by `$(shell ...)` in a `Makefile`) and returned
+#'   invisibly.
+#' @examples
+#' flags <- CppFlags()
 #' @export
 CppFlags <- function() {
-  cat(read_vtk_conf()[["VTK_CPPFLAGS"]])
+  flags <- read_vtk_conf()[["VTK_CPPFLAGS"]]
+  writeLines(flags)
+  invisible(flags)
 }
 
 #' Linker flags for packages linking against VTK
@@ -25,11 +30,16 @@ CppFlags <- function() {
 #' PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" -e "rvtk::LdFlags()")
 #' ```
 #'
-#' @return A single character string of linker flags, printed to stdout (so
-#'   that it can be captured by `$(shell ...)` in a `Makefile`).
+#' @return A single character string of linker flags, written to stdout (so
+#'   that it can be captured by `$(shell ...)` in a `Makefile`) and returned
+#'   invisibly.
+#' @examples
+#' flags <- LdFlags()
 #' @export
 LdFlags <- function() {
-  cat(read_vtk_conf()[["VTK_LIBS"]])
+  flags <- read_vtk_conf()[["VTK_LIBS"]]
+  writeLines(flags)
+  invisible(flags)
 }
 
 #' Write VTK linker flags to a response file
@@ -57,8 +67,11 @@ LdFlags <- function() {
 #'   `"src/vtk_libs.rsp"`.
 #'
 #' @return Invisibly, the string to embed in `Makevars` (either `@path` on
-#'   Windows or the raw flags on other platforms).  The string is also printed
+#'   Windows or the raw flags on other platforms).  The string is also written
 #'   to stdout so that shell command substitution captures it.
+#' @examples
+#' rsp <- file.path(tempdir(), "vtk_libs.rsp")
+#' ref <- LdFlagsFile(rsp)
 #' @export
 LdFlagsFile <- function(path) {
   flags <- read_vtk_conf()[["VTK_LIBS"]]
@@ -75,13 +88,15 @@ LdFlagsFile <- function(path) {
     ## compiler-driver level; return the flags directly (no length problem here).
     result <- flags
   }
-  cat(result)
+  writeLines(result)
   invisible(result)
 }
 
 #' VTK version used by this package
 #'
 #' @return A character string with the VTK version, e.g. `"9.3.1"`.
+#' @examples
+#' VtkVersion()
 #' @export
 VtkVersion <- function() {
   read_vtk_conf()[["VTK_VERSION"]]

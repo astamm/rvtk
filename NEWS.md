@@ -1,3 +1,27 @@
+# rvtk 0.1.2
+
+Re-submission addressing CRAN reviewer feedback on v0.1.1.
+
+### Changes
+
+* **DESCRIPTION:** Software names (`'VTK'`, `'Homebrew'`, `'pkg-config'`,
+  `'Rtools45'`) are now consistently quoted with single quotes in the Title,
+  Description, and SystemRequirements fields, per CRAN policy. Function calls
+  such as `rvtk::CppFlags()` are no longer wrapped in single quotes.
+* **`CppFlags()`, `LdFlags()`, `LdFlagsFile()`:** Replaced `cat()` with
+  `writeLines()` and added `invisible()` returns so functions behave in a more
+  idiomatic R style while still allowing shell command-substitution capture.
+* **`tools/winlibs.R`:** The Windows VTK zip is now extracted to a temporary
+  directory (`tempfile()`) before being copied into `inst/windows/`. This
+  avoids writing intermediate files to the package source tree (home filespace)
+  during installation.
+* **Examples:** All exported functions now have small, executable `@examples`
+  entries. `LdFlagsFile()` writes to `tempdir()` in its example.
+* **Tests:** Test suite expanded to 100% line coverage of the non-platform-
+  specific code paths on all platforms; Windows-specific branches
+  (`LdFlagsFile()` response-file path, `read_vtk_conf()` Windows resolver) are
+  exercised by the existing R-hub Windows CI jobs.
+
 # rvtk 0.1.1
 
 The planned CRAN submission of v0.1.0 was cancelled after downstream package

@@ -1,6 +1,6 @@
 Package: rvtk
-Title: Bindings for the Visualization Toolkit (VTK)
-Version: 0.1.1
+Title: Bindings for the Visualization Toolkit ('VTK')
+Version: 0.1.2
 Authors@R: c(
     person(
         given = "Aymeric",
@@ -9,30 +9,30 @@ Authors@R: c(
         email = "aymeric.stamm@cnrs.fr",
         comment = c(ORCID = "0000-0002-8725-3654")
     ))
-Description: Provides pre-compiled static VTK libraries and headers so that
+Description: Provides pre-compiled static 'VTK' libraries and headers so that
     downstream R packages can link against the Visualization Toolkit without
-    requiring users to install VTK manually. On all platforms the package
+    requiring users to install 'VTK' manually. On all platforms the package
     first honours a user-supplied 'VTK_DIR' environment variable. On macOS it
-    then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config
-    and well-known system prefixes ('/usr', '/usr/local'). If no suitable
-    system installation is found on macOS or Linux, pre-built static libraries
-    are downloaded automatically from the package's GitHub releases. On
-    Windows, pre-built static libraries compiled with the Rtools45
+    then tries 'Homebrew', followed by 'pkg-config'. On Linux it tries
+    'pkg-config' and well-known system prefixes ('/usr', '/usr/local'). If no
+    suitable system installation is found on macOS or Linux, pre-built static
+    libraries are downloaded automatically from the package's GitHub releases.
+    On Windows, pre-built static libraries compiled with the 'Rtools45'
     'x86_64-w64-mingw32.static.posix' toolchain are always downloaded from the
     same source. Note that on Windows the modules 'VTK_IONetCDF',
     'VTK_IOHDF', 'VTK_GeovisCore', and 'VTK_RenderingCore' are disabled
-    because 'netcdf' and 'libproj' are not available in the Rtools45
+    because 'netcdf' and 'libproj' are not available in the 'Rtools45'
     'static.posix' sysroot. Downstream packages can declare 'Imports: rvtk'
     and obtain the correct compiler and linker flags at install time via
-    'rvtk::CppFlags()' and 'rvtk::LdFlagsFile()'.
+    rvtk::CppFlags() and rvtk::LdFlagsFile().
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 URL: https://github.com/astamm/rvtk
 BugReports: https://github.com/astamm/rvtk/issues
-SystemRequirements: On macOS and Linux, VTK (>= 9.1.0) is used when already
-    installed (via Homebrew, pkg-config, or standard prefixes); otherwise
+SystemRequirements: On macOS and Linux, 'VTK' (>= 9.1.0) is used when already
+    installed (via 'Homebrew', 'pkg-config', or standard prefixes); otherwise
     pre-built static libraries are downloaded automatically from
     <https://github.com/astamm/rvtk/releases>. On Windows, pre-built static
     libraries are always downloaded automatically from the same URL.
