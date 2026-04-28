@@ -7,7 +7,13 @@
     if (
       !is.null(vtk_bin_dir) && nzchar(vtk_bin_dir) && file.exists(vtk_bin_dir)
     ) {
-      base::addDLLDirectory(vtk_bin_dir)
+      add_dll_dir <- get0("addDLLDirectory", envir = asNamespace("base"))
+      if (!is.null(add_dll_dir)) {
+        tryCatch(add_dll_dir(vtk_bin_dir), error = function(e) NULL)
+      } else {
+        # Fallback for R < 4.0: prepend to PATH
+        Sys.setenv(PATH = paste(vtk_bin_dir, Sys.getenv("PATH"), sep = ";"))
+      }
     }
 
     ## 2. VTK DLLs bundled inside this package (pre-built / winlibs.R path)
