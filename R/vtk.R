@@ -172,7 +172,13 @@ read_vtk_conf <- function(
     all_libs_full <- filter_libs(all_libs_full, modules)
     lib_args <- paste(all_libs_full, collapse = " ")
     if (sysname == "Darwin") {
-      conf[["VTK_LIBS"]] <- paste("-Wl,-all_load", lib_args)
+      ## Do NOT use `-all_load`: it force-loads every object file from the
+      ## selected static libs, dragging in definitions (e.g.
+      ## `vtkCellGridReader::New()`) whose module is not in the requested set,
+      ## which then fail to resolve at `dlopen()` time. Rely on the default
+      ## linker resolution instead, which only pulls the objects actually needed
+      ## (matching the ELF `--start-group` behaviour on Linux).
+      conf[["VTK_LIBS"]] <- lib_args
     } else {
       conf[["VTK_LIBS"]] <- paste(
         "-Wl,--start-group",
@@ -246,11 +252,11 @@ read_vtk_conf <- function(
         collapse = " "
       )
       if (sysname == "Darwin") {
-        ## Cross-compiling on macOS: use -all_load (Apple ld syntax) and omit
-        ## the Windows-only -lgdi32.
+        ## Cross-compiling on macOS: omit -all_load for the same reason as the
+        ## Unix prebuilt path (force-loading can drag in symbols absent from the
+        ## selected modules) and omit the Windows-only -lgdi32.
         conf[["VTK_LIBS"]] <- paste(
           sprintf('-L"%s"', lib_dir),
-          "-Wl,-all_load",
           lib_flags
         )
       } else {

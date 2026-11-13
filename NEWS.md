@@ -71,6 +71,20 @@
   )")"
   ```
 
+* **macOS static link no longer uses `-Wl,-all_load`.**
+  The pre-built static bundle (and the Windows-cross-compile path on macOS)
+  previously linked with `-all_load`, which force-loads *every* object file from
+  each selected static library. When a downstream package restricts linking to a
+  subset of VTK modules, `-all_load` could still drag in an object file from a
+  kept library that references a symbol whose defining module is not in the
+  subset (e.g. `vtkCellGridReader::New()` from a module such as `vtkIOCellGrid`),
+  causing an undefined-symbol failure at `dlopen()` time on macOS's flat
+  namespace. The default linker resolution is now used instead, which only pulls
+  the objects actually needed — matching the ELF `--start-group` behaviour on
+  Linux. Affects packages such as **riot** that [failed to install / load on
+  macOS CI](https://github.com/tractoverse/tractoverse/actions) with
+  `symbol not found in flat namespace '__ZN17vtkCellGridReader3NewEv'`.
+
 ### Internal
 
 * New internal helper `filter_libs()` implements the module-name matching used
