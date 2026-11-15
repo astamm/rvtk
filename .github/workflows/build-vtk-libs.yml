@@ -84,6 +84,9 @@ jobs:
           mkdir -p build install
           INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this headless build.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
@@ -103,7 +106,8 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO \
+            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
             -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
             -DVTK_MODULE_ENABLE_VTK_libproj=NO \
             -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
@@ -203,6 +207,9 @@ jobs:
           mkdir -p build install
           INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this headless build.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
@@ -224,7 +231,8 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO \
+            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
             -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
             -DVTK_MODULE_ENABLE_VTK_libproj=NO \
             -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
@@ -632,6 +640,9 @@ jobs:
               apk add --no-cache cmake ninja g++ make curl linux-headers
               mkdir -p build install
               cd build
+              # VTK_IOGeometry drags in RenderingCore; keep this headless build
+              # free of the windowing layer (RenderingUI would pull in
+              # Wayland/X11, which the bare Alpine container does not provide).
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
@@ -649,6 +660,7 @@ jobs:
                 -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
                 -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
                 -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
+                -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                 -DCMAKE_C_FLAGS='-fPIC' \
@@ -770,7 +782,11 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO
           -DVTK_MODULE_ENABLE_VTK_IOHDF=NO
           -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO
-          -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this static/headless build.
+          -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES
+          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           -DVTK_MODULE_ENABLE_VTK_netcdf=NO
           -DVTK_MODULE_ENABLE_VTK_libproj=NO
           -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF
@@ -784,8 +800,13 @@ jobs:
           # Built via `docker run alpine:3.22` on the CI runner (not a container: job,
           # which would fail because the GitHub Actions Node.js runtime is glibc-linked).
           # X11 and OpenGL rendering are not available on the headless Alpine runner:
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # auto-enables the RenderingUI interactor, which needs Wayland via
+          # vtk_module_find_package(WAYLAND) — unavailable in the bare Alpine
+          # container — so disable RenderingUI explicitly.
           -DVTK_USE_X=OFF
           -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
+          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           ```
           NOTES
           # Expand $VER / $MINOR placeholders (heredoc kept literal to avoid yaml issues)
