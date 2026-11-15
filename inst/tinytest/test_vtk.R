@@ -113,7 +113,7 @@ res_win_darwin <- rvtk:::read_vtk_conf(
 
 expect_true(grepl("-I", res_win_darwin[["VTK_CPPFLAGS"]]))
 expect_true(grepl("vtk-9\\.5", res_win_darwin[["VTK_CPPFLAGS"]]))
-expect_true(grepl("-Wl,-all_load", res_win_darwin[["VTK_LIBS"]]))
+expect_false(grepl("-all_load", res_win_darwin[["VTK_LIBS"]]))
 expect_true(grepl("vtkFoo", res_win_darwin[["VTK_LIBS"]]))
 
 # ── read_vtk_conf: Windows block – versioned include dir (sysname Windows) ───
@@ -220,7 +220,7 @@ res_prebuilt_darwin <- rvtk:::read_vtk_conf(
 
 expect_true(grepl("-isystem", res_prebuilt_darwin[["VTK_CPPFLAGS"]]))
 expect_true(grepl("vtk-9\\.5", res_prebuilt_darwin[["VTK_CPPFLAGS"]]))
-expect_true(grepl("-Wl,-all_load", res_prebuilt_darwin[["VTK_LIBS"]]))
+expect_false(grepl("-all_load", res_prebuilt_darwin[["VTK_LIBS"]]))
 expect_true(grepl("vtkFoo", res_prebuilt_darwin[["VTK_LIBS"]]))
 
 # ── read_vtk_conf: Unix prebuilt – versioned include dir (Linux) ──────────────
