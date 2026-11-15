@@ -12,7 +12,7 @@
 ## R's .onLoad hook (R/zzz.R) can prepend that directory to PATH, making the
 ## DLLs visible to all subsequently loaded packages that link against VTK.
 
-vtk_version <- "9.5.2"
+vtk_version <- "9.7.2"
 
 link_type <- Sys.getenv("VTK_LINK_TYPE", unset = "static")
 if (!link_type %in% c("static", "shared")) {

@@ -17,7 +17,7 @@ on:
         default: false
 
 env:
-  VTK_VERSION: '9.5.2'
+  VTK_VERSION: '9.7.2'
 
 jobs:
   # ── Windows: x86_64-w64-mingw32.static.posix (Rtools45 R-package toolchain) ─
@@ -94,6 +94,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -209,6 +215,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -296,6 +308,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -370,6 +388,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -445,6 +469,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -522,6 +552,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -606,6 +642,12 @@ jobs:
                 -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
                 -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
                 -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+                -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
                 -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -710,6 +752,12 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_IOCore=YES
           -DVTK_MODULE_ENABLE_VTK_CommonCore=YES
           -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES
+          -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ```
 

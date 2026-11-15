@@ -24,8 +24,8 @@ permissions: read-all
 # Must match the version used by rvtk's own pre-built archive.
 # ---------------------------------------------------------------------------
 env:
-  VTK_VERSION: "9.5.2"
-  VTK_SHORT:   "9.5"       # X.Y used for the include directory vtk-X.Y
+  VTK_VERSION: "9.7.2"
+  VTK_SHORT:   "9.7"       # X.Y used for the include directory vtk-X.Y
 
 jobs:
   downstream-check:
@@ -92,7 +92,7 @@ jobs:
         with:
           path: ~/vtk-shared-install
           # Bump the trailing integer when the CMake options change.
-          key: vtk-${{ env.VTK_VERSION }}-shared-${{ runner.os }}-${{ runner.arch }}-v3
+          key: vtk-${{ env.VTK_VERSION }}-shared-${{ runner.os }}-${{ runner.arch }}-v4
 
       - name: Install build tools for VTK (Linux)
         if: runner.os == 'Linux' && matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
@@ -128,6 +128,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: Build and install VTK (shared libs)
