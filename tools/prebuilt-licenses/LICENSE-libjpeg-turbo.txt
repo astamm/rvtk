@@ -1,0 +1,104 @@
+libjpeg-turbo (VTK bundled JPEG library) - IJG / Modified BSD / zlib
+====================================================================
+
+libjpeg-turbo is VTK's bundled JPEG codec (headers under
+ThirdParty/jpeg/vtkjpeg; built as libvtkjpeg). It is redistributed inside the
+pre-built VTK libraries shipped by the rvtk project (extracted into
+inst/prebuilt from the vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the "Libjpeg-turbo
+Licenses" section of the upstream libjpeg-turbo LICENSE.md
+(source: https://github.com/libjpeg-turbo/libjpeg-turbo, BSD 3-clause +
+zlib/IJG; rendered for binary redistribution as required by its IJG clause 2).
+
+------------------------------------------------------------------------------
+
+libjpeg-turbo is covered by three compatible BSD-style open source licenses:
+
+- The IJG (Independent JPEG Group) License, which is listed in
+  README.ijg
+
+  This license applies to the libjpeg API library and associated programs
+  (any code inherited from libjpeg, and any modifications to that code.)
+
+- The Modified (3-clause) BSD License, which is listed below
+
+  This license covers the TurboJPEG API library and associated programs, as
+  well as the build system.
+
+- The zlib License
+
+  This license is a subset of the other two, and it covers the libjpeg-turbo
+  SIMD extensions.
+
+
+Complying with the libjpeg-turbo Licenses
+-----------------------------------------
+
+This section provides a roll-up of the libjpeg-turbo licensing terms, to the
+best of our understanding.
+
+1.  If you are distributing a modified version of the libjpeg-turbo source,
+    then:
+
+    1.  You cannot alter or remove any existing copyright or license notices
+        from the source.
+
+    2.  You must add your own copyright notice to the header of each source
+        file you modified, so others can tell that you modified that file (if
+        there is not an existing copyright header in that file, then you can
+        simply add a notice stating that you modified the file.)
+
+    3.  You must include the IJG README file, and you must not alter any of the
+        copyright or license text in that file.
+
+2.  If you are distributing only libjpeg-turbo binaries without the source, or
+    if you are distributing an application that statically links with
+    libjpeg-turbo, then:
+
+    1.  Your product documentation must include a message stating:
+
+        This software is based in part on the work of the Independent JPEG
+        Group.
+
+    2.  If your binary distribution includes or uses the TurboJPEG API, then
+        your product documentation must include the text of the Modified BSD
+        License (see below).
+
+3.  You cannot use the name of the IJG or The libjpeg-turbo Project or the
+    contributors thereof in advertising, publicity, etc.
+
+4.  The IJG and The libjpeg-turbo Project do not warrant libjpeg-turbo to be
+    free of defects, nor do they accept any liability for undesirable
+    consequences resulting from your use of the software.
+
+
+The Modified (3-clause) BSD License
+-----------------------------------
+
+Copyright (C)2009-2021 D. R. Commander.  All Rights Reserved.
+Copyright (C)2015 Viktor Szathmary.  All Rights Reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+- Neither the name of the libjpeg-turbo Project nor the names of its
+  contributors may be used to endorse or promote products derived from this
+  software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS",
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
