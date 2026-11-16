@@ -220,7 +220,12 @@ jobs:
           #
           # This is a 9.7.2-specific regression: 9.5.2 compiled these headers
           # without the dllimport branch active, so no defines were needed.
-          # verdict is C++ (VERDICT_SHARED_LIB), jpeg is C (EXTERN/dllexport).
+          # Bundled libs needing the define in the shared build (from CI):
+          #   verdict - C++, verdict.h (VERDICT_SHARED_LIB) -> -Dverdict_EXPORTS
+          #   jpeg    - C,    jmorecfg.h (jpeg_EXPORTS)      -> -Djpeg_EXPORTS
+          #   tiff    - C,    tiff.h (tiff_EXPORTS)          -> -Dtiff_EXPORTS
+          # Other bundled libs linked fine without a define. Each is scoped to the
+          # language it compiles as (C vs C++).
           export PATH="/x86_64-w64-mingw32.static.posix/bin:${PATH}"
           TCHAIN=/x86_64-w64-mingw32.static.posix/bin
           export CC="${TCHAIN}/gcc"
@@ -237,7 +242,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS" \
+            -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
             -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DVTK_BUILD_ALL_MODULES=OFF \
