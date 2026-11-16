@@ -52,9 +52,9 @@ The `configure.win` script also tries each strategy in order:
 > **Windows — disabled modules.** The Rtools45 `static.posix` sysroot
 > does not provide `netcdf` or `libproj`. Consequently, the following
 > VTK modules are **disabled** in the Windows pre-built libraries:
-> `VTK_IONetCDF`, `VTK_IOHDF`, `VTK_GeovisCore`, `VTK_RenderingCore`.
-> Downstream packages that require any of these modules cannot currently
-> be built on Windows.
+> `VTK_IONetCDF`, `VTK_IOHDF`, `VTK_GeovisCore`. Downstream packages
+> that require any of these modules cannot currently be built on
+> Windows.
 
 ### Platform and VTK-strategy compatibility
 
@@ -156,6 +156,7 @@ The pre-built bundles shipped with **rvtk** are built with
 | `VTK_IOLegacy` | Legacy VTK file format reader/writer (`.vtk`) |
 | `VTK_IOXML` | XML-based VTK file formats (`.vtp`, `.vtu`, `.vts`, …) |
 | `VTK_IOCore` | Core I/O infrastructure shared by all I/O modules |
+| `VTK_IOGeometry` | Readers/writers for common geometric formats (`.ply`, `.stl`, …) |
 | `VTK_FiltersCore` | Core algorithmic filters (threshold, transform points, …) |
 | `VTK_FiltersGeneral` | General-purpose filters (append, clip, decimate, …) |
 | `VTK_FiltersGeometry` | Filters that modify or convert dataset geometry |
@@ -169,13 +170,13 @@ Typical transitive dependencies pulled in automatically include
 `VTK_CommonSystem`, `VTK_CommonTransforms`, `VTK_IOXMLParser`, and
 `vtksys`.
 
-On Windows the modules `VTK_IONetCDF`, `VTK_IOHDF`, `VTK_GeovisCore`,
-and `VTK_RenderingCore` are additionally **disabled** because `netcdf`
-and `libproj` are not available in the Rtools45 `static.posix` sysroot.
+On Windows the modules `VTK_IONetCDF`, `VTK_IOHDF`, and `VTK_GeovisCore`
+are additionally **disabled** because `netcdf` and `libproj` are not
+available in the Rtools45 `static.posix` sysroot.
 
 To link against only the modules your package needs — which avoids
-pulling in unwanted symbols, such as AppKit/Cocoa symbols from rendering
-modules on macOS static bundles — pass the `modules` argument to
+pulling in object files that reference symbols from modules outside the
+selected set on macOS static bundles — pass the `modules` argument to
 `LdFlagsFile()` (or `LdFlags()`):
 
 ``` sh
@@ -190,6 +191,10 @@ shared libraries.
 ## Installation
 
 ``` r
+# from CRAN
+install.packages("rvtk")
+
+# development version
 # install.packages("pak")
 pak::pak("astamm/rvtk")
 ```
@@ -223,7 +228,7 @@ This will:
 
 The `modules` argument lets you restrict linking to only the VTK modules
 your package actually needs (strongly recommended on macOS to avoid
-pulling in AppKit/Cocoa symbols from the static bundle):
+pulling in symbols from modules that are not in the selected set):
 
 ``` r
 rvtk::use_rvtk(

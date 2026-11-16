@@ -33,6 +33,20 @@
 #' @return Invisibly, the normalised path to the package root. Called
 #'   primarily for its side effects.
 #'
+#' @examples
+#' # Configure a minimal package in a temporary directory
+#' pkg <- file.path(tempdir(), "mypkg")
+#' dir.create(pkg, recursive = TRUE)
+#' writeLines(c(
+#'   "Package: mypkg",
+#'   "Title: My Package",
+#'   "Description: A package that links against VTK.",
+#'   "Version: 0.0.1"
+#' ), file.path(pkg, "DESCRIPTION"))
+#' use_rvtk(path = pkg)
+#' list.files(pkg, recursive = TRUE)
+#' unlink(pkg, recursive = TRUE)
+#'
 #' @seealso [CppFlags()], [LdFlagsFile()]
 #' @export
 use_rvtk <- function(

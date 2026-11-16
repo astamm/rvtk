@@ -1,4 +1,4 @@
-# rvtk 0.3.0
+# rvtk 0.2.0
 
 ### New features
 
@@ -49,7 +49,8 @@
   downstream developers restrict linking to only the VTK modules they need,
   avoiding unintended symbol drag-in (important on macOS static bundles).
 
-  Uses **cli** for formatted console output (listed in `Imports`).
+  Uses **cli** for formatted console output when available (it is an optional
+  dependency, listed in `Suggests`).
 
 * **Linux x86_64 musl (Alpine Linux) support.** The pre-built static fallback
   now provides a `vtk-X.Y.Z-linux-musl-x86_64.tar.gz` archive built inside an

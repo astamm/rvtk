@@ -50,6 +50,21 @@ After running \code{use_rvtk()} the downstream package is fully configured: VTK
 compiler and linker flags are resolved automatically at \verb{R CMD INSTALL} time
 on all platforms without any shell \code{configure} / \code{configure.win} scripts.
 }
+\examples{
+# Configure a minimal package in a temporary directory
+pkg <- file.path(tempdir(), "mypkg")
+dir.create(pkg, recursive = TRUE)
+writeLines(c(
+  "Package: mypkg",
+  "Title: My Package",
+  "Description: A package that links against VTK.",
+  "Version: 0.0.1"
+), file.path(pkg, "DESCRIPTION"))
+use_rvtk(path = pkg)
+list.files(pkg, recursive = TRUE)
+unlink(pkg, recursive = TRUE)
+
+}
 \seealso{
 \code{\link[=CppFlags]{CppFlags()}}, \code{\link[=LdFlagsFile]{LdFlagsFile()}}
 }
