@@ -198,6 +198,16 @@ jobs:
           # -static-libstdc++ flags fold the C++ runtime into each DLL so the
           # resulting DLLs have no dependency on external MSYS2 runtime DLLs
           # (libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll).
+          #
+          # WINDOWS_EXPORT_ALL_SYMBOLS=ON (GNU/MinGW -> per-target .def): without
+          # it, the verdict metric functions are declared __declspec(dllimport)
+          # (VERDICT_SHARED_LIB is defined in a shared build) while their
+          # definitions stay plain globals, so sibling V_*Metric.cpp objects emit
+          # __imp_* references that GNU ld's default auto-export does not back
+          # with __imp_ thunks -> the libvtkverdict-9.7.dll link fails with
+          # "undefined reference to `__imp__ZN10vtkverdict...tet_volume'". Forcing
+          # the .def export supplies those thunks (9.5.2 happened to avoid
+          # dllimport; the 9.7.2 third-party module rework no longer does).
           export PATH="/x86_64-w64-mingw32.static.posix/bin:${PATH}"
           TCHAIN=/x86_64-w64-mingw32.static.posix/bin
           export CC="${TCHAIN}/gcc"
@@ -216,6 +226,7 @@ jobs:
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_C_FLAGS="-fcommon" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DCMAKE_WINDOWS_EXPORT_ALL_SYMBOLS=ON \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
             -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
