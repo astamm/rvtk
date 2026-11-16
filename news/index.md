@@ -1,5 +1,40 @@
 # Changelog
 
+## rvtk 0.3.0
+
+#### New features
+
+- **VTK bumped from 9.5.2 to 9.7.2.** The pre-built static libraries
+  shipped via GitHub Releases and the Windows build are built against
+  VTK 9.7.2. The `configure` script now also probes `vtk-9.7` and
+  `vtk-9.6` before earlier `pkg-config` versions, and `tools/winlibs.R`
+  downloads the 9.7.2 build.
+
+- **Six additional VTK modules bundled by default.** The pre-built
+  bundles now explicitly enable `VTK_IOGeometry`, `VTK_FiltersCore`,
+  `VTK_FiltersGeneral`, `VTK_FiltersGeometry`, `VTK_FiltersModeling`,
+  and `VTK_FiltersExtraction` (closing issue
+  [\#5](https://github.com/astamm/rvtk/issues/5)). These are also added
+  to the default `modules` set used by
+  [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+  and linked in `configure`’s `vtk_build_flags()`.
+
+- **Test coverage raised from ~48% to 100%.** New tinytest coverage
+  exercises the `filter_libs()` module filtering and every branch of
+  [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+  and its internals (`rvtk_use_package`, `rvtk_write_file`,
+  `rvtk_use_git_ignore`, `rvtk_rel_path`), including the base-R fallback
+  messaging branches. The package now reports 100% line coverage under
+  [`covr::package_coverage()`](https://covr.r-lib.org/reference/package_coverage.html).
+
+#### Internal changes
+
+- The optional-`cli`/interactive prompting decisions in
+  [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+  are now routed through small internal wrappers (`rvtk_has_cli()`,
+  `rvtk_interactive()`, `rvtk_readline()`) so the messaging and
+  overwrite branches can be unit-tested.
+
 ## rvtk 0.2.0
 
 #### New features

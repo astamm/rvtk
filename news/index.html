@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,6 +37,19 @@
       <small>Source: <a href="https://github.com/astamm/rvtk/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.3.0" id="rvtk-030">rvtk 0.3.0<a class="anchor" aria-label="anchor" href="#rvtk-030"></a></h2>
+<div class="section level4">
+<h4 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h4>
+<ul><li><p><strong>VTK bumped from 9.5.2 to 9.7.2.</strong> The pre-built static libraries shipped via GitHub Releases and the Windows build are built against VTK 9.7.2. The <code>configure</code> script now also probes <code>vtk-9.7</code> and <code>vtk-9.6</code> before earlier <code>pkg-config</code> versions, and <code>tools/winlibs.R</code> downloads the 9.7.2 build.</p></li>
+<li><p><strong>Six additional VTK modules bundled by default.</strong> The pre-built bundles now explicitly enable <code>VTK_IOGeometry</code>, <code>VTK_FiltersCore</code>, <code>VTK_FiltersGeneral</code>, <code>VTK_FiltersGeometry</code>, <code>VTK_FiltersModeling</code>, and <code>VTK_FiltersExtraction</code> (closing issue <a href="https://github.com/astamm/rvtk/issues/5" class="external-link">#5</a>). These are also added to the default <code>modules</code> set used by <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> and linked in <code>configure</code>’s <code>vtk_build_flags()</code>.</p></li>
+<li><p><strong>Test coverage raised from ~48% to 100%.</strong> New tinytest coverage exercises the <code>filter_libs()</code> module filtering and every branch of <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> and its internals (<code>rvtk_use_package</code>, <code>rvtk_write_file</code>, <code>rvtk_use_git_ignore</code>, <code>rvtk_rel_path</code>), including the base-R fallback messaging branches. The package now reports 100% line coverage under <code><a href="https://covr.r-lib.org/reference/package_coverage.html" class="external-link">covr::package_coverage()</a></code>.</p></li>
+</ul></div>
+<div class="section level4">
+<h4 id="internal-changes-0-3-0">Internal changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-3-0"></a></h4>
+<ul><li>The optional-<code>cli</code>/interactive prompting decisions in <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> are now routed through small internal wrappers (<code>rvtk_has_cli()</code>, <code>rvtk_interactive()</code>, <code>rvtk_readline()</code>) so the messaging and overwrite branches can be unit-tested.</li>
+</ul></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="rvtk-020">rvtk 0.2.0<a class="anchor" aria-label="anchor" href="#rvtk-020"></a></h2>
 <div class="section level4">

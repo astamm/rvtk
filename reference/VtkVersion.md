@@ -16,5 +16,5 @@ A character string with the VTK version, e.g. `"9.3.1"`.
 
 ``` r
 VtkVersion()
-#> [1] "9.5.2"
+#> [1] "9.7.2"
 ```

@@ -24,5 +24,5 @@ returned invisibly.
 
 ``` r
 flags <- CppFlags()
-#> -isystem/home/runner/work/_temp/Library/rvtk/prebuilt/include/vtk-9.5
+#> -isystem/home/runner/work/_temp/Library/rvtk/prebuilt/include/vtk-9.7
 ```

@@ -34,9 +34,11 @@ VTK compiler and linker flags are resolved automatically at
 
 ``` r
 use_rvtk(
-  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkCommonCore",
-    "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc",
-    "vtkCommonSystem", "vtkCommonTransforms", "vtksys"),
+  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
+    "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry", "vtkFiltersModeling",
+    "vtkFiltersExtraction", "vtkCommonCore", "vtkCommonDataModel",
+    "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
+    "vtkCommonTransforms", "vtksys"),
   path = "."
 )
 ```
@@ -50,8 +52,8 @@ use_rvtk(
   [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
   in the generated `tools/configure.R`, restricting linking to only the
   modules the downstream package needs. Defaults to a standard set
-  covering common I/O and core modules (the same set used by the
-  reference implementation in <https://github.com/tractoverse/riot>).
+  covering the common I/O, filtering, core, and data-model modules
+  bundled with **rvtk**.
 
 - path:
 

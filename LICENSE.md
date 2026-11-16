@@ -59,3 +59,34 @@ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
 LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+## Third-party libraries
+
+The pre-built VTK libraries distributed with this package (and as GitHub
+release archives) statically link the following third-party libraries,
+which are bundled inside VTK and redistributed under their own
+permissive licenses. The notices below are reproduced so that each
+library’s binary-redistribution clause is satisfied; the same notices
+ship alongside the pre-built binaries in the `licenses/` directory of
+every release archive and in `inst/prebuilt/licenses/` of the installed
+package.
+
+### Verdict (VTK bundled mesh-quality engine)
+
+Verdict is covered by a BSD 3-Clause license (© National Technology &
+Engineering Solutions of Sandia, LLC). Its full notice is in
+`licenses/LICENSE-vtkverdict.txt` within the pre-built tree.
+
+### libjpeg-turbo (VTK bundled JPEG codec)
+
+libjpeg-turbo is covered by three compatible BSD-style licenses: the IJG
+(Independent JPEG Group) License, the Modified (3-clause) BSD License,
+and the zlib License. This software is based in part on the work of the
+Independent JPEG Group. The full notices are in
+`licenses/LICENSE-libjpeg-turbo.txt` within the pre-built tree.
+
+### libtiff (VTK bundled TIFF codec)
+
+libtiff is covered by a BSD-style license (© 1988-1997 Sam Leffler; ©
+1991-1997 Silicon Graphics, Inc.). Its full notice is in
+`licenses/LICENSE-libtiff.txt` within the pre-built tree.

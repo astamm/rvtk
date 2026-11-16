@@ -10,8 +10,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bindings for the Visualization Toolkit (VTK)">
-<meta name="description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
-<meta property="og:description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
+<meta name="description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_FiltersCore, VTK_FiltersGeneral, VTK_FiltersGeometry, VTK_FiltersModeling, VTK_FiltersExtraction, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
+<meta property="og:description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_FiltersCore, VTK_FiltersGeneral, VTK_FiltersGeometry, VTK_FiltersModeling, VTK_FiltersExtraction, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
 <meta property="og:image" content="https://astamm.github.io/rvtk/logo.png">
 </head>
 <body>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,7 +74,7 @@
 <li>
 <a href="https://brew.sh/" class="external-link">Homebrew</a> (<code>brew --prefix vtk</code>) — macOS only.</li>
 <li>
-<code>pkg-config</code> (<code>vtk-9.5</code>, <code>vtk-9.4</code>, …, <code>vtk-9.1</code>).</li>
+<code>pkg-config</code> (<code>vtk-9.7</code>, <code>vtk-9.6</code>, <code>vtk-9.5</code>, …, <code>vtk-9.1</code>).</li>
 <li>Well-known system prefixes (<code>/usr</code>, <code>/usr/local</code>) — Linux only.</li>
 <li>Download pre-built static libraries from <a href="https://github.com/astamm/rvtk/releases" class="external-link uri">https://github.com/astamm/rvtk/releases</a> as a fallback.</li>
 </ol>
@@ -224,7 +224,7 @@
 <p>When <strong>rvtk</strong> is installed with <code>VTK_LINK_TYPE=shared</code> (or when a system installation with only shared libs is detected), downstream packages link against VTK <code>.dll.a</code> import libraries and load the VTK DLLs from rvtk’s <code>inst/vtk-dlls/</code> at run time.</p>
 <p>This has two implications that downstream package authors should communicate to their users:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>rvtk and the downstream package must be kept in sync.</strong> The downstream package is compiled against the specific VTK version (and DLL ABI) shipped with the rvtk version installed at compile time. If rvtk is later updated to a new VTK version (e.g. 9.5 → 9.6), the downstream package must be <strong>recompiled</strong> against the new rvtk to match the new DLL names (e.g. <code>vtkCommonCore-9.6.dll</code>). Binary packages compiled against an older rvtk will fail to load.</p></li>
+<li><p><strong>rvtk and the downstream package must be kept in sync.</strong> The downstream package is compiled against the specific VTK version (and DLL ABI) shipped with the rvtk version installed at compile time. If rvtk is later updated to a new VTK version (e.g. 9.7 → 9.8), the downstream package must be <strong>recompiled</strong> against the new rvtk to match the new DLL names (e.g. <code>vtkCommonCore-9.8.dll</code>). Binary packages compiled against an older rvtk will fail to load.</p></li>
 <li><p><strong>DLL footprint grows in rvtk only.</strong> The VTK DLLs are staged inside <strong>rvtk</strong>’s own <code>inst/vtk-dlls/</code> directory. Downstream packages do <strong>not</strong> receive a copy — they rely on rvtk’s <code>.onLoad</code> hook prepending that directory to <code>PATH</code> at run time. Each additional VTK module added to the pre-built DLL set therefore increases the install-time and CRAN size cost of <strong>rvtk</strong> only, not of downstream packages. To request additional modules, open an issue on the rvtk repository.</p></li>
 </ol>
 <blockquote>
@@ -238,6 +238,10 @@
 </h2>
 <p>The pre-built bundles shipped with <strong>rvtk</strong> are built with <code>VTK_BUILD_ALL_MODULES=OFF</code> and the following modules explicitly enabled (VTK resolves and includes all transitive dependencies automatically):</p>
 <table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
 <thead><tr>
 <th>Module</th>
 <th>Purpose</th>
@@ -254,6 +258,26 @@
 <tr>
 <td><code>VTK_IOCore</code></td>
 <td>Core I/O infrastructure shared by all I/O modules</td>
+</tr>
+<tr>
+<td><code>VTK_FiltersCore</code></td>
+<td>Core algorithmic filters (threshold, transform points, …)</td>
+</tr>
+<tr>
+<td><code>VTK_FiltersGeneral</code></td>
+<td>General-purpose filters (append, clip, decimate, …)</td>
+</tr>
+<tr>
+<td><code>VTK_FiltersGeometry</code></td>
+<td>Filters that modify or convert dataset geometry</td>
+</tr>
+<tr>
+<td><code>VTK_FiltersModeling</code></td>
+<td>Filters for geometric modeling and meshing</td>
+</tr>
+<tr>
+<td><code>VTK_FiltersExtraction</code></td>
+<td>Filters that extract subsets of data</td>
 </tr>
 <tr>
 <td><code>VTK_CommonCore</code></td>
@@ -342,6 +366,12 @@
 <span>  <span class="st">"vtkIOXML"</span>,</span>
 <span>  <span class="st">"vtkIOXMLParser"</span>,</span>
 <span>  <span class="st">"vtkIOCore"</span>,</span>
+<span>  <span class="st">"vtkIOGeometry"</span>,</span>
+<span>  <span class="st">"vtkFiltersCore"</span>,</span>
+<span>  <span class="st">"vtkFiltersGeneral"</span>,</span>
+<span>  <span class="st">"vtkFiltersGeometry"</span>,</span>
+<span>  <span class="st">"vtkFiltersModeling"</span>,</span>
+<span>  <span class="st">"vtkFiltersExtraction"</span>,</span>
 <span>  <span class="st">"vtkCommonCore"</span>,</span>
 <span>  <span class="st">"vtkCommonDataModel"</span>,</span>
 <span>  <span class="st">"vtkCommonExecutionModel"</span>,</span>
@@ -375,9 +405,9 @@
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/astamm/rvtk" class="external-link">rvtk</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/CppFlags.html">CppFlags</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; -isystem/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/include/vtk-9.5</span></span>
+<span><span class="co">#&gt; -isystem/opt/homebrew/opt/vtk/include/vtk-9.5</span></span>
 <span><span class="fu"><a href="reference/LdFlagsFile.html">LdFlagsFile</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".rsp"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; -L/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/lib -lvtkIOLegacy-9.5 -lvtkIOXML-9.5 -lvtkIOXMLParser-9.5 -lvtkIOCore-9.5 -lvtkCommonCore-9.5 -lvtkCommonDataModel-9.5 -lvtkCommonExecutionModel-9.5 -lvtkCommonMath-9.5 -lvtkCommonMisc-9.5 -lvtkCommonSystem-9.5 -lvtkCommonTransforms-9.5 -lvtksys-9.5 -Wl,-rpath,/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/lib</span></span>
+<span><span class="co">#&gt; -L/opt/homebrew/opt/vtk/lib -lvtkIOLegacy-9.5 -lvtkIOXML-9.5 -lvtkIOXMLParser-9.5 -lvtkIOCore-9.5 -lvtkIOGeometry-9.5 -lvtkFiltersCore-9.5 -lvtkFiltersGeneral-9.5 -lvtkFiltersGeometry-9.5 -lvtkFiltersModeling-9.5 -lvtkFiltersExtraction-9.5 -lvtkCommonCore-9.5 -lvtkCommonDataModel-9.5 -lvtkCommonExecutionModel-9.5 -lvtkCommonMath-9.5 -lvtkCommonMisc-9.5 -lvtkCommonSystem-9.5 -lvtkCommonTransforms-9.5 -lvtksys-9.5</span></span>
 <span><span class="fu"><a href="reference/VtkVersion.html">VtkVersion</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "9.5.0"</span></span></code></pre></div>
 </div>
