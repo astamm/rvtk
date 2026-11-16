@@ -276,6 +276,25 @@ jobs:
             file.path(pkg, "R", "rvtk_imports.R")
           )
 
+          # ── R wrapper for the cpp11 smoke-test with an @export tag ───────
+          # cpp11::cpp_register() generates R/cpp11.R from the C++ attributes,
+          # but it only copies name/return type/arguments — NOT roxygen tags
+          # (cpp11 0.5.5).  The wrapper must live in its own R file with an
+          # explicit #' @export so roxygen2 writes export() to NAMESPACE and
+          # R CMD check / the smoke test can call rvtktest::vtk_poly_data_npoints().
+          writeLines(
+            c(
+              "#' Number of points in a freshly created vtkPolyData",
+              "#'",
+              "#' @return Always zero for a new vtkPolyData.",
+              "#' @export",
+              "vtk_poly_data_npoints <- function() {",
+              "  .Call(`_rvtktest_vtk_poly_data_npoints`)",
+              "}"
+            ),
+            file.path(pkg, "R", "vtk_poly_data.R")
+          )
+
           # ── re-register so src/cpp11.cpp + R/cpp11.R match our function ──
           cpp11::cpp_register(pkg)
 
