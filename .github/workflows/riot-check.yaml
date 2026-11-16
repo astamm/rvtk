@@ -228,7 +228,9 @@ jobs:
         shell: Rscript {0}
         run: |
           installed  <- as.character(utils::packageVersion("rvtk"))
-          checkedout <- read.dcf("DESCRIPTION")[1, "Version"]
+          # unname(): read.dcf()[, "Version"] carries a "Version" names
+          # attribute that identical() would otherwise reject.
+          checkedout <- unname(read.dcf("DESCRIPTION")[1, "Version"])
           cat("installed rvtk:", installed, "| checked-out rvtk:", checkedout, "\n")
           stopifnot(identical(installed, checkedout))
 
