@@ -199,21 +199,28 @@ jobs:
           # resulting DLLs have no dependency on external MSYS2 runtime DLLs
           # (libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll).
           #
-          # Defining verdict_EXPORTS fixes a link failure in the shared build.
-          # VERDICT_SHARED_LIB is defined in a shared build (verdict_config.h),
-          # and in verdict.h that flips VERDICT_EXPORT to __declspec(dllimport)
-          # unless verdict_EXPORTS is also defined. dllimport declarations made
-          # sibling V_*Metric.cpp objects emit __imp_* references that GNU ld's
-          # default auto-export does not back with __imp_ thunks, so
-          # libvtkverdict-9.7.dll failed with "undefined reference to
-          # `__imp__ZN10vtkverdict...tet_volume'". Defining verdict_EXPORTS makes
-          # VERDICT_EXPORT=dllexport, so the definitions are exported and intra-DLL
-          # calls compile back to direct calls (no __imp_ refs). This is done at
-          # compile time because CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS does not engage
-          # reliably under the Ninja generator (no .def is generated for MinGW).
-          # (9.5.2 happened to compile without VERDICT_SHARED_LIB defined, i.e.
-          # no dllimport at all; the 9.7.2 third-party module rework propagates
-          # BUILD_SHARED_LIBS into verdict_config.h.)
+          # Defining the third-party *_EXPORTS macros fixes the shared-build DLL
+          # links for VTK 9.7.2's bundled third-party libraries (verdict, jpeg).
+          # In a shared build each bundled lib's header flips its export macro to
+          # __declspec(dllimport) when the corresponding <lib>_EXPORTS is not
+          # defined (e.g. verdict.h's VERDICT_SHARED_LIB + jmorecfg.h's
+          # jpeg_EXPORTS gates). dllimport declarations make sibling objects emit
+          # __imp_* references that GNU ld's default auto-export does not back
+          # with __imp_ thunks, so the DLL link fails with "undefined reference
+          # to `__imp_...'". Defining <lib>_EXPORTS flips those to dllexport, so
+          # the definitions are exported and intra-DLL calls compile back to
+          # direct calls (no __imp_ refs). Set at compile time because
+          # CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS does not engage reliably under the
+          # Ninja generator for MinGW (no .def is generated).
+          #
+          # These defines are global (all C/C++ translation units), but that is
+          # safe: consumer modules that link against these DLLs then make direct
+          # calls that GNU ld's auto-import resolves against the import library
+          # (confirmed: vtkFiltersVerdict links cleanly against libvtkverdict).
+          #
+          # This is a 9.7.2-specific regression: 9.5.2 compiled these headers
+          # without the dllimport branch active, so no defines were needed.
+          # verdict is C++ (VERDICT_SHARED_LIB), jpeg is C (EXTERN/dllexport).
           export PATH="/x86_64-w64-mingw32.static.posix/bin:${PATH}"
           TCHAIN=/x86_64-w64-mingw32.static.posix/bin
           export CC="${TCHAIN}/gcc"
@@ -230,7 +237,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_C_FLAGS="-fcommon" \
+            -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS" \
             -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DVTK_BUILD_ALL_MODULES=OFF \
