@@ -1,14 +1,31 @@
 # Workflow: build and check a minimal downstream R package that depends on rvtk.
 #
-# The downstream package ("rvtktest") follows the README guidelines exactly:
-#   - Imports rvtk
-#   - Uses configure / configure.win to call rvtk::CppFlags() / rvtk::LdFlagsFile()
-#   - Defines one cpp11-backed C++ function that #includes <vtkPolyData.h>
+# The downstream package ("rvtktest") is scaffolded from scratch exactly once and
+# identical for every matrix leg (usethis::create_package + use_cpp11 + a cpp11
+# C++ function that #includes <vtkPolyData.h>). VTK is then attached to that same
+# scaffold by two strategies that MUST produce byte-identical configuration:
 #
-# Three VTK supply strategies are exercised per platform:
-#   system         – VTK installed by the OS package manager (shared libs)
+#   attach: manual    – hand-written files following the README "Manual setup"
+#                       section: src/Makevars, src/Makevars.win,
+#                       tools/configure.R (18-module default), .gitignore entry.
+#   attach: use_rvtk  – the user-facing rvtk::use_rvtk() helper generates the
+#                       same files automatically.
+#
+# The workflow then diffs the use_rvtk() output against the hand-written manual
+# reference, so the equivalence the README promises (and rvtk::use_rvtk() encodes)
+# is asserted in CI on every leg.
+#
+# Each VTK supply strategy is exercised per platform:
+#   system          – VTK installed by the OS package manager (shared libs)
 #   prebuilt-static – rvtk downloads its own pre-built static archives automatically
-#   built-shared   – VTK built from source with BUILD_SHARED_LIBS=ON (macOS/Linux only)
+#   prebuilt-shared – rvtk downloads the shared-DLL pre-built archive (Windows)
+#   built-shared    – VTK built from source with BUILD_SHARED_LIBS=ON (macOS/Linux)
+#
+# Together the prebuilt legs exercise every pre-built archive reachable on
+# GitHub-hosted runners: the darwin-arm64, linux-x86_64 and Windows
+# static/shared archives. (darwin-x86_64, linux-aarch64 and linux-musl archives
+# are not reachable from the hosted runner architectures and are instead
+# validated by the build-vtk-libs workflow that produces them.)
 
 on:
   push:
@@ -31,24 +48,33 @@ jobs:
   downstream-check:
     runs-on: ${{ matrix.config.os }}
 
-    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, VTK ${{ matrix.config.vtk }})
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, ${{ matrix.config.attach }}, VTK ${{ matrix.config.vtk }})
 
     strategy:
       fail-fast: false
       matrix:
         config:
           # ── macOS ──────────────────────────────────────────────────────────────
-          - {os: macos-latest,   r: 'release', vtk: 'system'}
-          - {os: macos-latest,   r: 'release', vtk: 'prebuilt-static'}
-          - {os: macos-latest,   r: 'release', vtk: 'built-shared'}
+          - {os: macos-latest,   r: 'release', vtk: 'system',            attach: 'manual'}
+          - {os: macos-latest,   r: 'release', vtk: 'system',            attach: 'use_rvtk'}
+          - {os: macos-latest,   r: 'release', vtk: 'prebuilt-static',   attach: 'manual'}
+          - {os: macos-latest,   r: 'release', vtk: 'prebuilt-static',   attach: 'use_rvtk'}
+          - {os: macos-latest,   r: 'release', vtk: 'built-shared',      attach: 'manual'}
+          - {os: macos-latest,   r: 'release', vtk: 'built-shared',      attach: 'use_rvtk'}
           # ── Windows ────────────────────────────────────────────────────────────
-          - {os: windows-latest, r: 'release', vtk: 'system'}
-          - {os: windows-latest, r: 'release', vtk: 'prebuilt-static'}
-          - {os: windows-latest, r: 'release', vtk: 'prebuilt-shared'}
+          - {os: windows-latest, r: 'release', vtk: 'system',            attach: 'manual'}
+          - {os: windows-latest, r: 'release', vtk: 'system',            attach: 'use_rvtk'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-static',   attach: 'manual'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-static',   attach: 'use_rvtk'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-shared',   attach: 'manual'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-shared',   attach: 'use_rvtk'}
           # ── Linux ──────────────────────────────────────────────────────────────
-          - {os: ubuntu-latest,  r: 'release', vtk: 'system'}
-          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static'}
-          - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'system',            attach: 'manual'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'system',            attach: 'use_rvtk'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static',   attach: 'manual'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static',   attach: 'use_rvtk'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared',      attach: 'manual'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared',      attach: 'use_rvtk'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -254,73 +280,172 @@ jobs:
           cpp11::cpp_register(pkg)
 
           # ── propagate PKG_DIR to subsequent steps ────────────────────────
-          # devtools::document() is called AFTER the configure/cleanup scripts
-          # and src/Makevars.in are in place, so that it does not attempt to
-          # compile the package before those files exist.
+          # devtools::document() is called AFTER VTK is attached (step 7/8) so
+          # that it does not attempt to compile the package before src/Makevars
+          # is in place.
           cat(sprintf("PKG_DIR=%s\n", pkg), file = Sys.getenv("GITHUB_ENV"), append = TRUE)
 
-      # ── 7. Add rvtk configure / cleanup scripts and src/Makevars.in ──────────
+      # ── 7. Write the manual VTK-config reference files ───────────────────────
       #
-      # These are shell scripts and a Makefile template; writing them from bash
-      # is cleaner than embedding multi-line strings inside an R heredoc.
-      - name: Add rvtk configure/cleanup scripts
+      # These are the exact files the README "Manual setup" section asks a
+      # downstream developer to hand-write, and the same files that rvtk::use_rvtk()
+      # generates automatically.  They resolve VTK compiler/linker flags at
+      # install time by invoking tools/configure.R (which calls rvtk::CppFlags()
+      # and rvtk::LdFlagsFile()) via Makevars / Makevars.win — no shell
+      # configure script is needed.
+      #
+      # The files are written to a neutral REF_DIR so every matrix leg can
+      # compare its attach strategy against a single hand-written oracle.
+      - name: Write manual VTK config reference
+        shell: bash
+        run: |
+          REF="$RUNNER_TEMP/ref_vtk"
+          rm -rf "$REF"
+          mkdir -p "$REF/src" "$REF/tools"
+          echo "REF_DIR=$REF" >> "$GITHUB_ENV"
+
+          # ---- src/Makevars ----------------------------------------------
+          # Every file must be byte-for-byte what rvtk::use_rvtk() writes:
+          # writeLines() appends a trailing newline to the template even when
+          # the template already ends with one, so the files end in "\n\n".
+          printf 'PKG_CPPFLAGS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --cppflags`\n' \
+            > "$REF/src/Makevars"
+          printf 'PKG_LIBS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --libs`\n' \
+            >> "$REF/src/Makevars"
+          printf '\n' >> "$REF/src/Makevars"
+
+          # ---- src/Makevars.win ------------------------------------------
+          printf 'PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --cppflags)\n' \
+            > "$REF/src/Makevars.win"
+          printf 'PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --libs)\n' \
+            >> "$REF/src/Makevars.win"
+          printf '\n' >> "$REF/src/Makevars.win"
+
+          # ---- tools/configure.R (same 18-module default as use_rvtk) ----
+          # Written with printf so the 2-space indentation of the module lines
+          # and branch bodies matches use_rvtk()'s template exactly (a heredoc
+          # would need de-indenting and cannot preserve the blank lines).
+          {
+            printf 'args <- commandArgs(trailingOnly = TRUE)\n'
+            printf 'flag <- if (length(args)) args[1L] else "--cppflags"\n'
+            printf '\n'
+            printf 'vtk_modules <- c(\n'
+            for m in vtkIOLegacy vtkIOXML vtkIOXMLParser vtkIOCore vtkIOGeometry \
+                     vtkFiltersCore vtkFiltersGeneral vtkFiltersGeometry vtkFiltersModeling vtkFiltersExtraction \
+                     vtkCommonCore vtkCommonDataModel vtkCommonExecutionModel vtkCommonMath vtkCommonMisc \
+                     vtkCommonSystem vtkCommonTransforms vtksys; do
+              if [ "$m" = "vtksys" ]; then
+                printf '  "%s"\n' "$m"
+              else
+                printf '  "%s",\n' "$m"
+              fi
+            done
+            printf ')\n'
+            printf '\n'
+            printf 'if (flag == "--cppflags") {\n'
+            printf '  rvtk::CppFlags()\n'
+            printf '} else if (flag == "--libs") {\n'
+            printf '  rvtk::LdFlagsFile(path = "vtk_libs.rsp", modules = vtk_modules)\n'
+            printf '}\n'
+            printf '\n'
+          } > "$REF/tools/configure.R"
+
+          # ---- .gitignore line appended by both strategies ---------------
+          printf 'src/vtk_libs.rsp\n' > "$REF/gitignore_line"
+
+      # ── 8. Attach VTK to the downstream package ───────────────────────────────
+      #
+      # Two strategies, both applied to the SAME from-scratch scaffold and BOTH
+      # required to produce the identical configuration described in the README.
+      #
+      #   manual   – apply the hand-written reference files directly (README
+      #              "Manual setup").
+      #   use_rvtk – call rvtk::use_rvtk(), which writes the same files itself.
+      - name: Attach VTK (manual)
+        if: matrix.config.attach == 'manual'
         shell: bash
         run: |
           PKG="$PKG_DIR"
+          mkdir -p "$PKG/src" "$PKG/tools"
+          cp "$REF_DIR/src/Makevars"      "$PKG/src/Makevars"
+          cp "$REF_DIR/src/Makevars.win"  "$PKG/src/Makevars.win"
+          cp "$REF_DIR/tools/configure.R" "$PKG/tools/configure.R"
+          # Append the .gitignore entry (creating the file if absent), matching
+          # rvtk_use_git_ignore().  R/rvtk_imports.R is already provided by the
+          # shared scaffold.
+          if [ -f "$PKG/.gitignore" ] && [ -n "$(tail -c1 "$PKG/.gitignore")" ]; then
+            printf '\n' >> "$PKG/.gitignore"
+          fi
+          cat "$REF_DIR/gitignore_line" >> "$PKG/.gitignore"
 
-          # ---- src/Makevars.in ------------------------------------------
-          printf 'PKG_CPPFLAGS = @VTK_CPPFLAGS@\nPKG_LIBS     = @VTK_LIBS@\n' \
-            > "$PKG/src/Makevars.in"
+      - name: Attach VTK (use_rvtk)
+        if: matrix.config.attach == 'use_rvtk'
+        shell: Rscript {0}
+        run: |
+          rvtk::use_rvtk(path = Sys.getenv("PKG_DIR"))
 
-          # ---- configure ------------------------------------------------
-          cat > "$PKG/configure" << 'EOF'
-          #!/bin/sh
-          set -e
-          : "${R_HOME:=$(R RHOME)}"
-          Rscript="${R_HOME}/bin/Rscript"
-          VTK_CPPFLAGS="$("${Rscript}" --vanilla -e "rvtk::CppFlags()")"
-          VTK_LIBS="$("${Rscript}" --vanilla -e "rvtk::LdFlagsFile('src/vtk_libs.rsp')")"
-          sed -e "s|@VTK_CPPFLAGS@|${VTK_CPPFLAGS}|g" \
-              -e "s|@VTK_LIBS@|${VTK_LIBS}|g" \
-              src/Makevars.in > src/Makevars
-          EOF
-          # Strip leading spaces (heredoc inside a script is indented).
-          # -i.bak is portable: BSD sed (macOS) requires a suffix; GNU sed (Linux) accepts it.
-          sed -i.bak 's/^[[:space:]]*//' "$PKG/configure" && rm -f "$PKG/configure.bak"
-          chmod +x "$PKG/configure"
+      # ── 9. Assert the two attach strategies produce identical config ──────────
+      #
+      # The whole point of documenting both a manual setup and use_rvtk() is that
+      # they are interchangeable.  On use_rvtk legs, diff use_rvtk()'s output
+      # against the hand-written reference to lock that equivalence into CI.
+      - name: Assert use_rvtk matches the manual reference
+        if: matrix.config.attach == 'use_rvtk'
+        shell: bash
+        run: |
+          PKG="$PKG_DIR"
+          diff -u "$REF_DIR/src/Makevars"      "$PKG/src/Makevars"
+          diff -u "$REF_DIR/src/Makevars.win"  "$PKG/src/Makevars.win"
+          diff -u "$REF_DIR/tools/configure.R" "$PKG/tools/configure.R"
+          # use_rvtk adds src/vtk_libs.rsp to .gitignore via rvtk_use_git_ignore()
+          grep -Fxq "src/vtk_libs.rsp" "$PKG/.gitignore" \
+            || { echo "use_rvtk did not add src/vtk_libs.rsp to .gitignore"; exit 1; }
+          # use_rvtk writes the roxygen import stub (idempotent with the shared
+          # scaffold's, which already exists).
+          grep -q "CppFlags LdFlagsFile" "$PKG/R/rvtk_imports.R" \
+            || { echo "R/rvtk_imports.R missing the rvtk import tag"; exit 1; }
 
-          # ---- configure.win --------------------------------------------
-          printf '#!/bin/sh\n./configure\n' > "$PKG/configure.win"
-          chmod +x "$PKG/configure.win"
+      # ── 10. Exercise every user-facing rvtk entry point ───────────────────────
+      #
+      # The installed rvtk is queried directly on every leg, against whichever
+      # VTK supply strategy the leg uses: VtkVersion() reports the detected VTK,
+      # CppFlags()/LdFlags()/LdFlagsFile() return non-empty flags resolvable
+      # against the active VTK tree. use_rvtk() itself is the attach strategy on
+      # the use_rvtk legs (and its output is asserted in step 9). The smoke test
+      # then loads the built downstream package and runs its cpp11-backed C++
+      # function, which only succeeds if the link truly worked.
+      - name: Exercise rvtk entry points
+        shell: Rscript {0}
+        env:
+          VTK_DIR: ${{ env.VTK_DIR }}
+        run: |
+          v <- rvtk::VtkVersion()
+          stopifnot(is.character(v), nzchar(v))
+          cpp <- rvtk::CppFlags()
+          stopifnot(nzchar(trimws(cpp)))
+          ld  <- rvtk::LdFlags()
+          stopifnot(nzchar(trimws(ld)))
+          ld_file <- rvtk::LdFlagsFile(tempfile(fileext = ".rsp"))
+          stopifnot(nzchar(trimws(ld_file)))
+          cat("VTK version:", v, "\n")
 
-          # ---- cleanup --------------------------------------------------
-          printf '#!/bin/sh\nrm -f src/Makevars src/vtk_libs.rsp\n' > "$PKG/cleanup"
-          chmod +x "$PKG/cleanup"
-
-          # ---- cleanup.win ----------------------------------------------
-          printf '#!/bin/sh\n./cleanup\n' > "$PKG/cleanup.win"
-          chmod +x "$PKG/cleanup.win"
-
-          # ---- .Rbuildignore additions ----------------------------------
-          printf '^src/Makevars$\n^src/vtk_libs\.rsp$\n' >> "$PKG/.Rbuildignore"
-
-      # ── 8. Generate NAMESPACE and man/ from roxygen tags ──────────────────────
+      # ── 11. Generate NAMESPACE and man/ from roxygen tags ─────────────────────
       #
       # Use roxygen2::roxygenise() with load_code = NULL so that the package is
       # NOT compiled at this stage.  All roxygen tags in rvtktest live in plain
       # R files (R/cpp11.R, R/rvtk_imports.R, R/rvtktest-package.R) and require
-      # no runtime introspection — skipping compilation is safe here.
-      # src/Makevars is generated by the configure script invoked by R CMD check
-      # in the next step, so no pre-generation is needed.
+      # no runtime introspection — skipping compilation is safe here.  src/Makevars
+      # is already in place from the attach step, so R CMD check (next) can
+      # compile.  R CMD check runs tools/configure.R via Makevars to resolve flags.
       - name: Document downstream package
         shell: Rscript {0}
         run: roxygen2::roxygenise(Sys.getenv("PKG_DIR"), load_code = NULL)
 
-      # ── 9. R CMD check ────────────────────────────────────────────────────────
+      # ── 12. R CMD check + runtime smoke test ─────────────────────────────────
       - name: Check downstream package
         shell: Rscript {0}
         env:
-          # Propagate VTK_DIR so that if the check re-runs configure it still
+          # Propagate VTK_DIR so that if configure re-resolves flags it still
           # finds the same VTK tree (relevant for built-shared).
           VTK_DIR: ${{ env.VTK_DIR }}
         run: |
@@ -330,3 +455,18 @@ jobs:
             error_on = "error",
             check_dir = file.path(Sys.getenv("RUNNER_TEMP"), "check")
           )
+          # Load the installed (checked) package and run the VTK smoke test.
+          libs <- file.path(Sys.getenv("RUNNER_TEMP"), "check")
+          ip <- installed.packages(lib.loc = libs)
+          pkg_lib <- tempfile("smokelib")
+          dir.create(pkg_lib)
+          install.packages(
+            Sys.getenv("PKG_DIR"),
+            lib = pkg_lib,
+            repos = NULL,
+            type = "source"
+          )
+          stopifnot(require("rvtktest", lib.loc = pkg_lib, character.only = TRUE))
+          val <- rvtktest::vtk_poly_data_npoints()
+          cat("vtk_poly_data_npoints() =", val, "\n")
+          stopifnot(identical(as.integer(val), 0L))
