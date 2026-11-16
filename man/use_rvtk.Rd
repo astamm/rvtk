@@ -5,9 +5,11 @@
 \title{Set up a downstream package to use rvtk}
 \usage{
 use_rvtk(
-  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkCommonCore",
-    "vtkCommonDataModel", "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc",
-    "vtkCommonSystem", "vtkCommonTransforms", "vtksys"),
+  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
+    "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry", "vtkFiltersModeling",
+    "vtkFiltersExtraction", "vtkCommonCore", "vtkCommonDataModel",
+    "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
+    "vtkCommonTransforms", "vtksys"),
   path = "."
 )
 }
@@ -15,9 +17,8 @@ use_rvtk(
 \item{modules}{A character vector of VTK module names to link against.
 These are passed to \code{\link[=LdFlagsFile]{LdFlagsFile()}} in the generated \code{tools/configure.R},
 restricting linking to only the modules the downstream package needs.
-Defaults to a standard set covering common I/O and core modules
-(the same set used by the reference implementation in
-\url{https://github.com/tractoverse/riot}).}
+Defaults to a standard set covering the common I/O, filtering, core, and
+data-model modules bundled with \strong{rvtk}.}
 
 \item{path}{Path to the root of the downstream package. Defaults to the
 current working directory.}

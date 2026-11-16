@@ -1,6 +1,6 @@
 Package: rvtk
 Title: Bindings for the Visualization Toolkit ('VTK')
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person(
         given = "Aymeric",
@@ -26,8 +26,10 @@ Description: Provides pre-compiled static 'VTK' libraries and headers so that
     downloads static libraries by default; set 'VTK_LINK_TYPE=shared' before
     installation to download the DLL build instead. The pre-built bundles
     include the following VTK modules (plus their transitive dependencies):
-    'VTK_IOLegacy', 'VTK_IOXML', 'VTK_IOCore', 'VTK_CommonCore', and
-    'VTK_CommonDataModel'. Note that on Windows 'VTK_IONetCDF', 'VTK_IOHDF',
+    'VTK_IOLegacy', 'VTK_IOXML', 'VTK_IOCore', 'VTK_FiltersCore',
+    'VTK_FiltersGeneral', 'VTK_FiltersGeometry', 'VTK_FiltersModeling',
+    'VTK_FiltersExtraction', 'VTK_CommonCore', and 'VTK_CommonDataModel'.
+    Note that on Windows 'VTK_IONetCDF', 'VTK_IOHDF',
     'VTK_GeovisCore', and 'VTK_RenderingCore' are additionally disabled because
     'netcdf' and 'libproj' are not available in the 'Rtools45' 'static.posix'
     sysroot. Downstream packages can declare 'Imports: rvtk' and obtain the
@@ -47,5 +49,5 @@ NeedsCompilation: no
 Suggests: 
     cli,
     tinytest
-Config/roxygen2/version: 8.0.0
+Config/roxygen2/version: 8.1.1
 Config/roxygen2/markdown: TRUE

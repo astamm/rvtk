@@ -31,7 +31,7 @@ one succeeds:
 1.  The environment variable `VTK_DIR` (path to a VTK build or install
     tree).
 2.  [Homebrew](https://brew.sh/) (`brew --prefix vtk`) — macOS only.
-3.  `pkg-config` (`vtk-9.5`, `vtk-9.4`, …, `vtk-9.1`).
+3.  `pkg-config` (`vtk-9.7`, `vtk-9.6`, `vtk-9.5`, …, `vtk-9.1`).
 4.  Well-known system prefixes (`/usr`, `/usr/local`) — Linux only.
 5.  Download pre-built static libraries from
     <https://github.com/astamm/rvtk/releases> as a fallback.
@@ -126,10 +126,10 @@ The `configure.win` script also tries each strategy in order:
 > 1.  **rvtk and the downstream package must be kept in sync.** The
 >     downstream package is compiled against the specific VTK version
 >     (and DLL ABI) shipped with the rvtk version installed at compile
->     time. If rvtk is later updated to a new VTK version (e.g. 9.5 →
->     9.6), the downstream package must be **recompiled** against the
+>     time. If rvtk is later updated to a new VTK version (e.g. 9.7 →
+>     9.8), the downstream package must be **recompiled** against the
 >     new rvtk to match the new DLL names
->     (e.g. `vtkCommonCore-9.6.dll`). Binary packages compiled against
+>     (e.g. `vtkCommonCore-9.8.dll`). Binary packages compiled against
 >     an older rvtk will fail to load.
 >
 > 2.  **DLL footprint grows in rvtk only.** The VTK DLLs are staged
@@ -156,6 +156,11 @@ The pre-built bundles shipped with **rvtk** are built with
 | `VTK_IOLegacy` | Legacy VTK file format reader/writer (`.vtk`) |
 | `VTK_IOXML` | XML-based VTK file formats (`.vtp`, `.vtu`, `.vts`, …) |
 | `VTK_IOCore` | Core I/O infrastructure shared by all I/O modules |
+| `VTK_FiltersCore` | Core algorithmic filters (threshold, transform points, …) |
+| `VTK_FiltersGeneral` | General-purpose filters (append, clip, decimate, …) |
+| `VTK_FiltersGeometry` | Filters that modify or convert dataset geometry |
+| `VTK_FiltersModeling` | Filters for geometric modeling and meshing |
+| `VTK_FiltersExtraction` | Filters that extract subsets of data |
 | `VTK_CommonCore` | Core data structures, object model, logging |
 | `VTK_CommonDataModel` | Datasets, cells, point/cell data arrays |
 
@@ -265,6 +270,12 @@ vtk_modules <- c(
   "vtkIOXML",
   "vtkIOXMLParser",
   "vtkIOCore",
+  "vtkIOGeometry",
+  "vtkFiltersCore",
+  "vtkFiltersGeneral",
+  "vtkFiltersGeometry",
+  "vtkFiltersModeling",
+  "vtkFiltersExtraction",
   "vtkCommonCore",
   "vtkCommonDataModel",
   "vtkCommonExecutionModel",
@@ -310,9 +321,9 @@ You can verify the detected installation at any time:
 ``` r
 library(rvtk)
 CppFlags()
-#> -isystem/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/include/vtk-9.5
+#> -isystem/opt/homebrew/opt/vtk/include/vtk-9.5
 LdFlagsFile(tempfile(fileext = ".rsp"))
-#> -L/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/lib -lvtkIOLegacy-9.5 -lvtkIOXML-9.5 -lvtkIOXMLParser-9.5 -lvtkIOCore-9.5 -lvtkCommonCore-9.5 -lvtkCommonDataModel-9.5 -lvtkCommonExecutionModel-9.5 -lvtkCommonMath-9.5 -lvtkCommonMisc-9.5 -lvtkCommonSystem-9.5 -lvtkCommonTransforms-9.5 -lvtksys-9.5 -Wl,-rpath,/Users/stamm-a/Downloads/vtk-compil/vtk-install-static/lib
+#> -L/opt/homebrew/opt/vtk/lib -lvtkIOLegacy-9.5 -lvtkIOXML-9.5 -lvtkIOXMLParser-9.5 -lvtkIOCore-9.5 -lvtkIOGeometry-9.5 -lvtkFiltersCore-9.5 -lvtkFiltersGeneral-9.5 -lvtkFiltersGeometry-9.5 -lvtkFiltersModeling-9.5 -lvtkFiltersExtraction-9.5 -lvtkCommonCore-9.5 -lvtkCommonDataModel-9.5 -lvtkCommonExecutionModel-9.5 -lvtkCommonMath-9.5 -lvtkCommonMisc-9.5 -lvtkCommonSystem-9.5 -lvtkCommonTransforms-9.5 -lvtksys-9.5
 VtkVersion()
 #> [1] "9.5.0"
 ```

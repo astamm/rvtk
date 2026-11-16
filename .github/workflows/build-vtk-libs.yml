@@ -17,7 +17,7 @@ on:
         default: false
 
 env:
-  VTK_VERSION: '9.5.2'
+  VTK_VERSION: '9.7.2'
 
 jobs:
   # ── Windows: x86_64-w64-mingw32.static.posix (Rtools45 R-package toolchain) ─
@@ -84,6 +84,9 @@ jobs:
           mkdir -p build install
           INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this headless build.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
@@ -94,10 +97,17 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO \
+            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
             -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
             -DVTK_MODULE_ENABLE_VTK_libproj=NO \
             -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
@@ -126,6 +136,8 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           zip -r "${PKG}.zip" "${PKG}"
           echo "Created ${PKG}.zip"
 
@@ -188,6 +200,34 @@ jobs:
           # -static-libstdc++ flags fold the C++ runtime into each DLL so the
           # resulting DLLs have no dependency on external MSYS2 runtime DLLs
           # (libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll).
+          #
+          # Defining the third-party *_EXPORTS macros fixes the shared-build DLL
+          # links for VTK 9.7.2's bundled third-party libraries (verdict, jpeg).
+          # In a shared build each bundled lib's header flips its export macro to
+          # __declspec(dllimport) when the corresponding <lib>_EXPORTS is not
+          # defined (e.g. verdict.h's VERDICT_SHARED_LIB + jmorecfg.h's
+          # jpeg_EXPORTS gates). dllimport declarations make sibling objects emit
+          # __imp_* references that GNU ld's default auto-export does not back
+          # with __imp_ thunks, so the DLL link fails with "undefined reference
+          # to `__imp_...'". Defining <lib>_EXPORTS flips those to dllexport, so
+          # the definitions are exported and intra-DLL calls compile back to
+          # direct calls (no __imp_ refs). Set at compile time because
+          # CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS does not engage reliably under the
+          # Ninja generator for MinGW (no .def is generated).
+          #
+          # These defines are global (all C/C++ translation units), but that is
+          # safe: consumer modules that link against these DLLs then make direct
+          # calls that GNU ld's auto-import resolves against the import library
+          # (confirmed: vtkFiltersVerdict links cleanly against libvtkverdict).
+          #
+          # This is a 9.7.2-specific regression: 9.5.2 compiled these headers
+          # without the dllimport branch active, so no defines were needed.
+          # Bundled libs needing the define in the shared build (from CI):
+          #   verdict - C++, verdict.h (VERDICT_SHARED_LIB) -> -Dverdict_EXPORTS
+          #   jpeg    - C,    jmorecfg.h (jpeg_EXPORTS)      -> -Djpeg_EXPORTS
+          #   tiff    - C,    tiff.h (tiff_EXPORTS)          -> -Dtiff_EXPORTS
+          # Other bundled libs linked fine without a define. Each is scoped to the
+          # language it compiles as (C vs C++).
           export PATH="/x86_64-w64-mingw32.static.posix/bin:${PATH}"
           TCHAIN=/x86_64-w64-mingw32.static.posix/bin
           export CC="${TCHAIN}/gcc"
@@ -197,11 +237,15 @@ jobs:
           mkdir -p build install
           INSTALL_PREFIX="$(cygpath -w "$(pwd)/install")"
           cd build
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this headless build.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_C_FLAGS="-fcommon" \
+            -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
+            -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
@@ -209,10 +253,17 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO \
+            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
             -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
             -DVTK_MODULE_ENABLE_VTK_libproj=NO \
             -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
@@ -245,6 +296,8 @@ jobs:
           find install/bin -name "*.dll" -exec cp {} "${PKG}/bin/" \;
           echo "Import libs: $(find ${PKG}/lib -name '*.dll.a' | wc -l)"
           echo "DLLs:        $(find ${PKG}/bin -name '*.dll'   | wc -l)"
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           zip -r "${PKG}.zip" "${PKG}"
           echo "Created ${PKG}.zip"
 
@@ -296,6 +349,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -319,6 +378,8 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
 
@@ -370,6 +431,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -391,6 +458,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
 
@@ -445,6 +514,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -468,6 +543,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
 
@@ -522,6 +599,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
             -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -545,6 +628,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
 
@@ -596,6 +681,9 @@ jobs:
               apk add --no-cache cmake ninja g++ make curl linux-headers
               mkdir -p build install
               cd build
+              # VTK_IOGeometry drags in RenderingCore; keep this headless build
+              # free of the windowing layer (RenderingUI would pull in
+              # Wayland/X11, which the bare Alpine container does not provide).
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
@@ -606,7 +694,14 @@ jobs:
                 -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
                 -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
                 -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+                -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
                 -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
+                -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                 -DCMAKE_C_FLAGS='-fPIC' \
@@ -627,6 +722,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
 
@@ -685,6 +782,7 @@ jobs:
           ```
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← static libraries (.a)
+          licenses/              ← third-party license notices (verdict, jpeg, tiff)
           ```
 
           **Shared** (`*-shared-posix-x64.zip`):
@@ -692,6 +790,7 @@ jobs:
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← import libraries (.dll.a, for link time)
           bin/                   ← DLLs (.dll, for run time)
+          licenses/              ← third-party license notices (verdict, jpeg, tiff)
           ```
 
           > The shared-DLL build uses the same `x86_64-w64-mingw32.static.posix`
@@ -710,6 +809,12 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_IOCore=YES
           -DVTK_MODULE_ENABLE_VTK_CommonCore=YES
           -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES
+          -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ```
 
@@ -722,7 +827,11 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO
           -DVTK_MODULE_ENABLE_VTK_IOHDF=NO
           -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO
-          -DVTK_MODULE_ENABLE_VTK_RenderingCore=NO
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # is GL-free; the windowing interactor (RenderingUI) is disabled for
+          # this static/headless build.
+          -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES
+          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           -DVTK_MODULE_ENABLE_VTK_netcdf=NO
           -DVTK_MODULE_ENABLE_VTK_libproj=NO
           -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF
@@ -736,8 +845,13 @@ jobs:
           # Built via `docker run alpine:3.22` on the CI runner (not a container: job,
           # which would fail because the GitHub Actions Node.js runtime is glibc-linked).
           # X11 and OpenGL rendering are not available on the headless Alpine runner:
+          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
+          # auto-enables the RenderingUI interactor, which needs Wayland via
+          # vtk_module_find_package(WAYLAND) — unavailable in the bare Alpine
+          # container — so disable RenderingUI explicitly.
           -DVTK_USE_X=OFF
           -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
+          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           ```
           NOTES
           # Expand $VER / $MINOR placeholders (heredoc kept literal to avoid yaml issues)
