@@ -1,0 +1,295 @@
+# Workflow: build and check the real downstream package "riot" against rvtk.
+#
+# riot (https://github.com/tractoverse/riot) is the canonical real-world consumer
+# of rvtk: its C++ code reads/writes VTK bundle files (.vtk, .vtp) through
+# vtkPolyDataReader / vtkXMLPolyDataReader / vtkPolyDataWriter /
+# vtkXMLPolyDataWriter, and it is at the mercy of the same module-filtering and
+# static-bundle behaviour that downstream-check.yaml exercises with a fake
+# package.  Historically a regression in rvtk's macOS static linking broke
+# riot's install on macOS CI, which is exactly the class of failure this workflow
+# guards against.
+#
+# Unlike downstream-check.yaml, this workflow does NOT scaffold a fake package:
+# it checks out riot's dev branch, installs it against the checked-out rvtk, and
+# proves the link by reading and writing riot's real shipped VTK test files
+# (UF_left.vtk / UF_left.vtp), then running R CMD check on riot itself.
+#
+# Each leg pins rvtk to the local checkout and riot to its dev branch, so every
+# leg tests exactly one combination:
+#
+#   rvtk:        local checkout (this ref)
+#   riot:        tractoverse/riot@default-branch (the dev version)
+#   VTK supply:  system | prebuilt-static | prebuilt-shared | built-shared
+#
+# VTK supply strategies mirror downstream-check.yaml:
+#   system          – VTK from the OS package manager (shared libs)
+#   prebuilt-static – rvtk downloads its pre-built static archives automatically
+#   prebuilt-shared – rvtk downloads the shared-DLL pre-built archive (Windows)
+#   built-shared    – VTK built from source with BUILD_SHARED_LIBS=ON
+#
+# Both riot installs use pak with the local rvtk passed as an explicit direct
+# target (upgrade = FALSE).  Without that pin, pak satisfies riot's
+# `Remotes: astamm/rvtk` by pulling astamm/rvtk@main, silently bypassing the
+# checkout under test; the assertion step catches any such drift loudly.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+name: riot-check.yaml
+
+permissions: read-all
+
+# ---------------------------------------------------------------------------
+# Version pinned in one place so it is trivial to bump.
+# Must match the version used by rvtk's own pre-built archive.
+# ---------------------------------------------------------------------------
+env:
+  VTK_VERSION: "9.7.2"
+  VTK_SHORT:   "9.7"       # X.Y used for the include directory vtk-X.Y
+
+jobs:
+  riot-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }}, VTK ${{ matrix.config.vtk }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # ── macOS ──────────────────────────────────────────────────────────────
+          - {os: macos-latest,   r: 'release', vtk: 'system'}
+          - {os: macos-latest,   r: 'release', vtk: 'prebuilt-static'}
+          - {os: macos-latest,   r: 'release', vtk: 'built-shared'}
+          # ── Windows ────────────────────────────────────────────────────────────
+          - {os: windows-latest, r: 'release', vtk: 'system'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-static'}
+          - {os: windows-latest, r: 'release', vtk: 'prebuilt-shared'}
+          # ── Linux ──────────────────────────────────────────────────────────────
+          - {os: ubuntu-latest,  r: 'devel',    vtk: 'prebuilt-static', http-user-agent: 'release'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'system'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared'}
+          - {os: ubuntu-latest,  r: 'oldrel-1', vtk: 'prebuilt-static'}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+
+    steps:
+      # ── 1. Checkout rvtk itself and riot's dev branch ─────────────────────────
+      - uses: actions/checkout@v6
+
+      - uses: actions/checkout@v6
+        with:
+          repository: tractoverse/riot
+          path: riot
+
+      # ── 2. R setup ───────────────────────────────────────────────────────────
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      # ── 3a. System VTK ────────────────────────────────────────────────────────
+      - name: Install system VTK (macOS – Homebrew)
+        if: runner.os == 'macOS' && matrix.config.vtk == 'system'
+        run: brew install vtk
+
+      - name: Install system VTK (Linux – apt)
+        if: runner.os == 'Linux' && matrix.config.vtk == 'system'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y libvtk9-dev || sudo apt-get install -y libvtk-dev
+
+      - name: Install system VTK (Windows – Rtools45 pacman)
+        if: runner.os == 'Windows' && matrix.config.vtk == 'system'
+        shell: bash
+        run: pacman -S --noconfirm mingw-w64-ucrt-x86_64-vtk
+
+      # ── 3b. Built VTK with shared libs – restore from cache ──────────────────
+      - name: Cache built shared VTK
+        if: matrix.config.vtk == 'built-shared'
+        id: cache-vtk-shared
+        uses: actions/cache@v5
+        with:
+          path: ~/vtk-shared-install
+          # Bump the trailing integer when the CMake options change.
+          key: vtk-${{ env.VTK_VERSION }}-shared-${{ runner.os }}-${{ runner.arch }}-v4
+
+      - name: Install build tools for VTK (Linux)
+        if: runner.os == 'Linux' && matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y cmake ninja-build libgl1-mesa-dev libxt-dev
+
+      - name: Install build tools for VTK (macOS)
+        if: runner.os == 'macOS' && matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
+        run: brew install cmake ninja
+
+      - name: Download VTK source
+        if: matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          curl -fsSL \
+            "https://www.vtk.org/files/release/${{ env.VTK_SHORT }}/VTK-${{ env.VTK_VERSION }}.tar.gz" \
+            -o VTK-src.tar.gz
+          tar xzf VTK-src.tar.gz
+
+      - name: Configure VTK (shared libs, minimal modules)
+        if: matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cmake -S "VTK-${{ env.VTK_VERSION }}" -B vtk-build \
+            -G Ninja \
+            -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$HOME/vtk-shared-install" \
+            -DVTK_BUILD_ALL_MODULES=OFF \
+            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
+      - name: Build and install VTK (shared libs)
+        if: matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cmake --build vtk-build --parallel $(getconf _NPROCESSORS_ONLN 2>/dev/null || sysctl -n hw.logicalcpu)
+          cmake --install vtk-build
+
+      - name: Expose VTK_DIR for built-shared
+        if: matrix.config.vtk == 'built-shared'
+        shell: bash
+        run: echo "VTK_DIR=$HOME/vtk-shared-install" >> "$GITHUB_ENV"
+
+      # ── 4. Install R build/test tooling only (NOT rvtk) ──────────────────────
+      #
+      # `packages:` overrides the default `deps::.` so that the local rvtk is NOT
+      # pre-installed here with the wrong VTK_LINK_TYPE.  rvtk itself is installed
+      # in step 5 with the per-leg VTK strategy; everything else needed for the
+      # build (pak, tinytest for riot's suite, rcmdcheck for step 9) is installed
+      # here.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::pak
+            any::tinytest
+            any::rcmdcheck
+
+      # ── 5. Install rvtk from the checked-out source ───────────────────────────
+      #
+      # This runs rvtk's own configure script: it detects system VTK, or falls
+      # back to downloading the pre-built archive (static by default; the
+      # prebuilt-shared leg sets VTK_LINK_TYPE=shared so the shared-DLL build is
+      # downloaded and staged in inst/vtk-dlls/).  For built-shared legs,
+      # VTK_DIR points at the source-built install.
+      - name: Install rvtk from source
+        shell: Rscript {0}
+        env:
+          VTK_LINK_TYPE: ${{ (matrix.config.vtk == 'prebuilt-shared') && 'shared' || '' }}
+        run: pak::local_install(".", upgrade = FALSE)
+
+      # ── 6. Install riot (dev) tied to the local rvtk ──────────────────────────
+      #
+      # riot's DESCRIPTION declares Imports: rvtk and Remotes: astamm/rvtk.
+      # Passing the local rvtk as an explicit direct target with upgrade = FALSE
+      # makes pak resolve that dependency against this checkout rather than
+      # pulling astamm/rvtk@main (verified: without the pin, pak silently
+      # installs the GitHub version).  Riot is installed from its dev-branch
+      # checkout, matching how the package is developed.
+      - name: Install riot (dev) against local rvtk
+        shell: Rscript {0}
+        run: |
+          pak::pkg_install(
+            c("local::riot", "local::."),
+            upgrade = FALSE,
+            dependencies = TRUE
+          )
+
+      # ── 7. Assert riot linked THIS rvtk ───────────────────────────────────────
+      #
+      # Defensive: fail loudly if pak ever resolves rvtk from GitHub instead of
+      # the local checkout, so a silent downgrade cannot mask a regression.
+      - name: Assert the checked-out rvtk is the one riot linked
+        shell: Rscript {0}
+        run: |
+          installed  <- as.character(utils::packageVersion("rvtk"))
+          checkedout <- read.dcf("DESCRIPTION")[1, "Version"]
+          cat("installed rvtk:", installed, "| checked-out rvtk:", checkedout, "\n")
+          stopifnot(identical(installed, checkedout))
+
+      # ── 8. Prove the link with riot's real VTK files ──────────────────────────
+      #
+      # riot ships legacy .vtk and XML .vtp bundles in inst/extdata. Reading and
+      # writing them exercises the exact VTK classes riot links against
+      # (vtkPolyDataReader, vtkXMLPolyDataReader, vtkPolyDataWriter,
+      # vtkXMLPolyDataWriter) — a far stronger guarantee than a synthetic smoke
+      # test.  The write + re-read round-trip exercises the writer path too.
+      - name: VTK round-trip through riot's readers and writers
+        shell: Rscript {0}
+        run: |
+          suppressMessages(library(riot))
+          vtk_f <- system.file("extdata", "UF_left.vtk", package = "riot")
+          vtp_f <- system.file("extdata", "UF_left.vtp", package = "riot")
+          stopifnot(file.exists(vtk_f), file.exists(vtp_f))
+
+          b_legacy <- riot::read_bundle(vtk_f)   # vtkPolyDataReader
+          b_xml    <- riot::read_bundle(vtp_f)   # vtkXMLPolyDataReader
+          cat("read_bundle(.vtk) streamlines:", length(b_legacy), "\n")
+          cat("read_bundle(.vtp) streamlines:", length(b_xml), "\n")
+          stopifnot(length(b_legacy) >= 1L, length(b_xml) >= 1L)
+
+          out <- tempfile(fileext = ".vtp")
+          riot::write_bundle(b_legacy, out)      # vtkXMLPolyDataWriter
+          b_rt <- riot::read_bundle(out)         # vtkXMLPolyDataReader
+          cat("round-trip .vtp streamlines:", length(b_rt), "\n")
+          stopifnot(identical(length(b_legacy), length(b_rt)))
+
+          # Report which VTK rvtk detected, so failures are diagnosable.
+          cat("VTK version:", rvtk::VtkVersion(), "\n")
+
+      # ── 9. R CMD check on riot itself ─────────────────────────────────────────
+      #
+      # Mirrors downstream-check's rcmdcheck step: a clean source build + check
+      # of the real downstream package, exercising riot's own Makevars ->
+      # tools/configure.R -> rvtk::* flag resolution on this leg's VTK.
+      - name: Check riot with rcmdcheck
+        shell: Rscript {0}
+        env:
+          VTK_DIR: ${{ env.VTK_DIR }}
+        run: |
+          rcmdcheck::rcmdcheck(
+            path   = "riot",
+            args   = c("--no-manual", "--no-vignettes", "--ignore-vignettes"),
+            error_on = "error",
+            check_dir = file.path(Sys.getenv("RUNNER_TEMP"), "riot-check")
+          )
+
+      # ── 10. Run riot's own test suite (non-Python paths) ──────────────────────
+      #
+      # riot's tinytest exercises its bundle parsers; only the trx/fib/dpy paths
+      # need Python/dipy, which are not installed here.  Running the suite also
+      # guards against rvtk changes breaking riot's plain R-level behaviour.
+      - name: Run riot's tinytest suite
+        shell: Rscript {0}
+        run: |
+          suppressMessages(library(tinytest))
+          res <- test_package("riot")
+          df <- as.data.frame(res)
+          if (nrow(df) == 0L) stop("riot tinytest ran no tests")
+          if (!all(as.logical(df[["result"]]))) stop("riot tinytest failures")
+          cat("riot tinytest OK:", nrow(df), "tests\n")
