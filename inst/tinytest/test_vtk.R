@@ -407,10 +407,10 @@ expect_identical(rvtk:::filter_libs(c("a.a", "b.a"), NULL), c("a.a", "b.a"))
 
 ## Third-party libs (not prefixed libvtk<Upper>) are always kept
 lp <- c(
-  "libvtkexpat.a",          # third-party
-  "libvtkIOLegacy-9.5.a",   # requested module (versioned)
+  "libvtkexpat.a", # third-party
+  "libvtkIOLegacy-9.5.a", # requested module (versioned)
   "libvtkCommonCore-9.5.a", # module not in the requested set
-  "libvtkzlib.a"            # third-party
+  "libvtkzlib.a" # third-party
 )
 res <- rvtk:::filter_libs(lp, c("vtkIOLegacy"))
 expect_true("libvtkexpat.a" %in% res)
@@ -431,7 +431,10 @@ res_dot <- rvtk:::filter_libs(c("libvtkFiltersGeneral.a"), "vtkFiltersGeneral")
 expect_equal(res_dot, "libvtkFiltersGeneral.a")
 
 ## Versioned module basename matches (e.g. libvtkIOGeometry-9.7.a)
-res_ver <- rvtk:::filter_libs(c("libvtkFiltersExtraction-9.7.a"), "vtkFiltersExtraction")
+res_ver <- rvtk:::filter_libs(
+  c("libvtkFiltersExtraction-9.7.a"),
+  "vtkFiltersExtraction"
+)
 expect_equal(res_ver, "libvtkFiltersExtraction-9.7.a")
 
 ## Empty result when nothing matches
@@ -440,13 +443,27 @@ expect_length(res_none, 0L)
 
 # ── read_vtk_conf: Unix prebuilt – NULL unix_base_dir uses system.file() ──────
 # Covers the is.null(unix_base_dir) TRUE branch (default prebuilt path).
-# system.file(mustWork=TRUE) errors because inst/prebuilt does not exist in the
-# installed package, which proves the lines were reached.
+# system.file("prebuilt", ...) resolves to the installed package's prebuilt
+# tree when configure downloaded a static VTK bundle (the normal CI install
+# case), in which case read_vtk_conf() goes on to build runtime flags from it.
+# When no such tree was installed (e.g. devtools::load_all), system.file() with
+# mustWork=TRUE errors instead. Either outcome exercises the same
+# is.null(unix_base_dir) branch, so the test accepts whichever the installed
+# package actually provides.
 
 conf_prebuilt_null <- write_conf(
   "VTK_VERSION=9.5.2",
   "VTK_PREBUILT=yes"
 )
-expect_error(
-  rvtk:::read_vtk_conf(conf_prebuilt_null, os_type = "unix")
+has_prebuilt <- tryCatch(
+  nzchar(system.file("prebuilt", package = "rvtk")),
+  error = function(e) FALSE
 )
+if (has_prebuilt) {
+  res_prebuilt <- rvtk:::read_vtk_conf(conf_prebuilt_null, os_type = "unix")
+  expect_true(nzchar(res_prebuilt[["VTK_CPPFLAGS"]]))
+} else {
+  expect_error(
+    rvtk:::read_vtk_conf(conf_prebuilt_null, os_type = "unix")
+  )
+}
