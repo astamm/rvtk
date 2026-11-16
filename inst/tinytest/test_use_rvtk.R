@@ -28,15 +28,34 @@ write_pkg <- function(desc = base_desc) {
 }
 
 # ── rvtk_rel_path ────────────────────────────────────────────────────────────
+# The helper strips root/ from path when path lives under root, and returns
+# path unchanged otherwise. It compares against normalizePath(root) (and uses
+# .Platform$file.sep), so we build inputs from normalized temp paths to stay
+# platform-robust (Windows drives/separators, macOS /var -> /private/var, etc.).
 
-rel_inside <- rvtk:::rvtk_rel_path("/a/b/src/Makevars", "/a/b")
-expect_equal(rel_inside, "src/Makevars")
+rel_root <- tempfile("rvtk_rel_root_")
+dir.create(rel_root, recursive = TRUE)
+rel_root <- normalizePath(rel_root)
 
-rel_outside <- rvtk:::rvtk_rel_path("/x/y/file.txt", "/a/b")
-expect_equal(rel_outside, "/x/y/file.txt")
+## A path under root is made relative to root.
+rel_inside <- rvtk:::rvtk_rel_path(
+  file.path(rel_root, "src", "Makevars"),
+  rel_root
+)
+expect_identical(rel_inside, file.path("src", "Makevars"))
+
+## A path not under root is returned unchanged.
+rel_outside_path <- file.path(normalizePath(tempdir()), "file.txt")
+expect_identical(
+  rvtk:::rvtk_rel_path(rel_outside_path, rel_root),
+  rel_outside_path
+)
 
 ## A path equal to root+sep (empty remainder) is handled without error.
-expect_identical(rvtk:::rvtk_rel_path(paste0("/a/b", "/"), "/a/b"), "")
+expect_identical(
+  rvtk:::rvtk_rel_path(paste0(rel_root, .Platform$file.sep), rel_root),
+  ""
+)
 
 # ── rvtk_has_cli returns a logical (cli installed on the repr environment) ──
 
