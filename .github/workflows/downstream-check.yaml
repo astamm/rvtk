@@ -315,62 +315,65 @@ jobs:
       #
       # The files are written to a neutral REF_DIR so every matrix leg can
       # compare its attach strategy against a single hand-written oracle.
+      #
+      # The reference is generated from R with the SAME content strings and the
+      # SAME writeLines() calls rvtk::use_rvtk() uses.  This keeps the reference
+      # byte-identical on every platform: R's text-mode writeLines() emits CRLF
+      # line endings on Windows and LF elsewhere, exactly matching what
+      # use_rvtk() writes through its own writeLines() helper.  A bash printf
+      # version would always emit LF and fail the diff on Windows.
       - name: Write manual VTK config reference
-        shell: bash
+        shell: Rscript {0}
         run: |
-          REF="$RUNNER_TEMP/ref_vtk"
-          rm -rf "$REF"
-          mkdir -p "$REF/src" "$REF/tools"
-          echo "REF_DIR=$REF" >> "$GITHUB_ENV"
+          ref <- file.path(Sys.getenv("RUNNER_TEMP"), "ref_vtk")
+          unlink(ref, recursive = TRUE)
+          dir.create(file.path(ref, "src"), recursive = TRUE)
+          dir.create(file.path(ref, "tools"), recursive = TRUE)
+          cat(sprintf("REF_DIR=%s\n", ref), file = Sys.getenv("GITHUB_ENV"), append = TRUE)
 
-          # ---- src/Makevars ----------------------------------------------
-          # Every file must be byte-for-byte what rvtk::use_rvtk() writes:
-          # writeLines() appends a trailing newline to the template even when
-          # the template already ends with one, so the files end in "\n\n".
-          printf 'PKG_CPPFLAGS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --cppflags`\n' \
-            > "$REF/src/Makevars"
-          printf 'PKG_LIBS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --libs`\n' \
-            >> "$REF/src/Makevars"
-          printf '\n' >> "$REF/src/Makevars"
+          # Same 18-module default as rvtk::use_rvtk().
+          modules <- c(
+            "vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
+            "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry",
+            "vtkFiltersModeling", "vtkFiltersExtraction",
+            "vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel",
+            "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
+            "vtkCommonTransforms", "vtksys"
+          )
 
-          # ---- src/Makevars.win ------------------------------------------
-          printf 'PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --cppflags)\n' \
-            > "$REF/src/Makevars.win"
-          printf 'PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --libs)\n' \
-            >> "$REF/src/Makevars.win"
-          printf '\n' >> "$REF/src/Makevars.win"
+          # ---- src/Makevars (mirrors use_rvtk() step 2) -------------------
+          writeLines(paste0(
+            'PKG_CPPFLAGS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --cppflags`\n',
+            'PKG_LIBS = `"$(R_HOME)/bin/Rscript" ../tools/configure.R --libs`\n'
+          ), con = file.path(ref, "src", "Makevars"))
 
-          # ---- tools/configure.R (same 18-module default as use_rvtk) ----
-          # Written with printf so the 2-space indentation of the module lines
-          # and branch bodies matches use_rvtk()'s template exactly (a heredoc
-          # would need de-indenting and cannot preserve the blank lines).
-          {
-            printf 'args <- commandArgs(trailingOnly = TRUE)\n'
-            printf 'flag <- if (length(args)) args[1L] else "--cppflags"\n'
-            printf '\n'
-            printf 'vtk_modules <- c(\n'
-            for m in vtkIOLegacy vtkIOXML vtkIOXMLParser vtkIOCore vtkIOGeometry \
-                     vtkFiltersCore vtkFiltersGeneral vtkFiltersGeometry vtkFiltersModeling vtkFiltersExtraction \
-                     vtkCommonCore vtkCommonDataModel vtkCommonExecutionModel vtkCommonMath vtkCommonMisc \
-                     vtkCommonSystem vtkCommonTransforms vtksys; do
-              if [ "$m" = "vtksys" ]; then
-                printf '  "%s"\n' "$m"
-              else
-                printf '  "%s",\n' "$m"
-              fi
-            done
-            printf ')\n'
-            printf '\n'
-            printf 'if (flag == "--cppflags") {\n'
-            printf '  rvtk::CppFlags()\n'
-            printf '} else if (flag == "--libs") {\n'
-            printf '  rvtk::LdFlagsFile(path = "vtk_libs.rsp", modules = vtk_modules)\n'
-            printf '}\n'
-            printf '\n'
-          } > "$REF/tools/configure.R"
+          # ---- src/Makevars.win (mirrors use_rvtk() step 3) ---------------
+          writeLines(paste0(
+            'PKG_CPPFLAGS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --cppflags)\n',
+            'PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --libs)\n'
+          ), con = file.path(ref, "src", "Makevars.win"))
+
+          # ---- tools/configure.R (mirrors use_rvtk() step 4) --------------
+          modules_lines <- paste0('  "', modules, '"', collapse = ",\n")
+          writeLines(paste0(
+            'args <- commandArgs(trailingOnly = TRUE)\n',
+            'flag <- if (length(args)) args[1L] else "--cppflags"\n',
+            '\n',
+            'vtk_modules <- c(\n',
+            modules_lines,
+            '\n',
+            ')\n',
+            '\n',
+            'if (flag == "--cppflags") {\n',
+            '  rvtk::CppFlags()\n',
+            '} else if (flag == "--libs") {\n',
+            '  rvtk::LdFlagsFile(path = "vtk_libs.rsp", modules = vtk_modules)\n',
+            '}\n'
+          ), con = file.path(ref, "tools", "configure.R"))
 
           # ---- .gitignore line appended by both strategies ---------------
-          printf 'src/vtk_libs.rsp\n' > "$REF/gitignore_line"
+          # Same bytes rvtk_use_git_ignore() appends via cat(pattern, "\n", ...).
+          cat("src/vtk_libs.rsp\n", file = file.path(ref, "gitignore_line"), sep = "")
 
       # ── 8. Attach VTK to the downstream package ───────────────────────────────
       #
@@ -417,7 +420,8 @@ jobs:
           diff -u "$REF_DIR/src/Makevars.win"  "$PKG/src/Makevars.win"
           diff -u "$REF_DIR/tools/configure.R" "$PKG/tools/configure.R"
           # use_rvtk adds src/vtk_libs.rsp to .gitignore via rvtk_use_git_ignore()
-          grep -Fxq "src/vtk_libs.rsp" "$PKG/.gitignore" \
+          # (strip a trailing CR so Windows CRLF line endings cannot hide the entry)
+          sed 's/\r$//' "$PKG/.gitignore" | grep -Fxq "src/vtk_libs.rsp" \
             || { echo "use_rvtk did not add src/vtk_libs.rsp to .gitignore"; exit 1; }
           # use_rvtk writes the roxygen import stub (idempotent with the shared
           # scaffold's, which already exists).
