@@ -1,0 +1,24 @@
+Loguru (VTK bundled logging library) - public domain / Unlicense-style
+======================================================================
+
+Loguru is VTK's bundled C++ logging library (headers under
+ThirdParty/loguru/vtkloguru; built as libvtkloguru). It is redistributed
+inside the pre-built VTK libraries shipped by the rvtk project (extracted into
+inst/prebuilt from the vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the `LICENSE` file shipped
+in VTK's ThirdParty/loguru/vtkloguru source tree at the v9.7.2 tag (commit
+0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK).
+
+------------------------------------------------------------------------------
+
+License
+========
+
+This software is in the public domain. Where that dedication is not recognized,
+you are granted a perpetual, irrevocable license to copy, modify and distribute
+it as you see fit.
+
+That being said, I would appreciate credit! If you find Loguru useful, tweet me
+at @ernerfeldt mail me at emil.ernerfeldt@gmail.com.

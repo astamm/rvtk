@@ -136,7 +136,7 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           zip -r "${PKG}.zip" "${PKG}"
           echo "Created ${PKG}.zip"
@@ -296,7 +296,7 @@ jobs:
           find install/bin -name "*.dll" -exec cp {} "${PKG}/bin/" \;
           echo "Import libs: $(find ${PKG}/lib -name '*.dll.a' | wc -l)"
           echo "DLLs:        $(find ${PKG}/bin -name '*.dll'   | wc -l)"
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           zip -r "${PKG}.zip" "${PKG}"
           echo "Created ${PKG}.zip"
@@ -378,7 +378,7 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
@@ -458,7 +458,7 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
@@ -543,7 +543,7 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
@@ -628,7 +628,7 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
@@ -722,7 +722,7 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
-          # Third-party license notices (verdict, libjpeg-turbo, libtiff)
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
           echo "Created ${PKG}.tar.gz"
@@ -782,7 +782,7 @@ jobs:
           ```
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← static libraries (.a)
-          licenses/              ← third-party license notices (verdict, jpeg, tiff)
+          licenses/              ← third-party license notices (all bundled components)
           ```
 
           **Shared** (`*-shared-posix-x64.zip`):
@@ -790,7 +790,7 @@ jobs:
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← import libraries (.dll.a, for link time)
           bin/                   ← DLLs (.dll, for run time)
-          licenses/              ← third-party license notices (verdict, jpeg, tiff)
+          licenses/              ← third-party license notices (all bundled components)
           ```
 
           > The shared-DLL build uses the same `x86_64-w64-mingw32.static.posix`

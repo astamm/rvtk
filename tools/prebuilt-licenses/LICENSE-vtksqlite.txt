@@ -1,0 +1,21 @@
+SQLite (VTK bundled SQL database) - PUBLIC DOMAIN
+=================================================
+
+SQLite is VTK's bundled embedded SQL database (built as libvtksqlite, used by
+the IOSQL module). It is redistributed inside the pre-built VTK libraries
+shipped by the rvtk project (extracted into inst/prebuilt from the
+vtk-<version>-*.tar.gz/.zip release archives).
+
+SQLite has no license file in VTK's source tree; the terms are the public
+domain dedication shipped at ThirdParty/sqlite/public-domain (v9.7.2 tag,
+commit 0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK). The text below is reproduced verbatim.
+
+------------------------------------------------------------------------------
+
+The author disclaims copyright to this source code.  In place of
+a legal notice, here is a blessing:
+
+   May you do good and not evil.
+   May you find forgiveness for yourself and forgive others.
+   May you share freely, never taking more than you give.

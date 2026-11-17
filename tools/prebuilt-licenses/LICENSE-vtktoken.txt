@@ -1,0 +1,45 @@
+vtkToken (VTK bundled token library) - BSD 3-Clause (Kitware)
+=============================================================
+
+vtkToken is VTK's bundled token library for interned-string representation
+(headers under ThirdParty/token/vtktoken, installed as token/Token.h and
+friends; built as libvtktoken). It was originally developed by Kitware as a
+separate project and is vendored into VTK. It is redistributed inside the
+pre-built VTK libraries shipped by the rvtk project (extracted into
+inst/prebuilt from the vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the `license.md` file
+shipped in VTK's ThirdParty/token/vtktoken source tree at the v9.7.2 tag
+(commit 0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK).
+
+------------------------------------------------------------------------------
+
+Copyright ⓒ  2020-2023, Kitware, Inc.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions
+are met:
+
+- Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+- Neither the name of the Kitware, Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+**This software is provided by the copyright holders and contributors
+``as is'' and any express or implied warranties, including, but not
+limited to, the implied warranties of merchantability and fitness for
+a particular purpose are disclaimed. In no event shall Kitware, Inc.
+or contributors be liable for any direct, indirect, incidental,
+special, exemplary, or consequential damages (including, but not
+limited to, procurement of substitute goods or services; loss of use,
+data, or profits; or business interruption) however caused and on any
+theory of liability, whether in contract, strict liability, or tort
+(including negligence or otherwise) arising in any way out of the use
+of this software, even if advised of the possibility of such damage.**

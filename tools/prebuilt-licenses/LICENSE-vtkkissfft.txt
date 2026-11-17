@@ -1,0 +1,60 @@
+KissFFT (VTK bundled FFT library) - BSD 3-Clause
+================================================
+
+KissFFT is VTK's bundled Fast Fourier Transform library (headers under
+ThirdParty/kissfft/vtkkissfft; built as libvtkkissfft). It is redistributed
+inside the pre-built VTK libraries shipped by the rvtk project (extracted into
+inst/prebuilt from the vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced from the `COPYING` file shipped in VTK's
+ThirdParty/kissfft/vtkkissfft source tree at the v9.7.2 tag (commit
+0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK). The COPYING file states the library is
+provided under the BSD 3-clause "New" or "Revised" License with SPDX
+identifier BSD-3-Clause; the full text of that license (which is the same text
+as the BSD-3-Clause variant used throughout VTK) follows.
+
+------------------------------------------------------------------------------
+
+Copyright (c) 2003-2010 Mark Borgerding . All rights reserved.
+
+KISS FFT is provided under:
+
+  SPDX-License-Identifier: BSD-3-Clause
+
+Being under the terms of the BSD 3-clause "New" or "Revised" License,
+according with:
+
+  LICENSES/BSD-3-Clause
+
+------------------------------------------------------------------------------
+The BSD 3-clause "New" or "Revised" License text (as published at
+https://opensource.org/licenses/BSD-3-Clause):
+
+Copyright (c) <YEAR>, <COPYRIGHT HOLDER>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

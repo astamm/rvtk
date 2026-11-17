@@ -1,0 +1,84 @@
+liblzma / XZ Utils (VTK bundled compression library) - 0BSD (public domain)
+===========================================================================
+
+liblzma is VTK's bundled XZ compression library (headers under
+ThirdParty/lzma/vtklzma; built as libvtklzma). It is redistributed inside the
+pre-built VTK libraries shipped by the rvtk project (extracted into
+inst/prebuilt from the vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the `COPYING` file shipped
+in VTK's ThirdParty/lzma/vtklzma source tree at the v9.7.2 tag (commit
+0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK). Only the liblzma library portions (0BSD /
+public domain) are compiled into the shipped vtk archive; the xz command-line
+tools and their getopt_long helper are not shipped.
+
+------------------------------------------------------------------------------
+
+    XZ Utils Licensing
+    ==================
+
+    Different licenses apply to different files in this package. Here
+    is a summary of which licenses apply to which parts of this package:
+
+      - liblzma is under the BSD Zero Clause License (0BSD).
+
+      - The command line tools xz, xzdec, lzmadec, and lzmainfo are
+        under 0BSD except that, on systems that don't have a usable
+        getopt_long, GNU getopt_long is compiled and linked in from the
+        GNU libiberty sources.  The GNU getopt_long sources are under
+        GNU GPLv2+.
+
+      - The scripts are under 0BSD except that the zh converters have
+        been modified from the original GNU gettext files which are
+        under GNU GPLv2+.
+
+      - The tests are under 0BSD except that some files use GNU
+        getopt_long, which is under GNU GPLv2+.
+
+      - Some files under src/common, src/liblzma/check, and
+        src/liblzma/common have been modified from GNU gettext files.
+        These files have been renamed and modifed, and they are under
+        0BSD.
+
+      - The GNU gettext files that have been modified are still under
+        GNU GPLv2+.
+
+      - The ICU files under lib/ are under the ICU license, which is
+        included in Copyright_ICU.
+
+      - The files under po/ are under the GNU GPLv2+.
+
+      - The Libtool code is under the GNU GPLv2+ and GNU LGPLv2.1+.
+
+      - The build system files and configure.ac are under 0BSD.
+
+      - The documentation files are under 0BSD but some of the
+        documentation files have been generated from other source
+        files.
+
+    The 0BSD license is a public domain equivalent and it is listed
+    below in the section "The BSD Zero Clause License (0BSD)".
+
+    For the files under 0BSD, you can choose to use either the 0BSD
+    license, or the public domain equivalent, the Unlicense, or choose
+    to opt-out of any license and instead put the files into public
+    domain.  See the section "Dedication to the public domain" below
+    for details...
+
+    The BSD Zero Clause License (0BSD)
+    ==================================
+
+    Copyright (C) 2006-2018 Lasse Collin
+
+    Permission to use, copy, modify, and/or distribute this software
+    for any purpose with or without fee is hereby granted.
+
+    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+    WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+    WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+    AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+    CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+    LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+    NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+    CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
