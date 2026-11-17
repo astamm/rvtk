@@ -1,4 +1,4 @@
-# rvtk 0.3.0
+# rvtk 0.2.0
 
 ### New features
 
@@ -12,22 +12,6 @@
   `VTK_FiltersGeometry`, `VTK_FiltersModeling`, and `VTK_FiltersExtraction`
   (closing issue #5). These are also added to the default `modules` set used by
   `use_rvtk()` and linked in `configure`'s `vtk_build_flags()`.
-
-* **Test coverage raised from ~48% to 100%.** New tinytest coverage exercises
-  the `filter_libs()` module filtering and every branch of `use_rvtk()` and its
-  internals (`rvtk_use_package`, `rvtk_write_file`, `rvtk_use_git_ignore`,
-  `rvtk_rel_path`), including the base-R fallback messaging branches. The
-  package now reports 100% line coverage under `covr::package_coverage()`.
-
-### Internal changes
-
-* The optional-`cli`/interactive prompting decisions in `use_rvtk()` are now
-  routed through small internal wrappers (`rvtk_has_cli()`, `rvtk_interactive()`,
-  `rvtk_readline()`) so the messaging and overwrite branches can be unit-tested.
-
-# rvtk 0.2.0
-
-### New features
 
 * **`use_rvtk()`: one-call downstream package setup.** A new
   [usethis](https://usethis.r-lib.org/)-style helper that configures a
@@ -48,8 +32,8 @@
   The `modules` argument (default: the standard I/O + core set) lets
   downstream developers restrict linking to only the VTK modules they need,
   avoiding unintended symbol drag-in (important on macOS static bundles).
-
-  Uses **cli** for formatted console output (listed in `Imports`).
+  Uses **cli** for formatted console output when available (it is an optional
+  dependency, listed in `Suggests`).
 
 * **Linux x86_64 musl (Alpine Linux) support.** The pre-built static fallback
   now provides a `vtk-X.Y.Z-linux-musl-x86_64.tar.gz` archive built inside an
@@ -68,6 +52,12 @@
   `vtk-X.Y.Z-linux-aarch64.tar.gz` archive built on `ubuntu-24.04-arm`.
   The `configure` script detects the host architecture and downloads the
   correct archive automatically, so no user action is required.
+
+* **Test coverage raised from ~48% to 100%.** New tinytest coverage exercises
+  the `filter_libs()` module filtering and every branch of `use_rvtk()` and its
+  internals (`rvtk_use_package`, `rvtk_write_file`, `rvtk_use_git_ignore`,
+  `rvtk_rel_path`), including the base-R fallback messaging branches. The
+  package now reports 100% line coverage under `covr::package_coverage()`.
 
 ### Bug fixes
 
@@ -112,10 +102,13 @@
   macOS CI](https://github.com/tractoverse/tractoverse/actions) with
   `symbol not found in flat namespace '__ZN17vtkCellGridReader3NewEv'`.
 
-### Internal
+### Internal changes
 
 * New internal helper `filter_libs()` implements the module-name matching used
   by all three platform branches of `read_vtk_conf()`.
+* The optional-`cli`/interactive prompting decisions in `use_rvtk()` are now
+  routed through small internal wrappers (`rvtk_has_cli()`, `rvtk_interactive()`,
+  `rvtk_readline()`) so the messaging and overwrite branches can be unit-tested.
 
 # rvtk 0.1.3
 

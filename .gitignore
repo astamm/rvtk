@@ -13,3 +13,5 @@ vtk-prebuilt/
 .Rproj.user/
 .Rhistory
 docs
+inst/doc
+**/.quarto/
