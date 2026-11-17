@@ -25,9 +25,9 @@ LdFlagsFile(path, modules = NULL, os_type = .Platform$OS.type)
   A character vector of VTK module names to link against, e.g.
   `c("vtkIOLegacy", "vtkCommonCore")`. When `NULL` (the default) all
   available modules are included. When non-`NULL`, only the requested
-  modules are linked, which avoids pulling in unneeded symbols (such as
-  AppKit/Cocoa symbols from rendering modules when using the pre-built
-  static bundle).
+  modules are linked, which avoids pulling in object files that
+  reference symbols from modules outside the selected set when using the
+  pre-built static bundle.
 
 - os_type:
 

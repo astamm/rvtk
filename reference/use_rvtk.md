@@ -69,3 +69,29 @@ its side effects.
 
 [`CppFlags()`](https://astamm.github.io/rvtk/reference/CppFlags.md),
 [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
+
+## Examples
+
+``` r
+# Configure a minimal package in a temporary directory
+pkg <- file.path(tempdir(), "mypkg")
+dir.create(pkg, recursive = TRUE)
+writeLines(c(
+  "Package: mypkg",
+  "Title: My Package",
+  "Description: A package that links against VTK.",
+  "Version: 0.0.1"
+), file.path(pkg, "DESCRIPTION"))
+use_rvtk(path = pkg)
+#> ✔ Added rvtk to Imports in DESCRIPTION.
+#> ✔ Writing src/Makevars.
+#> ✔ Writing src/Makevars.win.
+#> ✔ Writing tools/configure.R.
+#> ✔ Adding "src/vtk_libs.rsp" to .gitignore.
+#> ✔ Writing R/rvtk_imports.R.
+#> ✔ Package mypkg is now configured to link against VTK via rvtk.
+list.files(pkg, recursive = TRUE)
+#> [1] "DESCRIPTION"       "R/rvtk_imports.R"  "src/Makevars"     
+#> [4] "src/Makevars.win"  "tools/configure.R"
+unlink(pkg, recursive = TRUE)
+```

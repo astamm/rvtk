@@ -10,8 +10,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bindings for the Visualization Toolkit (VTK)">
-<meta name="description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_FiltersCore, VTK_FiltersGeneral, VTK_FiltersGeometry, VTK_FiltersModeling, VTK_FiltersExtraction, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
-<meta property="og:description" content="Provides pre-compiled static VTK libraries and headers so that downstream R packages can link against the Visualization Toolkit without requiring users to install VTK manually. On all platforms the package first honours a user-supplied VTK_DIR environment variable. On macOS it then tries Homebrew, followed by pkg-config. On Linux it tries pkg-config and well-known system prefixes (/usr, /usr/local). If no suitable system installation is found on macOS or Linux, pre-built static libraries are downloaded automatically from the packages GitHub releases for x86_64 and aarch64. On Windows the package tries VTK_DIR, then Rtools45 pacman, then common MSYS2 prefixes, accepting both static (.a) and shared (.dll.a import libs + DLLs) installations. When shared libraries are used, the VTK DLLs are staged in inst/vtk-dlls/ and an .onLoad hook prepends that directory to PATH via Sys.setenv() when the package is loaded, and restored in .onUnload(). The pre-built fallback downloads static libraries by default; set VTK_LINK_TYPE=shared before installation to download the DLL build instead. The pre-built bundles include the following VTK modules (plus their transitive dependencies): VTK_IOLegacy, VTK_IOXML, VTK_IOCore, VTK_FiltersCore, VTK_FiltersGeneral, VTK_FiltersGeometry, VTK_FiltersModeling, VTK_FiltersExtraction, VTK_CommonCore, and VTK_CommonDataModel. Note that on Windows VTK_IONetCDF, VTK_IOHDF, VTK_GeovisCore, and VTK_RenderingCore are additionally disabled because netcdf and libproj are not available in the Rtools45 static.posix sysroot. Downstream packages can declare Imports: rvtk and obtain the correct compiler and linker flags at install time via rvtk::CppFlags() and rvtk::LdFlagsFile(), optionally restricting linking to a subset of modules via the modules argument. A convenience helper use_rvtk() (in the spirit of the usethis package) automates the full setup of a downstream package: it adds rvtk to Imports in DESCRIPTION and writes all files required to resolve VTK flags at install time (src/Makevars, src/Makevars.win, tools/configure.R, and R/rvtk_imports.R'), and keeps generated build artefacts out of version control.">
+<meta name="description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries are provided for macOS, Linux, and Windows; on Windows a shared-DLL build is available via VTK_LINK_TYPE=shared.">
+<meta property="og:description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries are provided for macOS, Linux, and Windows; on Windows a shared-DLL build is available via VTK_LINK_TYPE=shared.">
 <meta property="og:image" content="https://astamm.github.io/rvtk/logo.png">
 </head>
 <body>
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -31,6 +31,7 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
+<li class="nav-item"><a class="nav-link" href="articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
@@ -90,7 +91,7 @@
 <li>Download pre-built static libraries built with the <code>x86_64-w64-mingw32.static.posix</code> toolchain from <a href="https://github.com/astamm/rvtk/releases" class="external-link uri">https://github.com/astamm/rvtk/releases</a> as a fallback.</li>
 </ol>
 <blockquote>
-<p><strong>Windows — disabled modules.</strong> The Rtools45 <code>static.posix</code> sysroot does not provide <code>netcdf</code> or <code>libproj</code>. Consequently, the following VTK modules are <strong>disabled</strong> in the Windows pre-built libraries: <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, <code>VTK_GeovisCore</code>, <code>VTK_RenderingCore</code>. Downstream packages that require any of these modules cannot currently be built on Windows.</p>
+<p><strong>Windows — disabled modules.</strong> The Rtools45 <code>static.posix</code> sysroot does not provide <code>netcdf</code> or <code>libproj</code>. Consequently, the following VTK modules are <strong>disabled</strong> in the Windows pre-built libraries: <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, <code>VTK_GeovisCore</code>. Downstream packages that require any of these modules cannot currently be built on Windows.</p>
 </blockquote>
 </div>
 <div class="section level3">
@@ -260,6 +261,10 @@
 <td>Core I/O infrastructure shared by all I/O modules</td>
 </tr>
 <tr>
+<td><code>VTK_IOGeometry</code></td>
+<td>Readers/writers for common geometric formats (<code>.ply</code>, <code>.stl</code>, …)</td>
+</tr>
+<tr>
 <td><code>VTK_FiltersCore</code></td>
 <td>Core algorithmic filters (threshold, transform points, …)</td>
 </tr>
@@ -290,8 +295,8 @@
 </tbody>
 </table>
 <p>Typical transitive dependencies pulled in automatically include <code>VTK_CommonExecutionModel</code>, <code>VTK_CommonMath</code>, <code>VTK_CommonMisc</code>, <code>VTK_CommonSystem</code>, <code>VTK_CommonTransforms</code>, <code>VTK_IOXMLParser</code>, and <code>vtksys</code>.</p>
-<p>On Windows the modules <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, <code>VTK_GeovisCore</code>, and <code>VTK_RenderingCore</code> are additionally <strong>disabled</strong> because <code>netcdf</code> and <code>libproj</code> are not available in the Rtools45 <code>static.posix</code> sysroot.</p>
-<p>To link against only the modules your package needs — which avoids pulling in unwanted symbols, such as AppKit/Cocoa symbols from rendering modules on macOS static bundles — pass the <code>modules</code> argument to <code><a href="reference/LdFlagsFile.html">LdFlagsFile()</a></code> (or <code><a href="reference/LdFlags.html">LdFlags()</a></code>):</p>
+<p>On Windows the modules <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, and <code>VTK_GeovisCore</code> are additionally <strong>disabled</strong> because <code>netcdf</code> and <code>libproj</code> are not available in the Rtools45 <code>static.posix</code> sysroot.</p>
+<p>To link against only the modules your package needs — which avoids pulling in object files that reference symbols from modules outside the selected set on macOS static bundles — pass the <code>modules</code> argument to <code><a href="reference/LdFlagsFile.html">LdFlagsFile()</a></code> (or <code><a href="reference/LdFlags.html">LdFlags()</a></code>):</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="va">VTK_LIBS</span><span class="op">=</span><span class="st">"</span><span class="va">$(</span><span class="st">"</span><span class="va">${R_HOME}</span><span class="st">/bin/Rscript"</span> <span class="at">--vanilla</span> <span class="at">-e</span> <span class="dt">\</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="st">"rvtk::LdFlagsFile('src/vtk_libs.rsp', modules = c('VTK_IOLegacy', 'VTK_CommonCore'))"</span><span class="va">)</span><span class="st">"</span></span></code></pre></div>
 <p>When <code>modules = NULL</code> (the default), all available modules are linked, which is safe when using a system VTK installation that provides only shared libraries.</p>
@@ -300,7 +305,11 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<code class="sourceCode R"><span><span class="co"># from CRAN</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rvtk"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># development version</span></span>
+<span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"astamm/rvtk"</span><span class="op">)</span></span></code></pre></div>
 <p>A system VTK installation (≥ 9.1.0) is not required: if none is found the package downloads pre-built static libraries automatically.</p>
 </div>
@@ -322,7 +331,7 @@
 <li>Add <code>src/vtk_libs.rsp</code> to <code>.gitignore</code>.</li>
 <li>Create <code>R/rvtk_imports.R</code> with a minimal <code>@importFrom rvtk</code> tag so that <code>R CMD check</code> does not warn about an unused <code>Imports</code> entry.</li>
 </ol>
-<p>The <code>modules</code> argument lets you restrict linking to only the VTK modules your package actually needs (strongly recommended on macOS to avoid pulling in AppKit/Cocoa symbols from the static bundle):</p>
+<p>The <code>modules</code> argument lets you restrict linking to only the VTK modules your package actually needs (strongly recommended on macOS to avoid pulling in symbols from modules that are not in the selected set):</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="reference/use_rvtk.html">use_rvtk</a></span><span class="op">(</span></span>
 <span>  modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -440,7 +449,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Aymeric Stamm <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-8725-3654" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Aymeric Stamm <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0002-8725-3654" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
