@@ -35,3 +35,6 @@ to a response file instead.
 \examples{
 flags <- LdFlags()
 }
+\seealso{
+\code{\link[=use_rvtk]{use_rvtk()}}
+}

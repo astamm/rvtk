@@ -19,7 +19,14 @@ package's \code{configure} or \code{configure.win} script:
 \details{
 \if{html}{\out{<div class="sourceCode sh">}}\preformatted{VTK_CPPFLAGS="$("$\{R_HOME\}/bin/Rscript" --vanilla -e "rvtk::CppFlags()")"
 }\if{html}{\out{</div>}}
+
+For the recommended one-call setup of a downstream package, see
+\code{\link[=use_rvtk]{use_rvtk()}}; it wires this function (and \code{\link[=LdFlagsFile]{LdFlagsFile()}}) into the
+package's build files automatically.
 }
 \examples{
 flags <- CppFlags()
+}
+\seealso{
+\code{\link[=use_rvtk]{use_rvtk()}}
 }

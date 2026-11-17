@@ -54,3 +54,6 @@ no file is written and the raw flags are returned directly.
 rsp <- file.path(tempdir(), "vtk_libs.rsp")
 ref <- LdFlagsFile(rsp)
 }
+\seealso{
+\code{\link[=use_rvtk]{use_rvtk()}}
+}

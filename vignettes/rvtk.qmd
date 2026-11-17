@@ -64,6 +64,54 @@ rvtk's own `configure` script runs at *install time* and writes the result to
 4. Download pre-built libraries (static `.a` by default, or shared DLLs when
    `VTK_LINK_TYPE=shared` is set before installation).
 
+Static `.a` libraries are preferred over shared `.dll.a` import libraries at
+the same prefix; if only shared libraries are available, rvtk accepts them and
+stages the VTK DLLs itself so downstream packages need no extra configuration.
+
+### Compatibility matrix
+
+The pre-built fallback is available for the following platform × strategy
+combinations; a system VTK installation (≥ 9.1.0) found via `VTK_DIR`,
+`pkg-config`, Homebrew, or pacman is always preferred when present.
+
+| Platform | Pre-built fallback | Notes |
+|---|---|---|
+| macOS arm64 | static `.a` | |
+| macOS x86_64 | static `.a` | |
+| Linux x86_64 (glibc) | static `.a` | |
+| Linux x86_64 (musl / Alpine) | static `.a` | headless build: `VTK_USE_X=OFF`, `RenderingOpenGL2=NO` |
+| Linux aarch64 | static `.a` | |
+| Windows x64 | static `.a` (default) or shared DLLs (`VTK_LINK_TYPE=shared`) | |
+
+On Windows the modules `VTK_IONetCDF`, `VTK_IOHDF`, and `VTK_GeovisCore` are
+disabled because `netcdf` and `libproj` are not available in the Rtools45
+`static.posix` sysroot; downstream packages requiring them cannot be built on
+Windows with rvtk's pre-built libraries.
+
+### Bundled VTK modules
+
+The pre-built bundles are built with `VTK_BUILD_ALL_MODULES=OFF` and the
+following modules explicitly enabled (VTK resolves and includes all
+transitive dependencies automatically):
+
+| Module | Purpose |
+|---|---|
+| `VTK_IOLegacy` | Legacy VTK file format reader/writer (`.vtk`) |
+| `VTK_IOXML` | XML-based VTK file formats (`.vtp`, `.vtu`, `.vts`, …) |
+| `VTK_IOCore` | Core I/O infrastructure shared by all I/O modules |
+| `VTK_IOGeometry` | Readers/writers for common geometric formats (`.ply`, `.stl`, …) |
+| `VTK_FiltersCore` | Core algorithmic filters (threshold, transform points, …) |
+| `VTK_FiltersGeneral` | General-purpose filters (append, clip, decimate, …) |
+| `VTK_FiltersGeometry` | Filters that modify or convert dataset geometry |
+| `VTK_FiltersModeling` | Filters for geometric modeling and meshing |
+| `VTK_FiltersExtraction` | Filters that extract subsets of data |
+| `VTK_CommonCore` | Core data structures, object model, logging |
+| `VTK_CommonDataModel` | Datasets, cells, point/cell data arrays |
+
+Typical transitive dependencies pulled in automatically include
+`VTK_CommonExecutionModel`, `VTK_CommonMath`, `VTK_CommonMisc`,
+`VTK_CommonSystem`, `VTK_CommonTransforms`, `VTK_IOXMLParser`, and `vtksys`.
+
 Once rvtk is installed, `CppFlags()`, `LdFlags()`, `LdFlagsFile()`, and
 `VtkVersion()` read `vtk.conf` and report whatever VTK was found:
 
@@ -110,7 +158,8 @@ an interactive session and skips them silently otherwise.
 ### Strategy B — manual setup
 
 Everything `use_rvtk()` writes can also be written by hand, exactly as
-documented in the README "Manual setup" section. The files are:
+documented below (the README's "Manual setup" section also walks through it).
+The files are:
 
 **`DESCRIPTION`** — declare the dependency:
 
