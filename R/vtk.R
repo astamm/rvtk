@@ -8,11 +8,16 @@
 #' VTK_CPPFLAGS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::CppFlags()")"
 #' ```
 #'
+#' For the recommended one-call setup of a downstream package, see
+#' [use_rvtk()]; it wires this function (and [LdFlagsFile()]) into the
+#' package's build files automatically.
+#'
 #' @return A single character string of compiler flags, written to stdout (so
 #'   that it can be captured by shell command substitution in `configure`) and
 #'   returned invisibly.
 #' @examples
 #' flags <- CppFlags()
+#' @seealso [use_rvtk()]
 #' @export
 CppFlags <- function() {
   flags <- read_vtk_conf()[["VTK_CPPFLAGS"]]
@@ -46,6 +51,7 @@ CppFlags <- function() {
 #'   returned invisibly.
 #' @examples
 #' flags <- LdFlags()
+#' @seealso [use_rvtk()]
 #' @export
 LdFlags <- function(modules = NULL) {
   flags <- read_vtk_conf(modules = modules)[["VTK_LIBS"]]
@@ -96,6 +102,7 @@ LdFlags <- function(modules = NULL) {
 #' @examples
 #' rsp <- file.path(tempdir(), "vtk_libs.rsp")
 #' ref <- LdFlagsFile(rsp)
+#' @seealso [use_rvtk()]
 #' @export
 LdFlagsFile <- function(path, modules = NULL, os_type = .Platform$OS.type) {
   flags <- read_vtk_conf(modules = modules)[["VTK_LIBS"]]
@@ -118,7 +125,8 @@ LdFlagsFile <- function(path, modules = NULL, os_type = .Platform$OS.type) {
 
 #' VTK version used by this package
 #'
-#' @return A character string with the VTK version, e.g. `"9.3.1"`.
+#' @return A character string with the VTK version detected at install time,
+#'   e.g. `"9.7.2"`.
 #' @examples
 #' VtkVersion()
 #' @export

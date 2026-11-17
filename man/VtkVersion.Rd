@@ -7,7 +7,8 @@
 VtkVersion()
 }
 \value{
-A character string with the VTK version, e.g. \code{"9.3.1"}.
+A character string with the VTK version detected at install time,
+e.g. \code{"9.7.2"}.
 }
 \description{
 VTK version used by this package
