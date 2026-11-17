@@ -109,7 +109,11 @@ jobs:
           LDFLAGS="$(Rscript --vanilla -e 'rvtk::LdFlags()')"
           test -n "${CPPFLAGS}" && test -n "${LDFLAGS}"
           c++ -std=c++17 ${CPPFLAGS} -c smoke.cpp -o smoke.o
-          c++ ${LDFLAGS} smoke.o -o smoke
+          # Object files must precede the libraries: GNU ld resolves archives
+          # as it encounters them, so smoke.o after --end-group would leave
+          # its own references (vtkPolyDataReader::New, vtksys managers)
+          # unsatisfied.  Mirror R CMD SHLIB / Makevars ordering.
+          c++ smoke.o ${LDFLAGS} -o smoke
           test "$(./smoke)" = "VTK 9.7.2"
           Rscript --vanilla -e 'stopifnot(identical(rvtk::VtkVersion(), "9.7.2"))'
           echo "link + run OK on aarch64"
@@ -193,7 +197,11 @@ jobs:
           LDFLAGS="$(Rscript --vanilla -e 'rvtk::LdFlags()')"
           test -n "${CPPFLAGS}" && test -n "${LDFLAGS}"
           c++ -std=c++17 ${CPPFLAGS} -c smoke.cpp -o smoke.o
-          c++ ${LDFLAGS} smoke.o -o smoke
+          # Object files must precede the libraries: GNU ld resolves archives
+          # as it encounters them, so smoke.o after --end-group would leave
+          # its own references (vtkPolyDataReader::New, vtksys managers)
+          # unsatisfied.  Mirror R CMD SHLIB / Makevars ordering.
+          c++ smoke.o ${LDFLAGS} -o smoke
           test "$(./smoke)" = "VTK 9.7.2"
           Rscript --vanilla -e 'stopifnot(identical(rvtk::VtkVersion(), "9.7.2"))'
           echo "link + run OK on musl"
