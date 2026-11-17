@@ -1,7 +1,7 @@
-## New submission
+## Update
 
-This is a new submission of the package update from v0.1.3 to v0.2.0 (first
-submission of this version; not a resubmission of a rejected package).
+This is a submission of the package update from v0.1.3 to v0.2.0 (a regular
+version update; not a resubmission of a previously rejected package).
 
 ## Summary of the update
 
