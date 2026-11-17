@@ -1,0 +1,207 @@
+# Workflow: audit the pre-built VTK fallback on the exact platforms CRAN's
+# external checkers flagged on 0.1.3.
+#
+# Failure 1 (r-devel/linux-arm64-checks): "ERROR: Unsupported Linux
+#   architecture 'aarch64'."  The 0.1.3 configure had no aarch64 branch.
+# Failure 2 (bastistician/Rcheck, Alpine/musl): 0.1.3 downloaded the glibc
+#   x86_64 archive on musl systems and used a busybox-invalid mktemp template
+#   (`mktemp /tmp/vtk-prebuilt.XXXXXX.tar.gz`).
+#
+# These legs replicate those checkers' environments and force the pre-built
+# fallback (the images ship no system VTK), then prove the result by compiling
+# and linking a real C++ program against the downloaded archives:
+#
+#   arm64-ubuntu – ghcr.io/r-devel/rcheckserver/ubuntu:latest, the exact image
+#                  CRAN's linux-arm64 checker runs, on an arm64 runner
+#   musl-alpine  – ghcr.io/bastistician/rcheck-musl:latest, a from-source R
+#                  built against musl on Alpine
+#
+# Both images are container-only (no Node; the rcheckserver image ships no git
+# and no bash), so checkout is a plain `git fetch` of $GITHUB_SHA rather than
+# actions/checkout@v6.  pak is deliberately not used: base R's R CMD build /
+# INSTALL plus a source install of tinytest exercise the same code path CRAN
+# runs, without assuming binary package repos exist for aarch64 or musl.
+
+name: prebuilt-audit.yaml
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions: read-all
+
+jobs:
+  arm64-ubuntu:
+    name: Linux aarch64 (CRAN arm64 checker image)
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    container:
+      image: ghcr.io/r-devel/rcheckserver/ubuntu:latest
+
+    steps:
+      # The checker image ships no git, bash, or curl.  Bootstrap must run with
+      # /bin/sh because bash is not installed yet.
+      - name: Install git, bash, curl
+        shell: sh
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends git bash curl ca-certificates
+
+      - name: Checkout $GITHUB_SHA
+        shell: bash
+        run: |
+          # The workspace directory is pre-created by the runner under a
+          # different UID than the container's root; without this git refuses
+          # to operate in it ("dubious ownership").
+          git config --global --add safe.directory '*'
+          git init -q
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth 1 origin "${GITHUB_SHA}"
+          git checkout -q --detach FETCH_HEAD
+          git rev-parse --short HEAD
+
+      - name: Install tinytest from source
+        shell: bash
+        run: |
+          Rscript --vanilla -e 'options(timeout = 600); install.packages("tinytest", repos = "https://cloud.r-project.org", type = "source")'
+
+      - name: Build source tarball
+        shell: bash
+        run: R CMD build --no-build-vignettes --no-manual .
+
+      - name: Install and assert the aarch64 archive was chosen
+        shell: bash
+        run: |
+          test "$(uname -m)" = "aarch64"
+          R CMD INSTALL rvtk_*.tar.gz 2>&1 | tee /tmp/rvtk-install.log
+          grep -q "vtk-9.7.2-linux-aarch64.tar.gz" /tmp/rvtk-install.log
+
+      - name: Run the rvtk tinytest suite
+        shell: bash
+        run: |
+          Rscript --vanilla -e '
+            res <- tinytest::test_package("rvtk")
+            df <- as.data.frame(res)
+            if (!nrow(df) || !all(as.logical(df[["result"]]))) quit(status = 1L)
+            cat("rvtk tinytest OK:", nrow(df), "tests\n")
+          '
+
+      - name: Compile, link, and run C++ against the real aarch64 archives
+        shell: bash
+        run: |
+          set -e
+          mkdir -p /tmp/smoke && cd /tmp/smoke
+          cat > smoke.cpp <<'EOF'
+          #include <vtkVersion.h>
+          #include <vtkNew.h>
+          #include <vtkPolyDataReader.h>
+          #include <cstdio>
+
+          int main() {
+            vtkNew<vtkPolyDataReader> reader;
+            std::printf("VTK %s\n", vtkVersion::GetVTKVersion());
+            return 0;
+          }
+          EOF
+
+          CPPFLAGS="$(Rscript --vanilla -e 'rvtk::CppFlags()')"
+          LDFLAGS="$(Rscript --vanilla -e 'rvtk::LdFlags()')"
+          test -n "${CPPFLAGS}" && test -n "${LDFLAGS}"
+          c++ -std=c++17 ${CPPFLAGS} -c smoke.cpp -o smoke.o
+          # Object files must precede the libraries: GNU ld resolves archives
+          # as it encounters them, so smoke.o after --end-group would leave
+          # its own references (vtkPolyDataReader::New, vtksys managers)
+          # unsatisfied.  Mirror R CMD SHLIB / Makevars ordering.
+          c++ smoke.o ${LDFLAGS} -o smoke
+          test "$(./smoke)" = "VTK 9.7.2"
+          Rscript --vanilla -e 'stopifnot(identical(rvtk::VtkVersion(), "9.7.2"))'
+          echo "link + run OK on aarch64"
+
+  musl-alpine:
+    name: Linux x86_64 musl (bastistician rcheck-musl image)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: ghcr.io/bastistician/rcheck-musl:latest
+
+    steps:
+      # git is present in this image; bash and curl are not guaranteed.
+      - name: Install bash and curl (Alpine)
+        shell: sh
+        run: apk add --no-cache bash curl ca-certificates
+
+      - name: Checkout $GITHUB_SHA
+        shell: bash
+        run: |
+          # The workspace directory is pre-created by the runner under a
+          # different UID than the container's root; without this git refuses
+          # to operate in it ("dubious ownership").
+          git config --global --add safe.directory '*'
+          git init -q
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --depth 1 origin "${GITHUB_SHA}"
+          git checkout -q --detach FETCH_HEAD
+          git rev-parse --short HEAD
+
+      - name: Install tinytest from source (musl R needs a source build)
+        shell: bash
+        run: |
+          Rscript --vanilla -e 'options(timeout = 600); install.packages("tinytest", repos = "https://cloud.r-project.org")'
+
+      - name: Build source tarball
+        shell: bash
+        run: R CMD build --no-build-vignettes --no-manual .
+
+      - name: Install and assert the musl archive was chosen
+        shell: bash
+        run: |
+          test "$(uname -m)" = "x86_64"
+          # Assert the new POSIX-portable libc probe identifies musl here.
+          if getconf GNU_LIBC_VERSION > /dev/null 2>&1; then
+            echo "probe reported glibc on a musl system" >&2
+            exit 1
+          fi
+          R CMD INSTALL rvtk_*.tar.gz 2>&1 | tee /tmp/rvtk-install.log
+          grep -q "vtk-9.7.2-linux-musl-x86_64.tar.gz" /tmp/rvtk-install.log
+
+      - name: Run the rvtk tinytest suite
+        shell: bash
+        run: |
+          Rscript --vanilla -e '
+            res <- tinytest::test_package("rvtk")
+            df <- as.data.frame(res)
+            if (!nrow(df) || !all(as.logical(df[["result"]]))) quit(status = 1L)
+            cat("rvtk tinytest OK:", nrow(df), "tests\n")
+          '
+
+      - name: Compile, link, and run C++ against the real musl archives
+        shell: bash
+        run: |
+          set -e
+          mkdir -p /tmp/smoke && cd /tmp/smoke
+          cat > smoke.cpp <<'EOF'
+          #include <vtkVersion.h>
+          #include <vtkNew.h>
+          #include <vtkPolyDataReader.h>
+          #include <cstdio>
+
+          int main() {
+            vtkNew<vtkPolyDataReader> reader;
+            std::printf("VTK %s\n", vtkVersion::GetVTKVersion());
+            return 0;
+          }
+          EOF
+
+          CPPFLAGS="$(Rscript --vanilla -e 'rvtk::CppFlags()')"
+          LDFLAGS="$(Rscript --vanilla -e 'rvtk::LdFlags()')"
+          test -n "${CPPFLAGS}" && test -n "${LDFLAGS}"
+          c++ -std=c++17 ${CPPFLAGS} -c smoke.cpp -o smoke.o
+          # Object files must precede the libraries: GNU ld resolves archives
+          # as it encounters them, so smoke.o after --end-group would leave
+          # its own references (vtkPolyDataReader::New, vtksys managers)
+          # unsatisfied.  Mirror R CMD SHLIB / Makevars ordering.
+          c++ smoke.o ${LDFLAGS} -o smoke
+          test "$(./smoke)" = "VTK 9.7.2"
+          Rscript --vanilla -e 'stopifnot(identical(rvtk::VtkVersion(), "9.7.2"))'
+          echo "link + run OK on musl"

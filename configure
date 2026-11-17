@@ -149,9 +149,11 @@ if test "${vtk_found}" = "no"; then
                     exit 1 ;;
             esac ;;
         Linux)
-            # Detect musl libc (Alpine Linux and similar)
+            # Detect musl libc (Alpine Linux and similar).  getconf
+            # GNU_LIBC_VERSION is the POSIX-portable probe: it prints
+            # "glibc x.y" on glibc systems and fails on musl (busybox).
             _libc="glibc"
-            if ldd --version 2>&1 | grep -q musl; then
+            if ! getconf GNU_LIBC_VERSION > /dev/null 2>&1; then
                 _libc="musl"
             fi
             case "${_arch}" in
