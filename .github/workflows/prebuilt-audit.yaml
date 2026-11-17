@@ -51,6 +51,10 @@ jobs:
       - name: Checkout $GITHUB_SHA
         shell: bash
         run: |
+          # The workspace directory is pre-created by the runner under a
+          # different UID than the container's root; without this git refuses
+          # to operate in it ("dubious ownership").
+          git config --global --add safe.directory '*'
           git init -q
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch -q --depth 1 origin "${GITHUB_SHA}"
@@ -126,6 +130,10 @@ jobs:
       - name: Checkout $GITHUB_SHA
         shell: bash
         run: |
+          # The workspace directory is pre-created by the runner under a
+          # different UID than the container's root; without this git refuses
+          # to operate in it ("dubious ownership").
+          git config --global --add safe.directory '*'
           git init -q
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch -q --depth 1 origin "${GITHUB_SHA}"
