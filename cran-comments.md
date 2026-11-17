@@ -13,6 +13,31 @@ This is a resubmission of the package update from v0.1.3 to v0.2.0.
 * New vignette documenting how downstream R packages link against VTK through
   rvtk, both manually and via `use_rvtk()`.
 
+## CRAN check failures reported on v0.1.3 (addressed in 0.2.0)
+
+Two failures reported by CRAN on v0.1.3 are resolved in 0.2.0, with evidence
+provided by the `prebuilt-audit` workflow (`.github/workflows/prebuilt-audit.yaml`),
+which replicates both external-checker environments, forces the pre-built VTK
+fallback, runs the package tests, and compiles and links a C++ program against
+the downloaded archives:
+
+1. **linux-arm64** (`r-devel/linux-arm64-checks`): `ERROR: Unsupported Linux
+   architecture 'aarch64'.`  The v0.1.3 `configure` had no aarch64 branch.
+   0.2.0 downloads `vtk-9.7.2-linux-aarch64.tar.gz` (ELF aarch64, glibc) when
+   no system VTK is found on aarch64 Linux.  The `arm64-ubuntu` leg runs on an
+   arm64 runner in `ghcr.io/r-devel/rcheckserver/ubuntu:latest` — the exact
+   image used by CRAN's linux-arm64 checker.
+
+2. **Alpine / musl** (`bastistician/Rcheck`): v0.1.3 downloaded the glibc
+   x86_64 archive on musl systems (no musl branch existed) and the download
+   failed with `mktemp: : Invalid argument` because the template
+   `mktemp /tmp/vtk-prebuilt.XXXXXX.tar.gz` does not end in `XXXXXX` (busybox
+   rejects it).  0.2.0 selects `vtk-9.7.2-linux-musl-x86_64.tar.gz` on musl
+   (detected with the POSIX-portable `getconf GNU_LIBC_VERSION` probe) and uses
+   a valid `mktemp` template.  The `musl-alpine` leg installs in
+   `ghcr.io/bastistician/rcheck-musl:latest` and also asserts that the new libc
+   probe correctly identifies musl.
+
 ## R CMD check results
 
 0 errors | 0 warnings | 0 notes (locally, on macOS arm64).
