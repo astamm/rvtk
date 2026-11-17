@@ -37,9 +37,9 @@ Pre-built libraries are provided for macOS (arm64 and x86_64), Linux
 (x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or
 shared DLLs).
 
-**See the [vignette](articles/rvtk.html) for full details:** how VTK is
-located on each platform (with the compatibility matrix), which VTK
-modules are bundled, manually writing the build files, restricting
+**See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html) for full
+details:** how VTK is located on each platform (with the compatibility matrix),
+which VTK modules are bundled, manually writing the build files, restricting
 linking with the `modules` argument, and verifying that linking worked.
 
 ## Quick start
@@ -73,6 +73,6 @@ the package downloads pre-built libraries automatically.
 
 ## Links
 
-- [Function reference](reference/index.html)
-- [Vignette: linking downstream R packages to VTK](articles/rvtk.html)
+- [Function reference](https://astamm.github.io/rvtk/reference/index.html)
+- [Vignette: linking downstream R packages to VTK](https://astamm.github.io/rvtk/articles/rvtk.html)
 - [VTK](https://vtk.org/)
