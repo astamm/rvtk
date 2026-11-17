@@ -68,7 +68,7 @@
 <code class="sourceCode R"><span><span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="reference/use_rvtk.html">use_rvtk</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="reference/use_rvtk.html">use_rvtk()</a></code> writes <code>src/Makevars</code>, <code>src/Makevars.win</code>, and <code>tools/configure.R</code> so that the compiler and linker flags are resolved at install time via <code><a href="reference/CppFlags.html">rvtk::CppFlags()</a></code> and <code><a href="reference/LdFlagsFile.html">rvtk::LdFlagsFile()</a></code>. Everything can also be set up by hand — the two approaches produce identical files.</p>
 <p>Pre-built libraries are provided for macOS (arm64 and x86_64), Linux (x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or shared DLLs).</p>
-<p><strong>See the <a href="articles/rvtk.html">vignette</a> for full details:</strong> how VTK is located on each platform (with the compatibility matrix), which VTK modules are bundled, manually writing the build files, restricting linking with the <code>modules</code> argument, and verifying that linking worked.</p>
+<p><strong>See the <a href="https://astamm.github.io/rvtk/articles/rvtk.html">vignette</a> for full details:</strong> how VTK is located on each platform (with the compatibility matrix), which VTK modules are bundled, manually writing the build files, restricting linking with the <code>modules</code> argument, and verifying that linking worked.</p>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
@@ -97,8 +97,8 @@
 <h2 id="links">Links<a class="anchor" aria-label="anchor" href="#links"></a>
 </h2>
 <ul>
-<li><a href="reference/index.html">Function reference</a></li>
-<li><a href="articles/rvtk.html">Vignette: linking downstream R packages to VTK</a></li>
+<li><a href="https://astamm.github.io/rvtk/reference/index.html">Function reference</a></li>
+<li><a href="https://astamm.github.io/rvtk/articles/rvtk.html">Vignette: linking downstream R packages to VTK</a></li>
 <li><a href="https://vtk.org/" class="external-link">VTK</a></li>
 </ul>
 </div>
