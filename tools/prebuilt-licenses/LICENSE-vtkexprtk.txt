@@ -1,0 +1,40 @@
+ExprTk (VTK bundled math expression library) - MIT License
+==========================================================
+
+ExprTk is VTK's bundled C++ math expression template library (header under
+ThirdParty/exprtk/vtkexprtk/include/exprtk.hpp, installed as
+vtkexprtk/include/exprtk.hpp). It is redistributed inside the pre-built VTK
+libraries shipped by the rvtk project (extracted into inst/prebuilt from the
+vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the `license.txt` file
+shipped in VTK's ThirdParty/exprtk/vtkexprtk source tree at the v9.7.2 tag
+(commit 0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK).
+
+------------------------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 1999-2024 Arash Partow
+
+https://www.partow.net/programming/exprtk/index.html
+
+Permission is hereby granted, free of charge, to any person  obtaining
+a  copy  of  this software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software  without restriction, including
+without limitation the  rights to use,  copy, modify, merge,  publish,
+distribute, sublicense,  and/or sell  copies of  the Software,  and to
+permit persons to whom the Software is furnished to do so, subject  to
+the following conditions:
+
+The  above  copyright  notice  and  this  permission  notice  shall be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE  IS PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT  LIMITED TO  THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS  OR COPYRIGHT HOLDERS BE LIABLE FOR  ANY
+CLAIM, DAMAGES OR OTHER LIABILITY,  WHETHER IN AN ACTION OF  CONTRACT,
+TORT OR  OTHERWISE,  ARISING  FROM, OUT  OF OR  IN  CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

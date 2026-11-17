@@ -1,0 +1,53 @@
+MetaIO (VTK bundled medical image I/O library) - BSD 3-Clause (Insight Software Consortium)
+===========================================================================================
+
+MetaIO is VTK's bundled medical image MetaImage format I/O library (sources
+under Utilities/MetaIO/vtkmetaio; built as libvtkmetaio). It lives in VTK's
+Utilities/ tree rather than ThirdParty/ because Kitware maintains it as part
+of VTK's own support code. It is redistributed inside the pre-built VTK
+libraries shipped by the rvtk project (extracted into inst/prebuilt from the
+vtk-<version>-*.tar.gz/.zip release archives).
+
+The license text below is reproduced verbatim from the `License.txt` file
+shipped in VTK's Utilities/MetaIO/vtkmetaio source tree at the v9.7.2 tag
+(commit 0558d4d4e4bc86c4b4bf7af2f2488011a4de9e0f; source:
+https://github.com/Kitware/VTK).
+
+------------------------------------------------------------------------------
+
+MetaIO - Medical Image I/O
+The following license applies to all code, without exception,
+in the MetaIO library.
+
+/*=========================================================================
+
+Copyright 2000-2014 Insight Software Consortium
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ * Neither the name of the Insight Software Consortium nor the names of its
+   contributors may be used to endorse or promote products derived from this
+   software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+
+=========================================================================*/
