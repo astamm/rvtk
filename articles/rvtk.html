@@ -110,6 +110,121 @@
 <li>Common Rtools45 / MSYS2 prefixes (<code>/x86_64-w64-mingw32.static.posix</code>, <code>/ucrt64</code>, <code>/mingw64</code>, …).</li>
 <li>Download pre-built libraries (static <code>.a</code> by default, or shared DLLs when <code>VTK_LINK_TYPE=shared</code> is set before installation).</li>
 </ol>
+<p>Static <code>.a</code> libraries are preferred over shared <code>.dll.a</code> import libraries at the same prefix; if only shared libraries are available, rvtk accepts them and stages the VTK DLLs itself so downstream packages need no extra configuration.</p>
+</section><section class="level3"><h3 id="compatibility-matrix">Compatibility matrix<a class="anchor" aria-label="anchor" href="#compatibility-matrix"></a>
+</h3>
+<p>The pre-built fallback is available for the following platform × strategy combinations; a system VTK installation (≥ 9.1.0) found via <code>VTK_DIR</code>, <code>pkg-config</code>, Homebrew, or pacman is always preferred when present.</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Platform</th>
+<th>Pre-built fallback</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>macOS arm64</td>
+<td>static <code>.a</code>
+</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>macOS x86_64</td>
+<td>static <code>.a</code>
+</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Linux x86_64 (glibc)</td>
+<td>static <code>.a</code>
+</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Linux x86_64 (musl / Alpine)</td>
+<td>static <code>.a</code>
+</td>
+<td>headless build: <code>VTK_USE_X=OFF</code>, <code>RenderingOpenGL2=NO</code>
+</td>
+</tr>
+<tr class="odd">
+<td>Linux aarch64</td>
+<td>static <code>.a</code>
+</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>Windows x64</td>
+<td>static <code>.a</code> (default) or shared DLLs (<code>VTK_LINK_TYPE=shared</code>)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>On Windows the modules <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, and <code>VTK_GeovisCore</code> are disabled because <code>netcdf</code> and <code>libproj</code> are not available in the Rtools45 <code>static.posix</code> sysroot; downstream packages requiring them cannot be built on Windows with rvtk’s pre-built libraries.</p>
+</section><section class="level3"><h3 id="bundled-vtk-modules">Bundled VTK modules<a class="anchor" aria-label="anchor" href="#bundled-vtk-modules"></a>
+</h3>
+<p>The pre-built bundles are built with <code>VTK_BUILD_ALL_MODULES=OFF</code> and the following modules explicitly enabled (VTK resolves and includes all transitive dependencies automatically):</p>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Module</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>VTK_IOLegacy</code></td>
+<td>Legacy VTK file format reader/writer (<code>.vtk</code>)</td>
+</tr>
+<tr class="even">
+<td><code>VTK_IOXML</code></td>
+<td>XML-based VTK file formats (<code>.vtp</code>, <code>.vtu</code>, <code>.vts</code>, …)</td>
+</tr>
+<tr class="odd">
+<td><code>VTK_IOCore</code></td>
+<td>Core I/O infrastructure shared by all I/O modules</td>
+</tr>
+<tr class="even">
+<td><code>VTK_IOGeometry</code></td>
+<td>Readers/writers for common geometric formats (<code>.ply</code>, <code>.stl</code>, …)</td>
+</tr>
+<tr class="odd">
+<td><code>VTK_FiltersCore</code></td>
+<td>Core algorithmic filters (threshold, transform points, …)</td>
+</tr>
+<tr class="even">
+<td><code>VTK_FiltersGeneral</code></td>
+<td>General-purpose filters (append, clip, decimate, …)</td>
+</tr>
+<tr class="odd">
+<td><code>VTK_FiltersGeometry</code></td>
+<td>Filters that modify or convert dataset geometry</td>
+</tr>
+<tr class="even">
+<td><code>VTK_FiltersModeling</code></td>
+<td>Filters for geometric modeling and meshing</td>
+</tr>
+<tr class="odd">
+<td><code>VTK_FiltersExtraction</code></td>
+<td>Filters that extract subsets of data</td>
+</tr>
+<tr class="even">
+<td><code>VTK_CommonCore</code></td>
+<td>Core data structures, object model, logging</td>
+</tr>
+<tr class="odd">
+<td><code>VTK_CommonDataModel</code></td>
+<td>Datasets, cells, point/cell data arrays</td>
+</tr>
+</tbody>
+</table>
+<p>Typical transitive dependencies pulled in automatically include <code>VTK_CommonExecutionModel</code>, <code>VTK_CommonMath</code>, <code>VTK_CommonMisc</code>, <code>VTK_CommonSystem</code>, <code>VTK_CommonTransforms</code>, <code>VTK_IOXMLParser</code>, and <code>vtksys</code>.</p>
 <p>Once rvtk is installed, <code><a href="../reference/CppFlags.html">CppFlags()</a></code>, <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, and <code><a href="../reference/VtkVersion.html">VtkVersion()</a></code> read <code>vtk.conf</code> and report whatever VTK was found:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
@@ -143,7 +258,7 @@
 <p>If some of these files already exist, <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> asks before overwriting in an interactive session and skips them silently otherwise.</p>
 </section><section class="level3"><h3 id="strategy-b-manual-setup">Strategy B — manual setup<a class="anchor" aria-label="anchor" href="#strategy-b-manual-setup"></a>
 </h3>
-<p>Everything <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> writes can also be written by hand, exactly as documented in the README “Manual setup” section. The files are:</p>
+<p>Everything <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> writes can also be written by hand, exactly as documented below (the README’s “Manual setup” section also walks through it). The files are:</p>
 <p><strong><code>DESCRIPTION</code></strong> — declare the dependency:</p>
 <pre><code><span><span class="va">Imports</span><span class="op">:</span> <span class="va">rvtk</span></span></code></pre>
 <p><strong><code>src/Makevars</code></strong>:</p>

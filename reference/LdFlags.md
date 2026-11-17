@@ -36,6 +36,10 @@ On Windows the full set of VTK linker flags can exceed the 8
 [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
 on Windows to write the flags to a response file instead.
 
+## See also
+
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+
 ## Examples
 
 ``` r

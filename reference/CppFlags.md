@@ -20,6 +20,16 @@ returned invisibly.
 
     VTK_CPPFLAGS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::CppFlags()")"
 
+For the recommended one-call setup of a downstream package, see
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md); it
+wires this function (and
+[`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md))
+into the package's build files automatically.
+
+## See also
+
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+
 ## Examples
 
 ``` r

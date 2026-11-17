@@ -57,6 +57,10 @@ On Windows the flags are written to `path` and the function returns the
 not reliably support `@file` response files at the compiler-driver
 level, so no file is written and the raw flags are returned directly.
 
+## See also
+
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+
 ## Examples
 
 ``` r

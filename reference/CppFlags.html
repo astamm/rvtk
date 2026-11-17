@@ -63,6 +63,13 @@ returned invisibly.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p></p><div class="sourceCode sh"><pre><code><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="va">VTK_CPPFLAGS</span><span class="op">=</span><span class="st">"</span><span class="va">$(</span><span class="st">"</span><span class="va">${R_HOME}</span><span class="st">/bin/Rscript"</span> <span class="at">--vanilla</span> <span class="at">-e</span> <span class="st">"rvtk::CppFlags()"</span><span class="va">)</span><span class="st">"</span></span></code></pre><p></p></div>
+<p>For the recommended one-call setup of a downstream package, see
+<code><a href="use_rvtk.html">use_rvtk()</a></code>; it wires this function (and <code><a href="LdFlagsFile.html">LdFlagsFile()</a></code>) into the
+package's build files automatically.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="use_rvtk.html">use_rvtk()</a></code></p></div>
     </div>
 
     <div class="section level2">

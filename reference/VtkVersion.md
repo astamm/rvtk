@@ -10,7 +10,8 @@ VtkVersion()
 
 ## Value
 
-A character string with the VTK version, e.g. `"9.3.1"`.
+A character string with the VTK version detected at install time, e.g.
+`"9.7.2"`.
 
 ## Examples
 
