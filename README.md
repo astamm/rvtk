@@ -37,10 +37,30 @@ Pre-built libraries are provided for macOS (arm64 and x86_64), Linux
 (x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or
 shared DLLs).
 
-**See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html) for full
-details:** how VTK is located on each platform (with the compatibility matrix),
-which VTK modules are bundled, manually writing the build files, restricting
-linking with the `modules` argument, and verifying that linking worked.
+> **ABI compatibility of the pre-built libraries.** The pre-built
+> archives are compiled with **GCC and libstdc++** (on Windows, the
+> Rtools45 `static.posix` MinGW toolchain). Downstream packages should
+> use a matching toolchain: builds with Clang `-stdlib=libc++` may fail
+> to load with an undefined `__try_use_facet` symbol, and builds with a
+> much newer GCC than the build toolchain may fail with
+> `__cxa_call_terminate`. If your toolchain cannot match, install a
+> system VTK (e.g. via Homebrew or apt) and rvtk will use it instead.
+
+**See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html)
+for full details:** how VTK is located on each platform (with the
+compatibility matrix), which VTK modules are bundled, manually writing
+the build files, restricting linking with the `modules` argument, and
+verifying that linking worked.
+
+## Valgrind
+
+A minimal downstream program that reads a VTK file reports ~1.5 KB
+“definitely lost” under valgrind, allocated inside VTK’s pipeline
+internals (`vtkInformation` / pipeline executives). This is inherent to
+the statically-linked VTK build and is not a leak in your code. A
+suppression file is shipped at `inst/valgrind/vtk.supp`; point valgrind
+at it (or set `_R_CHECK_VALGRIND_SUPPRESSIONS_` for `R CMD check`’s
+valgrind leg) to get a clean report.
 
 ## Quick start
 
@@ -73,6 +93,8 @@ the package downloads pre-built libraries automatically.
 
 ## Links
 
-- [Function reference](https://astamm.github.io/rvtk/reference/index.html)
-- [Vignette: linking downstream R packages to VTK](https://astamm.github.io/rvtk/articles/rvtk.html)
+- [Function
+  reference](https://astamm.github.io/rvtk/reference/index.html)
+- [Vignette: linking downstream R packages to
+  VTK](https://astamm.github.io/rvtk/articles/rvtk.html)
 - [VTK](https://vtk.org/)
