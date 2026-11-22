@@ -103,6 +103,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -259,6 +265,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -342,6 +354,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
@@ -355,6 +368,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -424,6 +443,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
@@ -437,6 +457,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -520,6 +546,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -605,6 +637,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -700,6 +738,12 @@ jobs:
                 -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
                 -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
                 -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+                -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+                -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+                -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
                 -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
                 -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
                 -DVTK_USE_X=OFF \
@@ -815,6 +859,12 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES
           -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES
           -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES
+          -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES
+          -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES
+          -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ```
 
