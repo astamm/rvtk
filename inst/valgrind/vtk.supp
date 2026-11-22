@@ -1,0 +1,56 @@
+# Valgrind suppression file for rvtk's pre-built VTK static libraries.
+#
+# VTK's demand-driven pipeline allocates internal bookkeeping objects
+# (vtkInformation, vtkInformationVector, pipeline executives) that are never
+# freed on program exit and never referenced again.  Valgrind reports these as
+# "definitely lost" even for a minimal downstream program that reads a VTK file
+# (see rvtk issue #17): typically about 1.5 KB in 7 blocks.  The objects are
+# reachable only through VTK-internal static state; the leaks are inherent to
+# the statically linked VTK build and are not leaks in downstream code.
+#
+# These suppressions match by function name, so they apply to any build of VTK
+# 9.x.  To use with R CMD check's valgrind leg, set:
+#
+#   _R_CHECK_VALGRIND_SUPPRESSIONS_=.../inst/valgrind/vtk.supp
+#
+# or pass --suppressions=... to valgrind directly.
+{
+   rvtk-vtkInformation-allocation
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN3vtk16vtkInformationC2Ev
+   fun:_ZN3vtk16vtkInformation3NewEv
+}
+{
+   rvtk-vtkInformationVector-allocation
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN3vtk20vtkInformationVectorC2Ev
+   fun:_ZN3vtk20vtkInformationVector3NewEv
+}
+{
+   rvtk-vtkExecutive-pipeline-internals
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN3vtk14vtkExecutiveC2Ev
+   fun:_ZN3vtk14vtkExecutive3NewEv
+}
+{
+   rvtk-vtkStreamingDemandDrivenPipeline
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN3vtk31vtkStreamingDemandDrivenPipelineC2Ev
+   fun:_ZN3vtk31vtkStreamingDemandDrivenPipeline3NewEv
+}
+{
+   rvtk-vtkCompositeDataPipeline-allocation
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:_Znwm
+   fun:_ZN3vtk24vtkCompositeDataPipelineC2Ev
+   fun:_ZN3vtk24vtkCompositeDataPipeline3NewEv
+}
