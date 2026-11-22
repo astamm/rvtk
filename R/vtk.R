@@ -42,9 +42,8 @@ CppFlags <- function() {
 #' @param modules A character vector of VTK module names to link against,
 #'   e.g. `c("vtkIOLegacy", "vtkCommonCore")`.  When `NULL` (the default) all
 #'   available modules are included.  When non-`NULL`, only the requested
-#'   modules are linked, which avoids pulling in object files that reference
-#'   symbols from modules outside the selected set when using the pre-built
-#'   static bundle.
+#'   modules are linked, which reduces link time and produces a smaller
+#'   downstream package when only part of VTK is used.
 #'
 #' @return A single character string of linker flags, written to stdout (so
 #'   that it can be captured by shell command substitution in `configure`) and
@@ -87,9 +86,8 @@ LdFlags <- function(modules = NULL) {
 #' @param modules A character vector of VTK module names to link against,
 #'   e.g. `c("vtkIOLegacy", "vtkCommonCore")`.  When `NULL` (the default) all
 #'   available modules are included.  When non-`NULL`, only the requested
-#'   modules are linked, which avoids pulling in object files that reference
-#'   symbols from modules outside the selected set when using the pre-built
-#'   static bundle.
+#'   modules are linked, which reduces link time and produces a smaller
+#'   downstream package when only part of VTK is used.
 #' @param os_type A string identifying the operating-system type, defaulting to
 #'   `.Platform$OS.type`.  Override to `"windows"` or `"unix"` in tests to
 #'   exercise the Windows response-file branch without needing a Windows

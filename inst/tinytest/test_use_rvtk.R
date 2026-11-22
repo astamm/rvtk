@@ -249,12 +249,10 @@ res_e2e <- capture.output(ret <- use_rvtk(path = pkg_e2e), type = "message")
 expect_true(is.character(ret))
 expect_equal(length(ret), 1L)
 
-## configure.R embeds the requested VTK modules.
+## With the default modules = NULL, configure.R links the full bundled VTK.
 conf_script <- readLines(file.path(pkg_e2e, "tools", "configure.R"))
-expect_true(any(grepl('vtkIOLegacy', conf_script)))
-expect_true(any(grepl('vtkIOGeometry', conf_script)))
-expect_true(any(grepl('vtkFiltersCore', conf_script)))
-expect_true(any(grepl('vtkCommonCore', conf_script)))
+expect_true(any(grepl('vtk_modules <- NULL', conf_script, fixed = TRUE)))
+expect_false(any(grepl('vtkIOLegacy', conf_script)))
 
 ## A second call on the same package runs without error (rvtk already present).
 expect_silent(use_rvtk(path = pkg_e2e))

@@ -7,7 +7,7 @@
 #
 #   attach: manual    – hand-written files following the README "Manual setup"
 #                       section: src/Makevars, src/Makevars.win,
-#                       tools/configure.R (18-module default), .gitignore entry.
+#                       tools/configure.R (NULL = full bundled VTK), .gitignore entry.
 #   attach: use_rvtk  – the user-facing rvtk::use_rvtk() helper generates the
 #                       same files automatically.
 #
@@ -331,15 +331,8 @@ jobs:
           dir.create(file.path(ref, "tools"), recursive = TRUE)
           cat(sprintf("REF_DIR=%s\n", ref), file = Sys.getenv("GITHUB_ENV"), append = TRUE)
 
-          # Same 18-module default as rvtk::use_rvtk().
-          modules <- c(
-            "vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
-            "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry",
-            "vtkFiltersModeling", "vtkFiltersExtraction",
-            "vtkCommonCore", "vtkCommonDataModel", "vtkCommonExecutionModel",
-            "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
-            "vtkCommonTransforms", "vtksys"
-          )
+          # Same default as rvtk::use_rvtk(): NULL = full bundled VTK.
+          modules <- NULL
 
           # ---- src/Makevars (mirrors use_rvtk() step 2) -------------------
           writeLines(paste0(
@@ -354,15 +347,14 @@ jobs:
           ), con = file.path(ref, "src", "Makevars.win"))
 
           # ---- tools/configure.R (mirrors use_rvtk() step 4) --------------
-          modules_lines <- paste0('  "', modules, '"', collapse = ",\n")
+          modules_lines <- if (is.null(modules)) "NULL" else {
+            paste0('  "', modules, '"', collapse = ",\n")
+          }
           writeLines(paste0(
             'args <- commandArgs(trailingOnly = TRUE)\n',
             'flag <- if (length(args)) args[1L] else "--cppflags"\n',
             '\n',
-            'vtk_modules <- c(\n',
-            modules_lines,
-            '\n',
-            ')\n',
+            'vtk_modules <- ', modules_lines, '\n',
             '\n',
             'if (flag == "--cppflags") {\n',
             '  rvtk::CppFlags()\n',

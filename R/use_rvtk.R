@@ -22,11 +22,17 @@
 #' compiler and linker flags are resolved automatically at `R CMD INSTALL` time
 #' on all platforms without any shell `configure` / `configure.win` scripts.
 #'
-#' @param modules A character vector of VTK module names to link against.
-#'   These are passed to [LdFlagsFile()] in the generated `tools/configure.R`,
-#'   restricting linking to only the modules the downstream package needs.
-#'   Defaults to a standard set covering the common I/O, filtering, core, and
-#'   data-model modules bundled with **rvtk**.
+#' @param modules A character vector of VTK module names to link against, or
+#'   `NULL` (the default) to link the full set of VTK modules bundled with
+#'   **rvtk**.  These are passed to [LdFlagsFile()] in the generated
+#'   `tools/configure.R`.  The pre-built archives are static libraries, so the
+#'   linker extracts only the object files actually referenced by your code:
+#'   linking everything by default cannot fail with "missing module" symbols
+#'   (e.g. the `vtkParallelDIY` / `vtkIOCellGrid` failures seen with older
+#'   curated defaults), and passing a subset such as
+#'   `c("vtkIOLegacy", "vtkCommonCore")` is an optimisation that reduces link
+#'   time and keeps the resulting binary smaller for packages that use only
+#'   part of VTK.
 #' @param path Path to the root of the downstream package. Defaults to the
 #'   current working directory.
 #'
@@ -50,26 +56,7 @@
 #' @seealso [CppFlags()], [LdFlagsFile()]
 #' @export
 use_rvtk <- function(
-  modules = c(
-    "vtkIOLegacy",
-    "vtkIOXML",
-    "vtkIOXMLParser",
-    "vtkIOCore",
-    "vtkIOGeometry",
-    "vtkFiltersCore",
-    "vtkFiltersGeneral",
-    "vtkFiltersGeometry",
-    "vtkFiltersModeling",
-    "vtkFiltersExtraction",
-    "vtkCommonCore",
-    "vtkCommonDataModel",
-    "vtkCommonExecutionModel",
-    "vtkCommonMath",
-    "vtkCommonMisc",
-    "vtkCommonSystem",
-    "vtkCommonTransforms",
-    "vtksys"
-  ),
+  modules = NULL,
   path = "."
 ) {
   path <- normalizePath(path, mustWork = TRUE)
@@ -98,17 +85,20 @@ use_rvtk <- function(
   )
 
   ## 4. tools/configure.R -----------------------------------------------------
-  modules_lines <- paste0('  "', modules, '"', collapse = ",\n")
+  modules_lines <- if (is.null(modules)) {
+    "NULL"
+  } else {
+    paste0('  "', modules, '"', collapse = ",\n")
+  }
   rvtk_write_file(
     path = file.path(path, "tools", "configure.R"),
     content = paste0(
       'args <- commandArgs(trailingOnly = TRUE)\n',
       'flag <- if (length(args)) args[1L] else "--cppflags"\n',
       '\n',
-      'vtk_modules <- c(\n',
+      'vtk_modules <- ',
       modules_lines,
       '\n',
-      ')\n',
       '\n',
       'if (flag == "--cppflags") {\n',
       '  rvtk::CppFlags()\n',
