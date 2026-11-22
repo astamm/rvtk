@@ -7,11 +7,14 @@
   `configure` script now also probes `vtk-9.7` and `vtk-9.6` before earlier
   `pkg-config` versions, and `tools/winlibs.R` downloads the 9.7.2 build.
 
-* **Six additional VTK modules bundled by default.** The pre-built bundles now
-  explicitly enable `VTK_IOGeometry`, `VTK_FiltersCore`, `VTK_FiltersGeneral`,
-  `VTK_FiltersGeometry`, `VTK_FiltersModeling`, and `VTK_FiltersExtraction`
-  (closing issue #5). These are also added to the default `modules` set used by
-  `use_rvtk()` and linked in `configure`'s `vtk_build_flags()`.
+* **Six additional VTK modules enabled in the pre-built bundles.** The
+  pre-built bundles now explicitly enable `VTK_IOGeometry`, `VTK_FiltersCore`,
+  `VTK_FiltersGeneral`, `VTK_FiltersGeometry`, `VTK_FiltersModeling`, and
+  `VTK_FiltersExtraction` (closing issue #5), together with their transitive
+  dependencies `VTK_ParallelDIY`, `VTK_ParallelCore`, `VTK_FiltersHyperTree`,
+  and `VTK_FiltersStatistics` (closing the undefined-symbol failures of issue
+  #14). These modules are also linked by `configure`'s `vtk_build_flags()` when
+  a system VTK installation is found.
 
 * **`use_rvtk()`: one-call downstream package setup.** A new
   [usethis](https://usethis.r-lib.org/)-style helper that configures a
@@ -29,9 +32,10 @@
   6. Creates `R/rvtk_imports.R` with a minimal `@importFrom rvtk` tag so
      that `R CMD check` does not warn about an unused `Imports` entry.
 
-  The `modules` argument (default: the standard I/O + core set) lets
-  downstream developers restrict linking to only the VTK modules they need,
-  avoiding unintended symbol drag-in (important on macOS static bundles).
+  By default the **full bundled VTK** is linked (`modules = NULL`); the
+  `modules` argument lets downstream developers restrict linking to only the
+  VTK modules they need, reducing link time and producing a smaller downstream
+  package (an optimisation, not a requirement — see "Bug fixes" below).
   Uses **cli** for formatted console output when available (it is an optional
   dependency, listed in `Suggests`).
 
@@ -61,7 +65,21 @@
 
 ### Bug fixes
 
-* **`configure`: fixed `mktemp` incompatibility with BusyBox.** The
+* **`use_rvtk()` links the full bundled VTK by default (`modules = NULL`).**
+  Downstream packages were failing to install or load on macOS and Linux with
+  undefined-symbol errors such as
+  `symbol not found: __ZN17vtkCellGridReader3NewEv` whenever they used a
+  VTK feature outside rvtk's curated 18- or 24-module default list. The
+  pre-built bundles have always contained the full VTK library (161 static
+  archives), so the default is now to link **all** of them. Because the
+  archives are static and the linker extracts only the object files a package
+  references, linking everything adds no runtime code a package does not use.
+  Restricting via `modules` is now purely an optimisation for link time and
+  package size (closing issue #14 for good: `vtkParallelDIY`,
+  `vtkParallelCore`, `vtkFiltersHyperTree`, `vtkIOCellGrid`, `vtkIOPLY`, … are
+  all available with the default).
+
+* **`configure`: `mktemp` incompatibility with BusyBox.** The
   temporary file for the pre-built archive download was created with a
   dotted suffix (`/tmp/vtk-prebuilt.XXXXXX.tar.gz`), which BusyBox `mktemp`
   rejects with `Invalid argument`. The suffix has been removed; the file is
@@ -73,13 +91,13 @@
   `c("vtkIOLegacy", "vtkCommonCore")`).  When `NULL` (the default) all
   available modules are included, preserving backward compatibility.
 
-  This is particularly important when using the pre-built static bundle on
-  macOS: the bundle contains the full VTK (including rendering modules that
-  reference `_NSEventTrackingRunLoopMode` from `AppKit.framework`).  Without
-  filtering, `-Wl,-all_load` forces those symbols into every downstream `.so`,
-  causing `dlopen()` failures at `R CMD check` time for packages that do not
-  actually use any rendering functionality.  Downstream packages should pass
-  only the modules they need:
+  Restricting the list is an *optimisation* (shorter link times, smaller
+  downstream packages), not a safety requirement: since the macOS static link
+  no longer uses `-all_load` (see the next bullet), the only objects pulled
+  from the pre-built archives are those your code actually references, so
+  linking all 161 modules by default cannot drag `AppKit`-only symbols such as
+  `_NSEventTrackingRunLoopMode` into a downstream `.so`.  Packages that want a
+  smaller build can pass only the modules they need:
 
   ```sh
   VTK_LIBS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::LdFlagsFile(
@@ -109,6 +127,26 @@
 * The optional-`cli`/interactive prompting decisions in `use_rvtk()` are now
   routed through small internal wrappers (`rvtk_has_cli()`, `rvtk_interactive()`,
   `rvtk_readline()`) so the messaging and overwrite branches can be unit-tested.
+
+### Documentation
+
+* **Pre-built ABI constraints documented** (issue #15). The pre-built static
+  libraries are compiled with GCC and `libstdc++`. Downstream packages built
+  with Clang `-stdlib=libc++` may fail to load with `__try_use_facet` undefined;
+  packages built with newer GCC versions than the build toolchain may fail with
+  `__cxa_call_terminate`. The README now documents that the archives are GCC /
+  libstdc++ builds and recommends matching the compiler or linking against a
+  system VTK installation.
+* **macOS deployment target raised** (issue #16). The pre-built macOS archives
+  are now built with `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` (previously they
+  carried `LC_BUILD_VERSION minos 26.0`, which prevents loading on older
+  macOS). The GitHub Actions workflow sets this for both the arm64 and x86_64
+  macOS jobs.
+* **Valgrind report documented** (issue #17). VTK's pipeline internals allocate
+  objects that valgrind reports as "definitely lost" (~1.5 KB) even in a
+  minimal downstream consumer; this is inherent to the static libraries and
+  does not indicate a leak in downstream code. An optional suppression file is
+  shipped at `inst/valgrind/vtk.supp` and documented in the README / vignette.
 
 # rvtk 0.1.3
 
