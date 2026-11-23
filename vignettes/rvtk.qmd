@@ -76,9 +76,10 @@ combinations; a system VTK installation (≥ 9.1.0) found via `VTK_DIR`,
 
 | Platform | Pre-built fallback | Notes |
 |---|---|---|
-| macOS arm64 | static `.a` | |
-| macOS x86_64 | static `.a` | |
-| Linux x86_64 (glibc) | static `.a` | |
+| macOS arm64 | static `.a` | Apple Clang / libc++ |
+| macOS x86_64 | static `.a` | Apple Clang / libc++ |
+| Linux x86_64 (glibc) | static `.a` | GCC / libstdc++ |
+| Linux x86_64 (glibc, libc++) | static `.a` | Clang `-stdlib=libc++` (selected by `configure`; see ABI note) |
 | Linux x86_64 (musl / Alpine) | static `.a` | headless build: `VTK_USE_X=OFF`, `RenderingOpenGL2=NO` |
 | Linux aarch64 | static `.a` | |
 | Windows x64 | static `.a` (default) or shared DLLs (`VTK_LINK_TYPE=shared`) | |
@@ -117,19 +118,33 @@ and `GUISupportQt` are absent).
 
 ### Pre-built ABI compatibility
 
-The pre-built static archives are compiled with **GCC and libstdc++** (on
-Windows, the Rtools45 `static.posix` MinGW toolchain), so downstream packages
-must link with a compatible C++ toolchain:
+Each pre-built archive is compiled with the platform's default C++ toolchain,
+so downstream packages must link with a compatible C++ runtime. VTK headers
+pull in `<vector>`, `<string>`, etc., and the statically linked archives embed
+the C++ standard library symbols they reference (in particular the
+third-party objects such as `libvtkscn` that are always linked), so mixing
+runtimes at load time fails with an undefined symbol:
 
-* **Clang `-stdlib=libc++` (macOS).** Linking against the GCC-built archives
-  with `libc++` fails at load time with an undefined `__try_use_facet` symbol.
-  Use the default `libstdc++` (Apple's Clang links `libc++` by default — set
-  `-stdlib=libstdc++` and link `libstdc++`, or use a GCC build).
-* **Much newer GCC than the build toolchain.** A downstream package built with
-  a GCC release new enough to change the `libstdc++` ABI stub may fail at load
-  time with an undefined `__cxa_call_terminate`. Match the compiler generation,
-  or install a system VTK (via Homebrew, apt, …) and rvtk will link that
-  instead.
+* **Linux x86_64 (glibc).** Two variants are shipped: the default archive is
+  compiled with **GCC and libstdc++**; a second archive, suffixed
+  `-linux-x86_64-libcxx`, is compiled with Clang `-stdlib=libc++` for
+  toolchains that target libc++ (CRAN's
+  `r-devel-linux-x86_64-fedora-clang` flavor compiles packages with clang and
+  defaults to libc++). rvtk's `configure` detects which standard library the
+  build compiler targets and downloads the matching archive automatically; a
+  manual install can force the choice with `CXX` (or `R_MAKEVARS_USER`).
+* **macOS.** The archives are compiled with the default Apple Clang toolchain,
+  which targets **libc++** (symbols land in the `std::__1` namespace). Do not
+  force `-stdlib=libstdc++` when linking them: the libstdc++-built objects
+  will not interoperate.
+* **Much newer GCC than the build toolchain.** Even a matching
+  libstdc++/GCC pairing can fail if the downstream compiler release changed
+  the `libstdc++` ABI stub; the failure shows up at load time as an undefined
+  `__cxa_call_terminate`. Match the compiler generation, or install a system
+  VTK (via Homebrew, apt, …) and rvtk will link that instead.
+* **Musl/Alpine and Windows.** Built with the platform's native C++ toolchain
+  (musl's GCC libstdc++; Rtools45 MinGW on Windows); link with the matching
+  R toolchain for the platform.
 
 Releases after the macOS archives were rebuilt with
 `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` are compatible with macOS 13 and newer.

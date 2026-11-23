@@ -34,17 +34,23 @@ Everything can also be set up by hand — the two approaches produce
 identical files.
 
 Pre-built libraries are provided for macOS (arm64 and x86_64), Linux
-(x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or
-shared DLLs).
+(x86_64 glibc, x86_64 musl/Alpine, aarch64, and a clang `-stdlib=libc++`
+variant of x86_64 glibc), and Windows (static or shared DLLs). rvtk’s
+`configure` script detects the compiler’s C++ standard library and picks
+the matching Linux archive automatically.
 
 > **ABI compatibility of the pre-built libraries.** The pre-built
 > archives are compiled with **GCC and libstdc++** (on Windows, the
-> Rtools45 `static.posix` MinGW toolchain). Downstream packages should
-> use a matching toolchain: builds with Clang `-stdlib=libc++` may fail
-> to load with an undefined `__try_use_facet` symbol, and builds with a
-> much newer GCC than the build toolchain may fail with
-> `__cxa_call_terminate`. If your toolchain cannot match, install a
-> system VTK (e.g. via Homebrew or apt) and rvtk will use it instead.
+> Rtools45 `static.posix` MinGW toolchain), except for the dedicated
+> Linux x86_64 **libc++** archive built with Clang. Downstream packages
+> should use a matching toolchain: linking the libstdc++ archive with
+> Clang `-stdlib=libc++` fails to load with an undefined
+> `__try_use_facet` symbol, and linking with a much newer GCC than the
+> build toolchain may fail with `__cxa_call_terminate`. On Linux x86_64,
+> `configure` detects which standard library the compiler targets and
+> downloads the matching archive; on other platforms, install a system
+> VTK (e.g. via Homebrew or apt) if your toolchain cannot match the
+> bundled one.
 
 **See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html)
 for full details:** how VTK is located on each platform (with the

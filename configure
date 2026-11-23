@@ -144,6 +144,8 @@ VTK_PREBUILT_BASE_URL="https://github.com/astamm/rvtk/releases/download/v${VTK_P
 
 if test "${vtk_found}" = "no"; then
     echo "No system VTK found. Trying pre-built static libraries from GitHub..."
+    vtk_detect_stdlib
+    echo "  C++ stdlib detection: ${vtk_stdlib}"
 
     # Determine archive name from OS + arch
     _arch="$(uname -m)"
@@ -170,7 +172,21 @@ if test "${vtk_found}" = "no"; then
                     if test "${_libc}" = "musl"; then
                         _tarball="vtk-${VTK_PREBUILT_VERSION}-linux-musl-x86_64.tar.gz"
                     else
-                        _tarball="vtk-${VTK_PREBUILT_VERSION}-linux-x86_64.tar.gz"
+                        ## Match the archive to the C++ standard library the
+                        ## package build links against.  Fedora's clang (and
+                        ## CRAN's r-devel-linux-x86_64-fedora-clang flavor)
+                        ## default to libc++: linking the GCC/libstdc++-built
+                        ## archive there fails at dlopen() with
+                        ## `__try_use_facet` / `__cxa_call_terminate`.  Ship
+                        ## a libc++ variant and pick it when vtk_detect_stdlib
+                        ## (run above) says the compiler targets libc++; keep
+                        ## the GCC archive for everything else (glibc +
+                        ## libstdc++/GCC).
+                        if test "${vtk_stdlib}" = "libc++"; then
+                            _tarball="vtk-${VTK_PREBUILT_VERSION}-linux-x86_64-libcxx.tar.gz"
+                        else
+                            _tarball="vtk-${VTK_PREBUILT_VERSION}-linux-x86_64.tar.gz"
+                        fi
                     fi ;;
                 aarch64) _tarball="vtk-${VTK_PREBUILT_VERSION}-linux-aarch64.tar.gz" ;;
                 *)
@@ -228,10 +244,12 @@ if test "${vtk_found}" = "no"; then
 VTK_VERSION=${vtk_version}
 VTK_SUFFIX=${_sfx}
 VTK_PREBUILT=yes
+VTK_STDLIB=${vtk_stdlib}
 CONF
         echo "Written inst/vtk.conf (pre-built; paths resolved at runtime)"
         echo "  VTK_VERSION=${vtk_version}"
         echo "  VTK_SUFFIX=${_sfx}"
+        echo "  VTK_STDLIB=${vtk_stdlib}"
         exit 0
     else
         echo "ERROR: Pre-built VTK archive layout not recognised at ${_prebuilt_dir}" >&2

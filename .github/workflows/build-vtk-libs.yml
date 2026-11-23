@@ -771,6 +771,128 @@ jobs:
           path: vtk-${{ env.VTK_VERSION }}-linux-aarch64.tar.gz
           retention-days: 7
 
+  # ── Linux x86_64 libc++ (clang) ───────────────────────────────────────────
+  #
+  # GCC/libstdc++-built static archives cannot be loaded by a package compiled
+  # with clang -stdlib=libc++ (CRAN's r-devel-linux-x86_64-fedora-clang flavor
+  # defaults to libc++): the libstdc++ symbols reachable by the statically
+  # linked libvtkscn (e.g. `__try_use_facet`, `__cxa_call_terminate`) are not
+  # provided by libc++, and dlopen() aborts with an undefined symbol.  This job
+  # produces the `*-linux-x86_64-libcxx` archive that rvtk's configure selects
+  # when `R CMD config CXX` targets libc++ (see tools/vtk-detect.sh), mirroring
+  # the GCC build-linux job module-for-module so the two archives are
+  # interchangeable except for the C++ runtime they embed.
+  build-linux-libcxx:
+    name: Linux x86_64 libc++ (clang)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore build cache
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: install
+          key: vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+
+      - name: Install build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build clang libc++-dev libc++abi-dev \
+            libgl1-mesa-dev libxt-dev libxrender-dev libxext-dev
+
+      - name: Download VTK source
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          MINOR="${VER%.*}"
+          curl -fsSL "https://www.vtk.org/files/release/${MINOR}/VTK-${VER}.tar.gz" -o vtk-src.tar.gz
+          tar -xzf vtk-src.tar.gz
+
+      - name: Configure VTK (clang, libc++)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          mkdir build && cd build
+          cmake -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-fPIC" \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -fPIC" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DVTK_BUILD_ALL_MODULES=OFF \
+            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            ../VTK-${VER}
+
+      - name: Build and install VTK
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cd build
+          ninja -j$(nproc)
+          ninja install
+
+      # Guard against the #15 regression: a GCC/libstdc++-built archive loaded
+      # by a libc++ consumer aborts with `__try_use_facet` / `__cxa_call_terminate`.
+      # Every object in every static lib must be free of libstdc++-only weak
+      # symbols; libc++ (and the libc++ ABI library) have their own namespaces
+      # (__1::, __2::) so any occurrence of these libstdc++ symbols proves a
+      # GCC-built object slipped in.  Runs unconditionally, even on a cache hit.
+      - name: Assert no libstdc++-ABI symbols in the archives
+        run: |
+          set -e
+          for sym in __cxa_call_terminate __try_use_facet; do
+            hits=$(for a in install/lib/*.a; do nm -C "$a" 2>/dev/null; done | grep -c "$sym" || true)
+            if [ "$hits" -ne 0 ]; then
+              echo "FAIL: $hits occurrence(s) of $sym in libc++-built archives" >&2
+              exit 1
+            fi
+          done
+          echo "no libstdc++-ABI symbols in $(ls install/lib/*.a | wc -l | tr -d ' ') archives"
+
+      - name: Package archive
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          MINOR="${VER%.*}"
+          PKG="vtk-${VER}-linux-x86_64-libcxx"
+          mkdir -p "${PKG}/include/vtk-${MINOR}" "${PKG}/lib"
+          SRC_INC=$(find install/include -maxdepth 1 -name "vtk-*" -type d | sort -V | tail -1)
+          if [ -n "${SRC_INC}" ]; then
+            cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
+          fi
+          find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
+          tar -czf "${PKG}.tar.gz" "${PKG}"
+          echo "Created ${PKG}.tar.gz"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vtk-linux-x86_64-libcxx
+          path: vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx.tar.gz
+          retention-days: 7
+
   # ── Linux x86_64 musl (Alpine Linux) ──────────────────────────────────────
   # NOTE: We intentionally do NOT use `container: image: alpine:3.22` here.
   # GitHub Actions runs a glibc-linked Node.js binary for JS-based actions
@@ -874,7 +996,7 @@ jobs:
   # ── GitHub Release ─────────────────────────────────────────────────────────
   release:
     name: Publish GitHub Release
-    needs: [build-windows, build-windows-shared, build-macos-arm64, build-macos-x86_64, build-linux, build-linux-aarch64, build-linux-musl-x86_64]
+    needs: [build-windows, build-windows-shared, build-macos-arm64, build-macos-x86_64, build-linux, build-linux-aarch64, build-linux-libcxx, build-linux-musl-x86_64]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -911,6 +1033,7 @@ jobs:
           | macOS arm64 (Apple Silicon) | static `.a` | `vtk-$VER-darwin-arm64.tar.gz` |
           | macOS x86\_64 (Intel) | static `.a` | `vtk-$VER-darwin-x86_64.tar.gz` |
           | Linux x86\_64 (glibc) | static `.a` | `vtk-$VER-linux-x86_64.tar.gz` |
+          | Linux x86\_64 (glibc, libc++/clang) | static `.a` | `vtk-$VER-linux-x86_64-libcxx.tar.gz` |
           | Linux x86\_64 (musl / Alpine) | static `.a` | `vtk-$VER-linux-musl-x86_64.tar.gz` |
           | Linux aarch64 | static `.a` | `vtk-$VER-linux-aarch64.tar.gz` |
 
@@ -997,6 +1120,23 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
           -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           ```
+
+          ### Linux libc++ (clang) additional flags
+
+          ```cmake
+          # Built with clang + libc++ so the archive can be linked by consumers whose
+          # C++ toolchain targets libc++ (e.g. CRAN's r-devel-linux-x86_64-fedora-clang
+          # flavor).  rvtk's configure picks `*-linux-x86_64-libcxx` when the detected
+          # compiler targets libc++ (see tools/vtk-detect.sh).  The archive must stay
+          # free of libstdc++-ABI symbols (`__cxa_call_terminate`, `__try_use_facet`):
+          # the build job asserts this before packaging.
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_FLAGS="-fPIC"
+          -DCMAKE_CXX_FLAGS="-stdlib=libc++ -fPIC"
+          -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+          -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
+          ```
           NOTES
           # Expand $VER / $MINOR placeholders (heredoc kept literal to avoid yaml issues)
           sed -i "s|\$VER|${VER}|g; s|\$MINOR|${MINOR}|g" release-notes.md
@@ -1029,5 +1169,6 @@ jobs:
             artifacts/vtk-macos-arm64/vtk-${{ env.VTK_VERSION }}-darwin-arm64.tar.gz
             artifacts/vtk-macos-x86_64/vtk-${{ env.VTK_VERSION }}-darwin-x86_64.tar.gz
             artifacts/vtk-linux-x86_64/vtk-${{ env.VTK_VERSION }}-linux-x86_64.tar.gz
+            artifacts/vtk-linux-x86_64-libcxx/vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx.tar.gz
             artifacts/vtk-linux-musl-x86_64/vtk-${{ env.VTK_VERSION }}-linux-musl-x86_64.tar.gz
             artifacts/vtk-linux-aarch64/vtk-${{ env.VTK_VERSION }}-linux-aarch64.tar.gz
