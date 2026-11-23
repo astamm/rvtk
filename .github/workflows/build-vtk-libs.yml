@@ -384,6 +384,36 @@ jobs:
           ninja -j$(sysctl -n hw.logicalcpu)
           ninja install
 
+      # Guard against the #16 regression: an LC_BUILD_VERSION minos >= 26.0
+      # (built against the macOS 26 SDK) produces archives that cannot be loaded
+      # from a package compiled with clang -stdlib=libc++ on older macOS.
+      # Runs unconditionally (even on a cache hit) so a stale cached install
+      # built with the old flags cannot ship as a fresh archive.
+      - name: Assert macOS deployment target is 13.0
+        run: |
+          # otool -l dumps LC_BUILD_VERSION (platform + minos) for every member
+          # object of every static lib.  Every member must declare minos 13.0,
+          # the CMAKE_OSX_DEPLOYMENT_TARGET passed to configure.
+          fail=0
+          for a in install/lib/*.a; do
+            bad=$(otool -l "$a" 2>/dev/null | awk '
+              /cmd LC_BUILD_VERSION/ { in_lc = 1 }
+              in_lc && /minos/          { if ($2 != "13.0") bad++ }
+              in_lc && /sdk/            { in_lc = 0 }
+              END { print bad+0 }')
+            if [ "$bad" -ne 0 ]; then
+              echo "FAIL: $a has $bad member object(s) with minos != 13.0" >&2
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some archives were built against a newer macOS deployment target" >&2
+            echo "than CMAKE_OSX_DEPLOYMENT_TARGET=13.0. Check the CMake configure" >&2
+            echo "flags and the SDK on the runner." >&2
+            exit 1
+          fi
+          echo "all $(ls install/lib/*.a | wc -l | tr -d ' ') archives declare minos 13.0"
+
       - name: Package archive
         run: |
           VER="${{ env.VTK_VERSION }}"
@@ -472,6 +502,36 @@ jobs:
           cd build
           ninja -j$(sysctl -n hw.logicalcpu)
           ninja install
+
+      # Guard against the #16 regression: an LC_BUILD_VERSION minos >= 26.0
+      # (built against the macOS 26 SDK) produces archives that cannot be loaded
+      # from a package compiled with clang -stdlib=libc++ on older macOS.
+      # Runs unconditionally (even on a cache hit) so a stale cached install
+      # built with the old flags cannot ship as a fresh archive.
+      - name: Assert macOS deployment target is 13.0
+        run: |
+          # otool -l dumps LC_BUILD_VERSION (platform + minos) for every member
+          # object of every static lib.  Every member must declare minos 13.0,
+          # the CMAKE_OSX_DEPLOYMENT_TARGET passed to configure.
+          fail=0
+          for a in install/lib/*.a; do
+            bad=$(otool -l "$a" 2>/dev/null | awk '
+              /cmd LC_BUILD_VERSION/ { in_lc = 1 }
+              in_lc && /minos/          { if ($2 != "13.0") bad++ }
+              in_lc && /sdk/            { in_lc = 0 }
+              END { print bad+0 }')
+            if [ "$bad" -ne 0 ]; then
+              echo "FAIL: $a has $bad member object(s) with minos != 13.0" >&2
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some archives were built against a newer macOS deployment target" >&2
+            echo "than CMAKE_OSX_DEPLOYMENT_TARGET=13.0. Check the CMake configure" >&2
+            echo "flags and the SDK on the runner." >&2
+            exit 1
+          fi
+          echo "all $(ls install/lib/*.a | wc -l | tr -d ' ') archives declare minos 13.0"
 
       - name: Package archive
         run: |
@@ -563,6 +623,40 @@ jobs:
           cd build
           ninja -j$(nproc)
           ninja install
+
+      # --whole-archive link check (Linux only).
+      #
+      # A normal link only pulls the archive members actually referenced by the
+      # objects seen so far, so a module whose symbols the bundle no longer
+      # provides (or that references a missing peer module) can slip through.
+      # -Wl,--whole-archive force-loads EVERY member object of EVERY static lib,
+      # so any unresolved `_ZN3vtk*` symbol inside the bundle fails the link.
+      # The check asserts the 161-archive set is internally consistent; the only
+      # allowed externals are the C/C++ runtime + libc/libm/libdl/libpthread
+      # (verified: zero GL/X11/zlib/PNG/jpeg/HDF5/netcdf externals in 9.7.2).
+      #
+      # Runs unconditionally (even on a cache hit): a missing-module regression
+      # stored in the cache must still fail the job.  On a cache hit the earlier
+      # dependency-install step is skipped, so make sure a C++ toolchain exists.
+      - name: Whole-archive link check (cached or fresh)
+        run: |
+          set -e
+          command -v c++ >/dev/null 2>&1 || {
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends build-essential
+          }
+          ARCHIVES=$(find install/lib -name '*.a' | sort)
+          N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
+          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          # Empty main: --whole-archive pulls every member regardless of needs.
+          printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
+          c++ -std=c++17 -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
+          c++ /tmp/wa_check_main.o \
+            -Wl,--whole-archive $ARCHIVES -Wl,--no-whole-archive \
+            -lpthread -ldl -lm \
+            -o /tmp/wa_check_bin
+          echo "whole-archive link of all $N static libs OK"
+          rm -f /tmp/wa_check_main.cpp /tmp/wa_check_main.o /tmp/wa_check_bin
 
       - name: Package archive
         run: |
