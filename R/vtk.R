@@ -282,7 +282,67 @@ read_vtk_conf <- function(
     }
   }
 
+  ## On the system-VTK supply path (no prebuilt archives, no Windows subdir),
+  ## honor the `modules` argument exactly as the prebuilt/Windows paths do.
+  ## Without this, `LdFlags(modules = ...)` returns the full set of system
+  ## libraries recorded in vtk.conf (the curated default list) and the request
+  ## is silently ignored -- asymmetric with the prebuilt path, which filters.
+  ## The same "requested modules + third-party libraries" semantics are kept so
+  ## that the two supply paths are interchangeable for a given `modules` value.
+  if (
+    is.null(conf[["VTK_SUBDIR"]]) &&
+      !identical(conf[["VTK_PREBUILT"]], "yes")
+  ) {
+    conf[["VTK_LIBS"]] <- filter_lib_flags(conf[["VTK_LIBS"]], modules)
+  }
+
   conf
+}
+
+## Normalize a VTK module name or library stem for matching: strip a leading
+## "lib", a trailing extension, and a version suffix.
+##   "vtkIOLegacy-9.1"  -> "vtkIOLegacy"
+##   "libvtkCommonCore" -> "vtkCommonCore"
+normalize_module <- function(x) {
+  x <- sub("^lib", "", x)
+  x <- sub("\\.[^.]*$", "", x)
+  sub("-([0-9].*)$", "", x)
+}
+
+## Filter a linker-flags string (e.g. "-L/usr/lib -lvtkIOLegacy-9.1 -lvtksys")
+## down to the requested modules.  Non-`-l` flags (e.g. `-L...`, `-Wl,...`,
+## `-rpath`) pass through unchanged.  Non-VTK libraries (anything whose stem
+## is not `vtk<UpperCase>`, e.g. vtksys, z, expat) are always kept, mirroring
+## filter_libs()'s third-party rule, so that transitive dependencies survive.
+## If modules is NULL the flags are returned unchanged.
+filter_lib_flags <- function(flags, modules) {
+  if (is.null(modules) || is.null(flags) || !nzchar(trimws(flags))) {
+    return(flags)
+  }
+  tokens <- strsplit(flags, "[[:space:]]+")[[1]]
+  tokens <- tokens[nzchar(tokens)]
+  is_lib <- grepl("^-l", tokens)
+  if (!any(is_lib)) {
+    return(flags)
+  }
+  mods <- normalize_module(modules)
+  stems <- normalize_module(sub("^-l", "", tokens[is_lib]))
+  is_vtk_module <- grepl("^vtk[A-Z]", stems)
+  keep <- !is_vtk_module | stems %in% mods
+  ## Rebuild the token list, keeping non-`-l` tokens and surviving `-l` tokens.
+  out <- character(0)
+  j <- 1L
+  for (i in seq_along(tokens)) {
+    if (!is_lib[i]) {
+      out <- c(out, tokens[i])
+    } else {
+      if (keep[j]) {
+        out <- c(out, tokens[i])
+      }
+      j <- j + 1L
+    }
+  }
+  paste(out, collapse = " ")
 }
 
 ## Filter a vector of library filenames (basenames or full paths) to only
