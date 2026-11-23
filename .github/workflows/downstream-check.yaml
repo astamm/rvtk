@@ -118,7 +118,7 @@ jobs:
         with:
           path: ~/vtk-shared-install
           # Bump the trailing integer when the CMake options change.
-          key: vtk-${{ env.VTK_VERSION }}-shared-${{ runner.os }}-${{ runner.arch }}-v4
+          key: vtk-${{ env.VTK_VERSION }}-shared-${{ runner.os }}-${{ runner.arch }}-v5
 
       - name: Install build tools for VTK (Linux)
         if: runner.os == 'Linux' && matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
@@ -143,6 +143,9 @@ jobs:
         if: matrix.config.vtk == 'built-shared' && steps.cache-vtk-shared.outputs.cache-hit != 'true'
         shell: bash
         run: |
+          # IOPLY/IOImage/FiltersSources extra: exercised by the shared
+          # vtk_modules_probe() smoke test below, so the built-shared legs must
+          # build them too or that probe fails to link.
           cmake -S "VTK-${{ env.VTK_VERSION }}" -B vtk-build \
             -G Ninja \
             -DBUILD_SHARED_LIBS=ON \
@@ -160,6 +163,9 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOPLY=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOImage=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersSources=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: Build and install VTK (shared libs)
@@ -256,14 +262,47 @@ jobs:
               "",
               "#include <cpp11.hpp>",
               "",
-              "// VTK headers under test",
+              "// VTK headers under test.",
+              "// The set deliberately spans several modules so that the smoke test",
+              "// fails (undefined symbol at package load / link time) if a module",
+              "// required by the documented rvtk entry points is missing from the",
+              "// bundled or system VTK:",
+              "//   vtkPolyData        - CommonDataModel",
+              "//   vtkPLYReader       - IOPLY",
+              "//   vtkPNGReader       - IOImage",
+              "//   vtkSphereSource    - FiltersSources",
+              "//   vtkExtractGeometry - FiltersExtraction",
+              "// (vtkCellGridReader / IOCellGrid is covered by the prebuilt-audit",
+              "//  workflow: it is a VTK 9.3 addition missing from Ubuntu 24.04's",
+              "//  system VTK 9.1, and every leg here must compile the same source.)",
               "#include <vtkNew.h>",
               "#include <vtkPolyData.h>",
+              "#include <vtkPLYReader.h>",
+              "#include <vtkPNGReader.h>",
+              "#include <vtkSphereSource.h>",
+              "#include <vtkExtractGeometry.h>",
               "",
               "[[cpp11::register]]",
               "int vtk_poly_data_npoints() {",
               "  vtkNew<vtkPolyData> pd;",
               "  return static_cast<int>(pd->GetNumberOfPoints());",
+              "}",
+              "",
+              "[[cpp11::register]]",
+              "bool vtk_modules_probe() {",
+              "  // Exercise one class from each additional module: create the object,",
+              "  // touch one method and let the objects destruct.  The compiler/linker",
+              "  // only emits code for what is used, so each use below also forces the",
+              "  // corresponding vtkXxx::New() symbol to be resolved at link time.",
+              "  vtkNew<vtkPLYReader> ply_reader;",
+              "  ply_reader->SetFileName(\"unused.ply\");",
+              "  vtkNew<vtkPNGReader> png_reader;",
+              "  png_reader->SetFileName(\"unused.png\");",
+              "  vtkNew<vtkSphereSource> sphere;",
+              "  sphere->SetThetaResolution(8);",
+              "  vtkNew<vtkExtractGeometry> extract;",
+              "  extract->SetExtractInside(true);",
+              "  return true;",
               "}"
             ),
             file.path(pkg, "src", "vtk_poly_data.cpp")
@@ -290,6 +329,14 @@ jobs:
               "#' @export",
               "vtk_poly_data_npoints <- function() {",
               "  .Call(`_rvtktest_vtk_poly_data_npoints`)",
+              "}",
+              "",
+              "#' Exercise one class per VTK module across the rvtk-supported surface",
+              "#'",
+              "#' @return TRUE if all classes construct and one method each resolves.",
+              "#' @export",
+              "vtk_modules_probe <- function() {",
+              "  .Call(`_rvtktest_vtk_modules_probe`)",
               "}"
             ),
             file.path(pkg, "R", "vtk_poly_data.R")
@@ -485,3 +532,9 @@ jobs:
           val <- rvtktest::vtk_poly_data_npoints()
           cat("vtk_poly_data_npoints() =", val, "\n")
           stopifnot(identical(as.integer(val), 0L))
+          # Cross-module probe: each class above lives in a different VTK module,
+          # so a missing/ABI-broken module surfaces here as a load (`dlopen`)
+          # failure or a runtime undefined symbol.
+          ok <- rvtktest::vtk_modules_probe()
+          cat("vtk_modules_probe() =", ok, "\n")
+          stopifnot(identical(ok, TRUE))
