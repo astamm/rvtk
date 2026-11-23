@@ -4,21 +4,20 @@
 \alias{use_rvtk}
 \title{Set up a downstream package to use rvtk}
 \usage{
-use_rvtk(
-  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
-    "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry", "vtkFiltersModeling",
-    "vtkFiltersExtraction", "vtkCommonCore", "vtkCommonDataModel",
-    "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
-    "vtkCommonTransforms", "vtksys"),
-  path = "."
-)
+use_rvtk(modules = NULL, path = ".")
 }
 \arguments{
-\item{modules}{A character vector of VTK module names to link against.
-These are passed to \code{\link[=LdFlagsFile]{LdFlagsFile()}} in the generated \code{tools/configure.R},
-restricting linking to only the modules the downstream package needs.
-Defaults to a standard set covering the common I/O, filtering, core, and
-data-model modules bundled with \strong{rvtk}.}
+\item{modules}{A character vector of VTK module names to link against, or
+\code{NULL} (the default) to link the full set of VTK modules bundled with
+\strong{rvtk}.  These are passed to \code{\link[=LdFlagsFile]{LdFlagsFile()}} in the generated
+\code{tools/configure.R}.  The pre-built archives are static libraries, so the
+linker extracts only the object files actually referenced by your code:
+linking everything by default cannot fail with "missing module" symbols
+(e.g. the \code{vtkParallelDIY} / \code{vtkIOCellGrid} failures seen with older
+curated defaults), and passing a subset such as
+\code{c("vtkIOLegacy", "vtkCommonCore")} is an optimisation that reduces link
+time and keeps the resulting binary smaller for packages that use only
+part of VTK.}
 
 \item{path}{Path to the root of the downstream package. Defaults to the
 current working directory.}

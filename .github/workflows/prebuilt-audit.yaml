@@ -96,10 +96,28 @@ jobs:
           #include <vtkVersion.h>
           #include <vtkNew.h>
           #include <vtkPolyDataReader.h>
+          #include <vtkPLYReader.h>
+          #include <vtkPNGReader.h>
+          #include <vtkSphereSource.h>
+          #include <vtkExtractGeometry.h>
+          #include <vtkCellGridReader.h>
           #include <cstdio>
+          #include <cstdlib>
 
           int main() {
-            vtkNew<vtkPolyDataReader> reader;
+            // One distinct VTK module per class: IOLegacy (vtkPolyDataReader),
+            // IOPLY, IOImage, FiltersSources, FiltersExtraction, IOCellGrid.
+            vtkNew<vtkPolyDataReader> poly;
+            vtkNew<vtkPLYReader> ply;
+            ply->SetFileName("unused.ply");
+            vtkNew<vtkPNGReader> png;
+            png->SetFileName("unused.png");
+            vtkNew<vtkSphereSource> sphere;
+            sphere->SetThetaResolution(8);
+            vtkNew<vtkExtractGeometry> extract;
+            extract->SetExtractInside(true);
+            vtkNew<vtkCellGridReader> cg;
+            cg->SetFileName("unused.off");
             std::printf("VTK %s\n", vtkVersion::GetVTKVersion());
             return 0;
           }
@@ -184,10 +202,28 @@ jobs:
           #include <vtkVersion.h>
           #include <vtkNew.h>
           #include <vtkPolyDataReader.h>
+          #include <vtkPLYReader.h>
+          #include <vtkPNGReader.h>
+          #include <vtkSphereSource.h>
+          #include <vtkExtractGeometry.h>
+          #include <vtkCellGridReader.h>
           #include <cstdio>
+          #include <cstdlib>
 
           int main() {
-            vtkNew<vtkPolyDataReader> reader;
+            // One distinct VTK module per class: IOLegacy (vtkPolyDataReader),
+            // IOPLY, IOImage, FiltersSources, FiltersExtraction, IOCellGrid.
+            vtkNew<vtkPolyDataReader> poly;
+            vtkNew<vtkPLYReader> ply;
+            ply->SetFileName("unused.ply");
+            vtkNew<vtkPNGReader> png;
+            png->SetFileName("unused.png");
+            vtkNew<vtkSphereSource> sphere;
+            sphere->SetThetaResolution(8);
+            vtkNew<vtkExtractGeometry> extract;
+            extract->SetExtractInside(true);
+            vtkNew<vtkCellGridReader> cg;
+            cg->SetFileName("unused.off");
             std::printf("VTK %s\n", vtkVersion::GetVTKVersion());
             return 0;
           }

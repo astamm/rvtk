@@ -103,6 +103,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -259,6 +265,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
             -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
             -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
@@ -342,6 +354,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
@@ -355,6 +368,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -364,6 +383,36 @@ jobs:
           cd build
           ninja -j$(sysctl -n hw.logicalcpu)
           ninja install
+
+      # Guard against the #16 regression: an LC_BUILD_VERSION minos >= 26.0
+      # (built against the macOS 26 SDK) produces archives that cannot be loaded
+      # from a package compiled with clang -stdlib=libc++ on older macOS.
+      # Runs unconditionally (even on a cache hit) so a stale cached install
+      # built with the old flags cannot ship as a fresh archive.
+      - name: Assert macOS deployment target is 13.0
+        run: |
+          # otool -l dumps LC_BUILD_VERSION (platform + minos) for every member
+          # object of every static lib.  Every member must declare minos 13.0,
+          # the CMAKE_OSX_DEPLOYMENT_TARGET passed to configure.
+          fail=0
+          for a in install/lib/*.a; do
+            bad=$(otool -l "$a" 2>/dev/null | awk '
+              /cmd LC_BUILD_VERSION/ { in_lc = 1 }
+              in_lc && /minos/          { if ($2 != "13.0") bad++ }
+              in_lc && /sdk/            { in_lc = 0 }
+              END { print bad+0 }')
+            if [ "$bad" -ne 0 ]; then
+              echo "FAIL: $a has $bad member object(s) with minos != 13.0" >&2
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some archives were built against a newer macOS deployment target" >&2
+            echo "than CMAKE_OSX_DEPLOYMENT_TARGET=13.0. Check the CMake configure" >&2
+            echo "flags and the SDK on the runner." >&2
+            exit 1
+          fi
+          echo "all $(ls install/lib/*.a | wc -l | tr -d ' ') archives declare minos 13.0"
 
       - name: Package archive
         run: |
@@ -424,6 +473,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
             -DVTK_BUILD_ALL_MODULES=OFF \
             -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
@@ -437,6 +487,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -446,6 +502,36 @@ jobs:
           cd build
           ninja -j$(sysctl -n hw.logicalcpu)
           ninja install
+
+      # Guard against the #16 regression: an LC_BUILD_VERSION minos >= 26.0
+      # (built against the macOS 26 SDK) produces archives that cannot be loaded
+      # from a package compiled with clang -stdlib=libc++ on older macOS.
+      # Runs unconditionally (even on a cache hit) so a stale cached install
+      # built with the old flags cannot ship as a fresh archive.
+      - name: Assert macOS deployment target is 13.0
+        run: |
+          # otool -l dumps LC_BUILD_VERSION (platform + minos) for every member
+          # object of every static lib.  Every member must declare minos 13.0,
+          # the CMAKE_OSX_DEPLOYMENT_TARGET passed to configure.
+          fail=0
+          for a in install/lib/*.a; do
+            bad=$(otool -l "$a" 2>/dev/null | awk '
+              /cmd LC_BUILD_VERSION/ { in_lc = 1 }
+              in_lc && /minos/          { if ($2 != "13.0") bad++ }
+              in_lc && /sdk/            { in_lc = 0 }
+              END { print bad+0 }')
+            if [ "$bad" -ne 0 ]; then
+              echo "FAIL: $a has $bad member object(s) with minos != 13.0" >&2
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "Some archives were built against a newer macOS deployment target" >&2
+            echo "than CMAKE_OSX_DEPLOYMENT_TARGET=13.0. Check the CMake configure" >&2
+            echo "flags and the SDK on the runner." >&2
+            exit 1
+          fi
+          echo "all $(ls install/lib/*.a | wc -l | tr -d ' ') archives declare minos 13.0"
 
       - name: Package archive
         run: |
@@ -520,6 +606,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -531,6 +623,40 @@ jobs:
           cd build
           ninja -j$(nproc)
           ninja install
+
+      # --whole-archive link check (Linux only).
+      #
+      # A normal link only pulls the archive members actually referenced by the
+      # objects seen so far, so a module whose symbols the bundle no longer
+      # provides (or that references a missing peer module) can slip through.
+      # -Wl,--whole-archive force-loads EVERY member object of EVERY static lib,
+      # so any unresolved `_ZN3vtk*` symbol inside the bundle fails the link.
+      # The check asserts the 161-archive set is internally consistent; the only
+      # allowed externals are the C/C++ runtime + libc/libm/libdl/libpthread
+      # (verified: zero GL/X11/zlib/PNG/jpeg/HDF5/netcdf externals in 9.7.2).
+      #
+      # Runs unconditionally (even on a cache hit): a missing-module regression
+      # stored in the cache must still fail the job.  On a cache hit the earlier
+      # dependency-install step is skipped, so make sure a C++ toolchain exists.
+      - name: Whole-archive link check (cached or fresh)
+        run: |
+          set -e
+          command -v c++ >/dev/null 2>&1 || {
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends build-essential
+          }
+          ARCHIVES=$(find install/lib -name '*.a' | sort)
+          N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
+          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          # Empty main: --whole-archive pulls every member regardless of needs.
+          printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
+          c++ -std=c++17 -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
+          c++ /tmp/wa_check_main.o \
+            -Wl,--whole-archive $ARCHIVES -Wl,--no-whole-archive \
+            -lpthread -ldl -lm \
+            -o /tmp/wa_check_bin
+          echo "whole-archive link of all $N static libs OK"
+          rm -f /tmp/wa_check_main.cpp /tmp/wa_check_main.o /tmp/wa_check_bin
 
       - name: Package archive
         run: |
@@ -605,6 +731,12 @@ jobs:
             -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
             -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -637,6 +769,128 @@ jobs:
         with:
           name: vtk-linux-aarch64
           path: vtk-${{ env.VTK_VERSION }}-linux-aarch64.tar.gz
+          retention-days: 7
+
+  # ── Linux x86_64 libc++ (clang) ───────────────────────────────────────────
+  #
+  # GCC/libstdc++-built static archives cannot be loaded by a package compiled
+  # with clang -stdlib=libc++ (CRAN's r-devel-linux-x86_64-fedora-clang flavor
+  # defaults to libc++): the libstdc++ symbols reachable by the statically
+  # linked libvtkscn (e.g. `__try_use_facet`, `__cxa_call_terminate`) are not
+  # provided by libc++, and dlopen() aborts with an undefined symbol.  This job
+  # produces the `*-linux-x86_64-libcxx` archive that rvtk's configure selects
+  # when `R CMD config CXX` targets libc++ (see tools/vtk-detect.sh), mirroring
+  # the GCC build-linux job module-for-module so the two archives are
+  # interchangeable except for the C++ runtime they embed.
+  build-linux-libcxx:
+    name: Linux x86_64 libc++ (clang)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Restore build cache
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: install
+          key: vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+
+      - name: Install build dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build clang libc++-dev libc++abi-dev \
+            libgl1-mesa-dev libxt-dev libxrender-dev libxext-dev
+
+      - name: Download VTK source
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          MINOR="${VER%.*}"
+          curl -fsSL "https://www.vtk.org/files/release/${MINOR}/VTK-${VER}.tar.gz" -o vtk-src.tar.gz
+          tar -xzf vtk-src.tar.gz
+
+      - name: Configure VTK (clang, libc++)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          mkdir build && cd build
+          cmake -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_FLAGS="-fPIC" \
+            -DCMAKE_CXX_FLAGS="-stdlib=libc++ -fPIC" \
+            -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DVTK_BUILD_ALL_MODULES=OFF \
+            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            ../VTK-${VER}
+
+      - name: Build and install VTK
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          cd build
+          ninja -j$(nproc)
+          ninja install
+
+      # Guard against the #15 regression: a GCC/libstdc++-built archive loaded
+      # by a libc++ consumer aborts with `__try_use_facet` / `__cxa_call_terminate`.
+      # Every object in every static lib must be free of libstdc++-only weak
+      # symbols; libc++ (and the libc++ ABI library) have their own namespaces
+      # (__1::, __2::) so any occurrence of these libstdc++ symbols proves a
+      # GCC-built object slipped in.  Runs unconditionally, even on a cache hit.
+      - name: Assert no libstdc++-ABI symbols in the archives
+        run: |
+          set -e
+          for sym in __cxa_call_terminate __try_use_facet; do
+            hits=$(for a in install/lib/*.a; do nm -C "$a" 2>/dev/null; done | grep -c "$sym" || true)
+            if [ "$hits" -ne 0 ]; then
+              echo "FAIL: $hits occurrence(s) of $sym in libc++-built archives" >&2
+              exit 1
+            fi
+          done
+          echo "no libstdc++-ABI symbols in $(ls install/lib/*.a | wc -l | tr -d ' ') archives"
+
+      - name: Package archive
+        run: |
+          VER="${{ env.VTK_VERSION }}"
+          MINOR="${VER%.*}"
+          PKG="vtk-${VER}-linux-x86_64-libcxx"
+          mkdir -p "${PKG}/include/vtk-${MINOR}" "${PKG}/lib"
+          SRC_INC=$(find install/include -maxdepth 1 -name "vtk-*" -type d | sort -V | tail -1)
+          if [ -n "${SRC_INC}" ]; then
+            cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
+          fi
+          find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
+          cp -R tools/prebuilt-licenses "${PKG}/licenses"
+          tar -czf "${PKG}.tar.gz" "${PKG}"
+          echo "Created ${PKG}.tar.gz"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vtk-linux-x86_64-libcxx
+          path: vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx.tar.gz
           retention-days: 7
 
   # ── Linux x86_64 musl (Alpine Linux) ──────────────────────────────────────
@@ -700,6 +954,12 @@ jobs:
                 -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
                 -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
                 -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
+                -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
+                -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
+                -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
+                -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
                 -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
                 -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
                 -DVTK_USE_X=OFF \
@@ -736,7 +996,7 @@ jobs:
   # ── GitHub Release ─────────────────────────────────────────────────────────
   release:
     name: Publish GitHub Release
-    needs: [build-windows, build-windows-shared, build-macos-arm64, build-macos-x86_64, build-linux, build-linux-aarch64, build-linux-musl-x86_64]
+    needs: [build-windows, build-windows-shared, build-macos-arm64, build-macos-x86_64, build-linux, build-linux-aarch64, build-linux-libcxx, build-linux-musl-x86_64]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -773,6 +1033,7 @@ jobs:
           | macOS arm64 (Apple Silicon) | static `.a` | `vtk-$VER-darwin-arm64.tar.gz` |
           | macOS x86\_64 (Intel) | static `.a` | `vtk-$VER-darwin-x86_64.tar.gz` |
           | Linux x86\_64 (glibc) | static `.a` | `vtk-$VER-linux-x86_64.tar.gz` |
+          | Linux x86\_64 (glibc, libc++/clang) | static `.a` | `vtk-$VER-linux-x86_64-libcxx.tar.gz` |
           | Linux x86\_64 (musl / Alpine) | static `.a` | `vtk-$VER-linux-musl-x86_64.tar.gz` |
           | Linux aarch64 | static `.a` | `vtk-$VER-linux-aarch64.tar.gz` |
 
@@ -815,6 +1076,12 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES
           -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES
           -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES
+          -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES
+          -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES
+          -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES
+          -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ```
 
@@ -853,6 +1120,23 @@ jobs:
           -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
           -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           ```
+
+          ### Linux libc++ (clang) additional flags
+
+          ```cmake
+          # Built with clang + libc++ so the archive can be linked by consumers whose
+          # C++ toolchain targets libc++ (e.g. CRAN's r-devel-linux-x86_64-fedora-clang
+          # flavor).  rvtk's configure picks `*-linux-x86_64-libcxx` when the detected
+          # compiler targets libc++ (see tools/vtk-detect.sh).  The archive must stay
+          # free of libstdc++-ABI symbols (`__cxa_call_terminate`, `__try_use_facet`):
+          # the build job asserts this before packaging.
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_FLAGS="-fPIC"
+          -DCMAKE_CXX_FLAGS="-stdlib=libc++ -fPIC"
+          -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+          -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++"
+          ```
           NOTES
           # Expand $VER / $MINOR placeholders (heredoc kept literal to avoid yaml issues)
           sed -i "s|\$VER|${VER}|g; s|\$MINOR|${MINOR}|g" release-notes.md
@@ -885,5 +1169,6 @@ jobs:
             artifacts/vtk-macos-arm64/vtk-${{ env.VTK_VERSION }}-darwin-arm64.tar.gz
             artifacts/vtk-macos-x86_64/vtk-${{ env.VTK_VERSION }}-darwin-x86_64.tar.gz
             artifacts/vtk-linux-x86_64/vtk-${{ env.VTK_VERSION }}-linux-x86_64.tar.gz
+            artifacts/vtk-linux-x86_64-libcxx/vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx.tar.gz
             artifacts/vtk-linux-musl-x86_64/vtk-${{ env.VTK_VERSION }}-linux-musl-x86_64.tar.gz
             artifacts/vtk-linux-aarch64/vtk-${{ env.VTK_VERSION }}-linux-aarch64.tar.gz

@@ -76,9 +76,10 @@ combinations; a system VTK installation (≥ 9.1.0) found via `VTK_DIR`,
 
 | Platform | Pre-built fallback | Notes |
 |---|---|---|
-| macOS arm64 | static `.a` | |
-| macOS x86_64 | static `.a` | |
-| Linux x86_64 (glibc) | static `.a` | |
+| macOS arm64 | static `.a` | Apple Clang / libc++ |
+| macOS x86_64 | static `.a` | Apple Clang / libc++ |
+| Linux x86_64 (glibc) | static `.a` | GCC / libstdc++ |
+| Linux x86_64 (glibc, libc++) | static `.a` | Clang `-stdlib=libc++` (selected by `configure`; see ABI note) |
 | Linux x86_64 (musl / Alpine) | static `.a` | headless build: `VTK_USE_X=OFF`, `RenderingOpenGL2=NO` |
 | Linux aarch64 | static `.a` | |
 | Windows x64 | static `.a` (default) or shared DLLs (`VTK_LINK_TYPE=shared`) | |
@@ -108,9 +109,56 @@ transitive dependencies automatically):
 | `VTK_CommonCore` | Core data structures, object model, logging |
 | `VTK_CommonDataModel` | Datasets, cells, point/cell data arrays |
 
-Typical transitive dependencies pulled in automatically include
-`VTK_CommonExecutionModel`, `VTK_CommonMath`, `VTK_CommonMisc`,
-`VTK_CommonSystem`, `VTK_CommonTransforms`, `VTK_IOXMLParser`, and `vtksys`.
+Each module's transitive dependencies are resolved automatically by CMake —
+for `VTK_FiltersExtraction` that includes `VTK_ParallelDIY`,
+`VTK_ParallelCore`, `VTK_FiltersHyperTree`, and `VTK_FiltersStatistics` — and
+the resulting bundle ships as 161 static archives on each platform (every I/O
+reader, every filter group, rendering, imaging, …; only `IOJSON`, `IOGDAL`,
+and `GUISupportQt` are absent).
+
+### Pre-built ABI compatibility
+
+Each pre-built archive is compiled with the platform's default C++ toolchain,
+so downstream packages must link with a compatible C++ runtime. VTK headers
+pull in `<vector>`, `<string>`, etc., and the statically linked archives embed
+the C++ standard library symbols they reference (in particular the
+third-party objects such as `libvtkscn` that are always linked), so mixing
+runtimes at load time fails with an undefined symbol:
+
+* **Linux x86_64 (glibc).** Two variants are shipped: the default archive is
+  compiled with **GCC and libstdc++**; a second archive, suffixed
+  `-linux-x86_64-libcxx`, is compiled with Clang `-stdlib=libc++` for
+  toolchains that target libc++ (CRAN's
+  `r-devel-linux-x86_64-fedora-clang` flavor compiles packages with clang and
+  defaults to libc++). rvtk's `configure` detects which standard library the
+  build compiler targets and downloads the matching archive automatically; a
+  manual install can force the choice with `CXX` (or `R_MAKEVARS_USER`).
+* **macOS.** The archives are compiled with the default Apple Clang toolchain,
+  which targets **libc++** (symbols land in the `std::__1` namespace). Do not
+  force `-stdlib=libstdc++` when linking them: the libstdc++-built objects
+  will not interoperate.
+* **Much newer GCC than the build toolchain.** Even a matching
+  libstdc++/GCC pairing can fail if the downstream compiler release changed
+  the `libstdc++` ABI stub; the failure shows up at load time as an undefined
+  `__cxa_call_terminate`. Match the compiler generation, or install a system
+  VTK (via Homebrew, apt, …) and rvtk will link that instead.
+* **Musl/Alpine and Windows.** Built with the platform's native C++ toolchain
+  (musl's GCC libstdc++; Rtools45 MinGW on Windows); link with the matching
+  R toolchain for the platform.
+
+Releases after the macOS archives were rebuilt with
+`-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` are compatible with macOS 13 and newer.
+
+### Valgrind
+
+A minimal downstream program that reads a VTK file reports ~1.5 KB
+"definitely lost" under valgrind, allocated inside VTK's pipeline internals
+(`vtkInformation`, pipeline executives — see the rhub valgrind findings on
+the **riot** downstream check). This is inherent to the statically linked VTK
+build and does not indicate a leak in downstream code. A suppression file is
+shipped at `inst/valgrind/vtk.supp`; point valgrind at it (or set
+`_R_CHECK_VALGRIND_SUPPRESSIONS_=` for `R CMD check`'s valgrind leg) to get a
+clean report.
 
 Once rvtk is installed, `CppFlags()`, `LdFlags()`, `LdFlagsFile()`, and
 `VtkVersion()` read `vtk.conf` and report whatever VTK was found:
@@ -187,26 +235,7 @@ PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --l
 args <- commandArgs(trailingOnly = TRUE)
 flag <- if (length(args)) args[1L] else "--cppflags"
 
-vtk_modules <- c(
-  "vtkIOLegacy",
-  "vtkIOXML",
-  "vtkIOXMLParser",
-  "vtkIOCore",
-  "vtkIOGeometry",
-  "vtkFiltersCore",
-  "vtkFiltersGeneral",
-  "vtkFiltersGeometry",
-  "vtkFiltersModeling",
-  "vtkFiltersExtraction",
-  "vtkCommonCore",
-  "vtkCommonDataModel",
-  "vtkCommonExecutionModel",
-  "vtkCommonMath",
-  "vtkCommonMisc",
-  "vtkCommonSystem",
-  "vtkCommonTransforms",
-  "vtksys"
-)
+vtk_modules <- NULL
 
 if (flag == "--cppflags") {
   rvtk::CppFlags()
@@ -253,50 +282,27 @@ raw flags are returned directly.
 
 ## Choosing the VTK modules to link against
 
-The pre-built bundles shipped with rvtk contain far more than the modules you
-are likely to use (I/O, filtering, and core modules plus their transitive
-dependencies). By default `use_rvtk()` links the following set:
+The pre-built bundles shipped with rvtk contain the full VTK library
+(161 static archives on each platform: every I/O reader, every filter group,
+rendering, imaging, …). By default `use_rvtk()` links **all** of them:
 
 ```{r}
-c(
-  "vtkIOLegacy",
-  "vtkIOXML",
-  "vtkIOXMLParser",
-  "vtkIOCore",
-  "vtkIOGeometry",
-  "vtkFiltersCore",
-  "vtkFiltersGeneral",
-  "vtkFiltersGeometry",
-  "vtkFiltersModeling",
-  "vtkFiltersExtraction",
-  "vtkCommonCore",
-  "vtkCommonDataModel",
-  "vtkCommonExecutionModel",
-  "vtkCommonMath",
-  "vtkCommonMisc",
-  "vtkCommonSystem",
-  "vtkCommonTransforms",
-  "vtksys"
-)
+modules = NULL
 ```
 
-Restricting linking to only the modules you need is strongly recommended when
-you use the **pre-built static bundle on macOS**. The bundle is built as a
-collection of static archives, and the linker (with R's default
-`-undefined dynamic_lookup`) resolves symbols lazily at load time rather than
-at build time. If a kept library contains an object file that references a
-symbol from a module that is *not* in your requested set, that object can be
-dragged in and the missing symbol shows up only when the package is loaded:
+This is safe because the archives are static libraries and the linker
+extracts only the object files your code actually references — linking
+everything does not mean your final binary contains every VTK feature. It
+also means a downstream package can never fail with a "module missing from
+the default list" error (earlier releases curated a fixed 18- or 24-module
+default, and any package using a module outside it — for example the
+`vtkParallelDIY` / `vtkIOCellGrid` dependencies of `vtkFiltersExtraction`,
+or `vtkIOPLY` for PLY files — failed at link or load time with an
+undefined-symbol error).
 
-```
-symbol not found in flat namespace '__ZN17vtkCellGridReader3NewEv'
-```
-
-For example, the pre-built libraries contain modules (such as I/O readers)
-that are not part of the default module list; linking too broadly can pull in
-an object referencing one of them. Because the pre-built libraries are static
-archives on macOS/Linux, the fixed module list in `tools/configure.R` is what
-prevents this. Pass only the modules your code actually uses:
+Passing a subset of modules is an *optimisation*, not a requirement. It
+reduces link time and keeps the compiled package smaller, which is worth it
+for packages that use only a small part of VTK:
 
 ```{r, eval = FALSE}
 rvtk::use_rvtk(
@@ -308,12 +314,10 @@ rvtk::use_rvtk(
 )
 ```
 
-This also keeps link time down and reduces the size of your compiled code.
-With a system shared VTK installation, the loader resolves symbols at run
-time and the full `modules = NULL` set is fine.
-
-If you set up files manually, edit the `vtk_modules` vector in
-`tools/configure.R` the same way.
+When you restrict the list, make sure every module your code uses (including
+transitive dependencies such as `vtkParallelDIY` and `vtkIOCellGrid`) is
+included. If you set up files manually, set the `vtk_modules` variable in
+`tools/configure.R` to `NULL` (all modules) or your chosen subset.
 
 The `modules` argument is also accepted directly by `LdFlags()` and
 `LdFlagsFile()` if you need finer control in your own build scripts:
@@ -382,10 +386,12 @@ yourpackage::vtk_poly_data_npoints() # expect 0: a brand-new vtkPolyData has no 
 ```
 
 If the package builds but fails to load with an undefined-symbol error, the
-usual cause is a module being referenced by the code but missing from the
-`modules` vector, or a symbol being dragged in from a module outside the
-requested set (e.g. `vtkCellGridReader` when `vtkIOCellGrid` is not listed).
-Narrow the module list to exactly what the code uses and rebuild.
+cause is a symbol being dragged in from a module outside the *requested*
+`modules` subset (older rvtk versions curated a fixed default list, so e.g.
+`vtkCellGridReader` failed to resolve when `vtkIOCellGrid` was not listed).
+With the default `modules = NULL` this cannot happen. If you restricted the
+list, widen it back to `NULL` or add the module that defines the missing
+symbol, then rebuild.
 
 ## Summary
 
@@ -393,8 +399,8 @@ Narrow the module list to exactly what the code uses and rebuild.
   `CppFlags()`, `LdFlags()`, `LdFlagsFile()`, and `VtkVersion()`.
 - `use_rvtk()` writes every build-time file for a downstream package; the same
   files can be written manually, byte-for-byte identically.
-- Use the `modules` argument to link only what you need — especially with the
-  macOS static bundle.
+- By default the full bundled VTK is linked; use the `modules` argument only
+  to restrict linking when you want shorter link times or smaller packages.
 - Prefer `LdFlagsFile()` on Windows to avoid the command-line length limit.
 - For CRAN, prefer the static pre-built build; for Windows shared builds,
   keep rvtk and the downstream package in lockstep.

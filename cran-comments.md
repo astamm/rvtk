@@ -102,3 +102,42 @@ downloaded pre-built archives:
   packages link against at build time.
 * Since v0.1.3 both CRAN-flagged platforms (linux-arm64 and musl) are
   exercised on every push and PR via the `prebuilt-audit` workflow.
+
+## Resubmission notes (v0.2.0, post-Rhub)
+
+Four issues were raised by the rhub runs of the downstream package `riot`
+against rvtk 0.2.0's pre-built VTK. All are resolved in the current revision:
+
+1. **Downstream undefined-symbol failures (#14).** `vtkFiltersExtraction`
+   depends on `vtkParallelDIY`, `vtkParallelCore`, and `vtkFiltersHyperTree`,
+   which were missing from the curated default `modules` list, so downstream
+   packages using extraction filters failed at load with undefined symbols.
+   The pre-built bundles always contained the full VTK library (161 static
+   archives); `use_rvtk()` now links **all** bundled modules by default
+   (`modules = NULL`), which cannot fail with missing-module symbols.
+   Restricting via `modules` (now available for all of `LdFlags()`,
+   `LdFlagsFile()`, `use_rvtk()`) is an explicit optimisation for
+   smaller/faster builds. The 24-module `configure` fallback list (for the
+   system-VTK path) now also includes the six new extraction modules.
+
+2. **Pre-built ABI constraints (#15).** The archives are GCC / libstdc++
+   builds. Downstream packages built with Clang `-stdlib=libc++` or with newer
+   GCC than the build toolchain can fail at load (`__try_use_facet`,
+   `__cxa_call_terminate`). This is now documented in the README and vignette;
+   the recommendation is to match the compiler or link a system VTK.
+
+3. **macOS deployment target (#16).** Older macOS archives carried
+   `LC_BUILD_VERSION minos 26.0`. The build workflow now passes
+   `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` for both macOS jobs; rebuilt archives
+   load on macOS 13 and newer.
+
+4. **Valgrind "definitely lost" report (#17).** ~1.5 KB of VTK pipeline
+   internals (`vtkInformation` / executives) are reported as lost; inherent to
+   the static build. A suppression file ships at `inst/valgrind/vtk.supp` and
+   is documented.
+
+The pre-built release archives at
+<https://github.com/astamm/rvtk/releases/tag/v9.7.2> predate fixes 2-4; the
+package installs whatever the release provides, so a fresh release with the
+macOS deployment target and documented ABI is being published alongside this
+revision.

@@ -14,9 +14,8 @@ LdFlagsFile(path, modules = NULL, os_type = .Platform$OS.type)
 \item{modules}{A character vector of VTK module names to link against,
 e.g. \code{c("vtkIOLegacy", "vtkCommonCore")}.  When \code{NULL} (the default) all
 available modules are included.  When non-\code{NULL}, only the requested
-modules are linked, which avoids pulling in object files that reference
-symbols from modules outside the selected set when using the pre-built
-static bundle.}
+modules are linked, which reduces link time and produces a smaller
+downstream package when only part of VTK is used.}
 
 \item{os_type}{A string identifying the operating-system type, defaulting to
 \code{.Platform$OS.type}.  Override to \code{"windows"} or \code{"unix"} in tests to
