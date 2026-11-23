@@ -75,6 +75,16 @@ jobs:
           - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static',   attach: 'use_rvtk'}
           - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared',      attach: 'manual'}
           - {os: ubuntu-latest,  r: 'release', vtk: 'built-shared',      attach: 'use_rvtk'}
+          # Fedora-clang ABI guard: force the clang + libc++ toolchain via
+          # R_MAKEVARS_USER so configure detects libc++ and selects the
+          # *-linux-x86_64-libcxx archive, then prove both attach strategies
+          # work against it (the equivalence check and the smoke test below).
+          # CRAN's r-devel-linux-x86_64-fedora-clang flavor compiles R packages
+          # with clang defaulting to libc++, which cannot load a GCC/libstdc++
+          # archive (undefined symbol `__try_use_facet` / `__cxa_call_terminate`
+          # at dlopen).
+          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static-libcxx', attach: 'manual'}
+          - {os: ubuntu-latest,  r: 'release', vtk: 'prebuilt-static-libcxx', attach: 'use_rvtk'}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -109,6 +119,28 @@ jobs:
         if: runner.os == 'Windows' && matrix.config.vtk == 'system'
         shell: bash
         run: pacman -S --noconfirm mingw-w64-ucrt-x86_64-vtk
+
+      # ── 3a-libcxx. clang + libc++ toolchain for the fedora-clang ABI leg ─────
+      # Force 'clang++ -stdlib=libc++' for the whole leg via an R_MAKEVARS_USER
+      # file (r-lib/actions/setup-r installs R built with GCC on Ubuntu; CRAN's
+      # fedora-clang flavor instead compiles packages with clang + libc++).
+      # R exports CXX from R_MAKEVARS_USER into configure's environment, which
+      # is how rvtk's configure detects libc++ and selects the libcxx archive.
+      - name: Install clang + libc++ toolchain
+        if: matrix.config.vtk == 'prebuilt-static-libcxx'
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+          cat > "$RUNNER_TEMP/Makevars" << 'EOF'
+          CXX=clang++ -stdlib=libc++
+          CXX11=clang++ -stdlib=libc++
+          CXX14=clang++ -stdlib=libc++
+          CXX17=clang++ -stdlib=libc++
+          CXX20=clang++ -stdlib=libc++
+          CC=clang
+          EOF
+          echo "R_MAKEVARS_USER=$RUNNER_TEMP/Makevars" >> "$GITHUB_ENV"
 
       # ── 3b. Built VTK with shared libs – restore from cache ──────────────────
       - name: Cache built shared VTK
@@ -213,6 +245,36 @@ jobs:
           # shared-DLL build instead of the default static build.
           VTK_LINK_TYPE: ${{ (matrix.config.vtk == 'prebuilt-shared') && 'shared' || '' }}
         run: pak::local_install(upgrade = FALSE)
+
+      # ── 5b. Assert the fedora-clang leg really used the libc++ archive ───────
+      # vtk.conf is '='-separated (not DCF); parse it the same way rvtk does.
+      - name: Assert rvtk linked the libc++ prebuilt archive
+        if: matrix.config.vtk == 'prebuilt-static-libcxx'
+        shell: Rscript {0}
+        working-directory: rvtk
+        run: |
+          conf <- rvtk:::read_vtk_conf()
+          stdlib <- conf[["VTK_STDLIB"]]
+          cat("rvtk VTK_STDLIB:", stdlib, "\n")
+          stopifnot(identical(stdlib, "libc++"))
+          # Sanity: a libstdc++ archive would have been written as libstdc++.
+          prebuilt <- system.file("prebuilt", package = "rvtk")
+          if (file.exists(prebuilt)) {
+            a <- list.files(file.path(prebuilt, "lib"), pattern = "\\.a$", full.names = TRUE)
+            # libvtkscn is the archive that carries the libstdc++-ABI weak refs;
+            # it must not reference __try_use_facet / __cxa_call_terminate here.
+            scn <- grep("vtkscn", a, value = TRUE)
+            if (length(scn)) {
+              out <- system2("nm", c("-C", shQuote(scn)), stdout = TRUE)
+              bad <- grep("__try_use_facet|__cxa_call_terminate", out, value = TRUE)
+              if (length(bad)) {
+                cat("libvtkscn still references libstdc++ ABI symbols:\n")
+                cat(head(bad, 5), sep = "\n")
+                stop("libc++-built archive is contaminated with libstdc++ ABI symbols")
+              }
+            }
+          }
+          cat("libc++ archive clean of libstdc++-ABI symbols\n")
 
       # ── 6. Scaffold the downstream package with usethis ───────────────────────
       #

@@ -871,6 +871,31 @@ jobs:
           done
           echo "no libstdc++-ABI symbols in $(ls install/lib/*.a | wc -l | tr -d ' ') archives"
 
+      # Same whole-archive internal-consistency check as the GCC build-linux job,
+      # but linked with clang++ -stdlib=libc++ to prove the full 161-archive set
+      # is mutually consistent under the exact runtime this archive ships for.
+      # Runs unconditionally (even on a cache hit): a missing-module regression
+      # stored in the cache must still fail the job.
+      - name: Whole-archive link check (clang, libc++)
+        run: |
+          set -e
+          command -v clang++ >/dev/null 2>&1 || {
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
+          }
+          ARCHIVES=$(find install/lib -name '*.a' | sort)
+          N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
+          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
+          clang++ -std=c++17 -stdlib=libc++ -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
+          clang++ /tmp/wa_check_main.o \
+            -stdlib=libc++ \
+            -Wl,--whole-archive $ARCHIVES -Wl,--no-whole-archive \
+            -lpthread -ldl -lm \
+            -o /tmp/wa_check_bin
+          echo "whole-archive link of all $N static libs OK (clang, libc++)"
+          rm -f /tmp/wa_check_main.cpp /tmp/wa_check_main.o /tmp/wa_check_bin
+
       - name: Package archive
         run: |
           VER="${{ env.VTK_VERSION }}"
