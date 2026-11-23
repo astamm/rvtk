@@ -71,9 +71,8 @@ the linker reads via the <code>@file</code> syntax, keeping the command line sho
 <dd><p>A character vector of VTK module names to link against,
 e.g. <code>c("vtkIOLegacy", "vtkCommonCore")</code>.  When <code>NULL</code> (the default) all
 available modules are included.  When non-<code>NULL</code>, only the requested
-modules are linked, which avoids pulling in object files that reference
-symbols from modules outside the selected set when using the pre-built
-static bundle.</p></dd>
+modules are linked, which reduces link time and produces a smaller
+downstream package when only part of VTK is used.</p></dd>
 
 
 <dt id="arg-os-type">os_type<a class="anchor" aria-label="anchor" href="#arg-os-type"></a></dt>

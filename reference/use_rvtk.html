@@ -99,14 +99,7 @@ on all platforms without any shell <code>configure</code> / <code>configure.win<
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_rvtk</span><span class="op">(</span></span>
-<span>  modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vtkIOLegacy"</span>, <span class="st">"vtkIOXML"</span>, <span class="st">"vtkIOXMLParser"</span>, <span class="st">"vtkIOCore"</span>, <span class="st">"vtkIOGeometry"</span>,</span>
-<span>    <span class="st">"vtkFiltersCore"</span>, <span class="st">"vtkFiltersGeneral"</span>, <span class="st">"vtkFiltersGeometry"</span>, <span class="st">"vtkFiltersModeling"</span>,</span>
-<span>    <span class="st">"vtkFiltersExtraction"</span>, <span class="st">"vtkCommonCore"</span>, <span class="st">"vtkCommonDataModel"</span>,</span>
-<span>    <span class="st">"vtkCommonExecutionModel"</span>, <span class="st">"vtkCommonMath"</span>, <span class="st">"vtkCommonMisc"</span>, <span class="st">"vtkCommonSystem"</span>,</span>
-<span>    <span class="st">"vtkCommonTransforms"</span>, <span class="st">"vtksys"</span><span class="op">)</span>,</span>
-<span>  path <span class="op">=</span> <span class="st">"."</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_rvtk</span><span class="op">(</span>modules <span class="op">=</span> <span class="cn">NULL</span>, path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -114,11 +107,17 @@ on all platforms without any shell <code>configure</code> / <code>configure.win<
 
 
 <dl><dt id="arg-modules">modules<a class="anchor" aria-label="anchor" href="#arg-modules"></a></dt>
-<dd><p>A character vector of VTK module names to link against.
-These are passed to <code><a href="LdFlagsFile.html">LdFlagsFile()</a></code> in the generated <code>tools/configure.R</code>,
-restricting linking to only the modules the downstream package needs.
-Defaults to a standard set covering the common I/O, filtering, core, and
-data-model modules bundled with <strong>rvtk</strong>.</p></dd>
+<dd><p>A character vector of VTK module names to link against, or
+<code>NULL</code> (the default) to link the full set of VTK modules bundled with
+<strong>rvtk</strong>.  These are passed to <code><a href="LdFlagsFile.html">LdFlagsFile()</a></code> in the generated
+<code>tools/configure.R</code>.  The pre-built archives are static libraries, so the
+linker extracts only the object files actually referenced by your code:
+linking everything by default cannot fail with "missing module" symbols
+(e.g. the <code>vtkParallelDIY</code> / <code>vtkIOCellGrid</code> failures seen with older
+curated defaults), and passing a subset such as
+<code>c("vtkIOLegacy", "vtkCommonCore")</code> is an optimisation that reduces link
+time and keeps the resulting binary smaller for packages that use only
+part of VTK.</p></dd>
 
 
 <dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>

@@ -67,8 +67,16 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="reference/use_rvtk.html">use_rvtk</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p><code><a href="reference/use_rvtk.html">use_rvtk()</a></code> writes <code>src/Makevars</code>, <code>src/Makevars.win</code>, and <code>tools/configure.R</code> so that the compiler and linker flags are resolved at install time via <code><a href="reference/CppFlags.html">rvtk::CppFlags()</a></code> and <code><a href="reference/LdFlagsFile.html">rvtk::LdFlagsFile()</a></code>. Everything can also be set up by hand — the two approaches produce identical files.</p>
-<p>Pre-built libraries are provided for macOS (arm64 and x86_64), Linux (x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or shared DLLs).</p>
+<p>Pre-built libraries are provided for macOS (arm64 and x86_64), Linux (x86_64 glibc, x86_64 musl/Alpine, aarch64, and a clang <code>-stdlib=libc++</code> variant of x86_64 glibc), and Windows (static or shared DLLs). rvtk’s <code>configure</code> script detects the compiler’s C++ standard library and picks the matching Linux archive automatically.</p>
+<blockquote>
+<p><strong>ABI compatibility of the pre-built libraries.</strong> The pre-built archives are compiled with <strong>GCC and libstdc++</strong> (on Windows, the Rtools45 <code>static.posix</code> MinGW toolchain), except for the dedicated Linux x86_64 <strong>libc++</strong> archive built with Clang. Downstream packages should use a matching toolchain: linking the libstdc++ archive with Clang <code>-stdlib=libc++</code> fails to load with an undefined <code>__try_use_facet</code> symbol, and linking with a much newer GCC than the build toolchain may fail with <code>__cxa_call_terminate</code>. On Linux x86_64, <code>configure</code> detects which standard library the compiler targets and downloads the matching archive; on other platforms, install a system VTK (e.g. via Homebrew or apt) if your toolchain cannot match the bundled one.</p>
+</blockquote>
 <p><strong>See the <a href="https://astamm.github.io/rvtk/articles/rvtk.html">vignette</a> for full details:</strong> how VTK is located on each platform (with the compatibility matrix), which VTK modules are bundled, manually writing the build files, restricting linking with the <code>modules</code> argument, and verifying that linking worked.</p>
+<div class="section level2">
+<h2 id="valgrind">Valgrind<a class="anchor" aria-label="anchor" href="#valgrind"></a>
+</h2>
+<p>A minimal downstream program that reads a VTK file reports ~1.5 KB “definitely lost” under valgrind, allocated inside VTK’s pipeline internals (<code>vtkInformation</code> / pipeline executives). This is inherent to the statically-linked VTK build and is not a leak in your code. A suppression file is shipped at <code>inst/valgrind/vtk.supp</code>; point valgrind at it (or set <code>_R_CHECK_VALGRIND_SUPPRESSIONS_</code> for <code>R CMD check</code>’s valgrind leg) to get a clean report.</p>
+</div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
