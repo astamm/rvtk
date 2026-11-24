@@ -182,6 +182,9 @@ jobs:
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+            # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
+            -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj" \
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
 
@@ -316,12 +319,14 @@ jobs:
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
-            -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS" \
+            -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS -Wa,-mbig-obj" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DVTK_BUILD_ALL_MODULES=ON \
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+            # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
 
