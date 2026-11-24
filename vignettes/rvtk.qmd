@@ -327,6 +327,31 @@ The `modules` argument is also accepted directly by `LdFlags()` and
 LdFlags(modules = c("vtkIOLegacy", "vtkCommonCore", "vtkCommonDataModel"))
 ```
 
+### Module availability
+
+Since rvtk 0.3.0, `LdFlags()` and `LdFlagsFile()` validate the requested
+modules by default (`check = TRUE`): if a module is not available in the
+detected VTK installation, configuration fails immediately with an actionable
+error listing the missing modules and the available set, instead of surfacing
+much later as a confusing linker error.
+
+Use `available_modules()` to see exactly which modules the installation can
+link against:
+
+```{r}
+# modules available in this VTK installation (pre-built archives ship the
+# complete set recorded in vtk_modules.txt; system VTK is derived from the
+# recorded linker flags)
+available_modules()
+```
+
+With the pre-built archives this is the full module set the bundle was built
+with (every VTK module except a deny-list of modules that pull in unavailable
+external dependencies). With a system VTK it reflects that installation, so a
+request for a module the system VTK does not provide fails fast. Pass
+`check = FALSE` only if you intentionally link against whatever the
+installation provides.
+
 ## Writing the C++ that uses VTK
 
 A minimal `src/code.cpp` that exercises the link looks like this:

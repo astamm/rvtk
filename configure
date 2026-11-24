@@ -246,6 +246,17 @@ VTK_SUFFIX=${_sfx}
 VTK_PREBUILT=yes
 VTK_STDLIB=${vtk_stdlib}
 CONF
+
+        # Install the module list shipped in the archive.  available_modules()
+        # reads inst/vtk_modules.txt (installed to the package root), NOT the
+        # copy inside inst/prebuilt/.
+        if test -f "${_prebuilt_dir}/vtk_modules.txt"; then
+            cp "${_prebuilt_dir}/vtk_modules.txt" inst/vtk_modules.txt
+        else
+            echo "ERROR: Pre-built VTK archive does not contain vtk_modules.txt" >&2
+            exit 1
+        fi
+
         echo "Written inst/vtk.conf (pre-built; paths resolved at runtime)"
         echo "  VTK_VERSION=${vtk_version}"
         echo "  VTK_SUFFIX=${_sfx}"
@@ -276,6 +287,11 @@ VTK_CPPFLAGS=${vtk_cppflags}
 VTK_LIBS=${vtk_libs}
 VTK_INCLUDE_DIR=${vtk_include_dir}
 EOF
+
+# Record the modules available in this system VTK installation.  This mirrors
+# what the pre-built archives ship as vtk_modules.txt, so available_modules()
+# reports consistently for both installation modes.
+vtk_generate_module_list inst/vtk_modules.txt
 
 echo "Written inst/vtk.conf"
 echo "  VTK_VERSION=${vtk_version}"

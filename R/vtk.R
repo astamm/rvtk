@@ -44,6 +44,9 @@ CppFlags <- function() {
 #'   available modules are included.  When non-`NULL`, only the requested
 #'   modules are linked, which reduces link time and produces a smaller
 #'   downstream package when only part of VTK is used.
+#' @param check Whether to verify that every requested module is available in
+#'   the detected VTK installation (see [available_modules()]) and fail with an
+#'   actionable error when one is missing.  Default `TRUE`.
 #'
 #' @return A single character string of linker flags, written to stdout (so
 #'   that it can be captured by shell command substitution in `configure`) and
@@ -52,7 +55,10 @@ CppFlags <- function() {
 #' flags <- LdFlags()
 #' @seealso [use_rvtk()]
 #' @export
-LdFlags <- function(modules = NULL) {
+LdFlags <- function(modules = NULL, check = TRUE) {
+  if (check) {
+    vtk_check_modules(modules)
+  }
   flags <- read_vtk_conf(modules = modules)[["VTK_LIBS"]]
   writeLines(flags)
   invisible(flags)
@@ -88,6 +94,9 @@ LdFlags <- function(modules = NULL) {
 #'   available modules are included.  When non-`NULL`, only the requested
 #'   modules are linked, which reduces link time and produces a smaller
 #'   downstream package when only part of VTK is used.
+#' @param check Whether to verify that every requested module is available in
+#'   the detected VTK installation (see [available_modules()]) and fail with an
+#'   actionable error when one is missing.  Default `TRUE`.
 #' @param os_type A string identifying the operating-system type, defaulting to
 #'   `.Platform$OS.type`.  Override to `"windows"` or `"unix"` in tests to
 #'   exercise the Windows response-file branch without needing a Windows
@@ -102,7 +111,15 @@ LdFlags <- function(modules = NULL) {
 #' ref <- LdFlagsFile(rsp)
 #' @seealso [use_rvtk()]
 #' @export
-LdFlagsFile <- function(path, modules = NULL, os_type = .Platform$OS.type) {
+LdFlagsFile <- function(
+  path,
+  modules = NULL,
+  check = TRUE,
+  os_type = .Platform$OS.type
+) {
+  if (check) {
+    vtk_check_modules(modules)
+  }
   flags <- read_vtk_conf(modules = modules)[["VTK_LIBS"]]
   if (os_type == "windows") {
     ## On Windows the flags string can exceed the 8191-char cmd.exe limit.
@@ -132,7 +149,102 @@ VtkVersion <- function() {
   read_vtk_conf()[["VTK_VERSION"]]
 }
 
+#' VTK modules available in this installation
+#'
+#' Returns the VTK modules that the installation detected at configure time can
+#' link against.  With the pre-built archives this is the full module list
+#' shipped (recorded in `inst/vtk_modules.txt`); with a system VTK it is
+#' derived from the static libraries and linker flags recorded in `vtk.conf`.
+#'
+#' This lets downstream packages fail fast at install time when a module they
+#' require is missing from a system VTK installation, with a hint to compile
+#' VTK with that module or fall back to the pre-built archives (which ship all
+#' modules).
+#'
+#' @return A character vector of available VTK module names, e.g.
+#'   `c("vtkCommonCore", "vtkIOLegacy", ...)`, sorted.
+#' @examples
+#' mods <- available_modules()
+#' @seealso [LdFlagsFile()]
+#' @export
+available_modules <- function() {
+  path <- system.file("vtk_modules.txt", package = "rvtk", mustWork = FALSE)
+  if (nzchar(path)) {
+    mods <- readLines(path, warn = FALSE)
+    mods <- trimws(mods[nzchar(trimws(mods)) & !startsWith(trimws(mods), "#")])
+  } else {
+    mods <- vtk_conf_modules(read_vtk_conf())
+  }
+  unique(sort(mods))
+}
+
 # Internal helper -------------------------------------------------------
+
+## Verify that every requested module is present in the detected VTK
+## installation. Called by LdFlags()/LdFlagsFile() when `check = TRUE`.
+## Fails with an actionable error message (cli-formatted when cli is
+## available) explaining that the module is missing from the system VTK and
+## how to fix it (recompile VTK with the module, or fall back to the
+## pre-built archives which ship all modules).
+vtk_check_modules <- function(modules) {
+  if (is.null(modules) || length(modules) == 0L) {
+    return(invisible(NULL))
+  }
+  avail <- available_modules()
+  missing <- setdiff(normalize_module(modules), normalize_module(avail))
+  if (length(missing) == 0L) {
+    return(invisible(NULL))
+  }
+  conf <- read_vtk_conf()
+  sys_note <- if (identical(conf[["VTK_PREBUILT"]], "yes")) {
+    ""
+  } else {
+    paste0(
+      "\n",
+      "This VTK installation was detected as a system installation. ",
+      "Recompile VTK with the missing module(s) enabled, or install rvtk ",
+      "with pre-built archives instead (e.g. set RVTK_FORCE_PREBUILT=1)."
+    )
+  }
+  if (rvtk_has_cli()) {
+    msg <- paste0(
+      "VTK module(s) not available: ",
+      paste0("\"", missing, "\"", collapse = ", "),
+      ".",
+      sys_note,
+      "\nAvailable modules: ",
+      paste0("\"", avail, "\"", collapse = ", "),
+      "."
+    )
+    cli::cli_abort(msg)
+  } else {
+    stop(
+      "VTK module(s) not available: ",
+      paste(missing, collapse = ", "),
+      ". Available modules: ",
+      paste(avail, collapse = ", "),
+      ".",
+      sys_note,
+      call. = FALSE
+    )
+  }
+}
+
+## Derive the module list from a parsed vtk.conf (the fallback for system
+## VTK installations that do not ship a vtk_modules.txt).
+vtk_conf_modules <- function(conf) {
+  flags <- conf[["VTK_LIBS"]]
+  if (is.null(flags) || !nzchar(trimws(flags))) {
+    return(character(0))
+  }
+  tokens <- strsplit(flags, "[[:space:]]+")[[1]]
+  tokens <- tokens[nzchar(tokens)]
+  libs <- sub("^-l", "", tokens[grepl("^-l", tokens)])
+  stems <- normalize_module(libs)
+  ## Keep the VTK modules (vtk<UpperCase>) and vtksys (a VTK module in its own
+  ## right); drop the bundled third-party libs (libvtkzlib, libvtkexpat, ...).
+  stems[grepl("^vtk[A-Z]", stems) | stems == "vtksys"]
+}
 
 read_vtk_conf <- function(
   path = NULL,

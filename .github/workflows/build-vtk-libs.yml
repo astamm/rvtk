@@ -18,6 +18,93 @@ on:
 
 env:
   VTK_VERSION: '9.7.2'
+  # Bump when the module set / archive layout changes so stale caches from
+  # earlier module sets are not reused (the cache keys include this).
+  VTK_MODULE_SET: 'v2-allmodules-denylist'
+  # Modules excluded from the all-modules build.  These pull in external
+  # dependencies that are not available (or not wanted) on the CI runners:
+  # Conduit/ADIOS2/fides/IOSS/Catalyst chains, most third-party IO (HDF,
+  # netcdf, Exodus, GDAL, PDAL, ...), GUI toolkits (Qt, MFC), Python
+  # bindings, MPI, remote modules, and windowing (RenderingUI/OpenGL2).
+  # `vtk_modules.txt` (shipped in the release archives) is generated from
+  # the installed libraries, so the file always reflects exactly what the
+  # archive contains.
+  VTK_DENY_MODULES: >
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
+    -DVTK_MODULE_ENABLE_VTK_conduit=NO
+    -DVTK_MODULE_ENABLE_VTK_catalyst=NO
+    -DVTK_MODULE_ENABLE_VTK_fides=NO
+    -DVTK_MODULE_ENABLE_VTK_ioss=NO
+    -DVTK_MODULE_ENABLE_VTK_IOADIOS2=NO
+    -DVTK_MODULE_ENABLE_VTK_IOCatalystConduit=NO
+    -DVTK_MODULE_ENABLE_VTK_IOFides=NO
+    -DVTK_MODULE_ENABLE_VTK_IOIOSS=NO
+    -DVTK_MODULE_ENABLE_VTK_IOGDAL=NO
+    -DVTK_MODULE_ENABLE_VTK_GeovisGDAL=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenXR=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenXRRemoting=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingAnari=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingRayTracing=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingWebGPU=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingVR=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingZSpace=NO
+    -DVTK_MODULE_ENABLE_VTK_IOIFC=NO
+    -DVTK_MODULE_ENABLE_VTK_IOOCCT=NO
+    -DVTK_MODULE_ENABLE_VTK_IOLAS=NO
+    -DVTK_MODULE_ENABLE_VTK_IOFFMPEG=NO
+    -DVTK_MODULE_ENABLE_VTK_IOMySQL=NO
+    -DVTK_MODULE_ENABLE_VTK_IOPostgreSQL=NO
+    -DVTK_MODULE_ENABLE_VTK_IOODBC=NO
+    -DVTK_MODULE_ENABLE_VTK_IOUSD=NO
+    -DVTK_MODULE_ENABLE_VTK_IOPDAL=NO
+    -DVTK_MODULE_ENABLE_VTK_IOOpenVDB=NO
+    -DVTK_MODULE_ENABLE_VTK_IONanoVDB=NO
+    -DVTK_MODULE_ENABLE_VTK_IOAlembic=NO
+    -DVTK_MODULE_ENABLE_VTK_IOExodus=NO
+    -DVTK_MODULE_ENABLE_VTK_exodusII=NO
+    -DVTK_MODULE_ENABLE_VTK_CommonArchive=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersONNX=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersOpenTURNS=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersReebGraph=NO
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQt=NO
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQtQuick=NO
+    -DVTK_MODULE_ENABLE_VTK_GUISupportQtSQL=NO
+    -DVTK_MODULE_ENABLE_VTK_GUISupportMFC=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingQt=NO
+    -DVTK_MODULE_ENABLE_VTK_ViewsQt=NO
+    -DVTK_MODULE_ENABLE_VTK_InfovisBoost=NO
+    -DVTK_MODULE_ENABLE_VTK_InfovisBoostGraphAlgorithms=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingFreeTypeFontConfig=NO
+    -DVTK_MODULE_ENABLE_VTK_DomainsMicroscopy=NO
+    -DVTK_MODULE_ENABLE_VTK_Python=NO
+    -DVTK_MODULE_ENABLE_VTK_CommonPython=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersPython=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingPythonContext2D=NO
+    -DVTK_MODULE_ENABLE_VTK_WebPython=NO
+    -DVTK_MODULE_ENABLE_VTK_ParallelMPI=NO
+    -DVTK_MODULE_ENABLE_VTK_mpi=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersParallelMPI=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersParallelGeometry=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersParallelStatistics=NO
+    -DVTK_MODULE_ENABLE_VTK_FiltersParallelVerdict=NO
+    -DVTK_MODULE_ENABLE_VTK_DomainsParallelChemistry=NO
+    -DVTK_MODULE_ENABLE_VTK_IOMPIImage=NO
+    -DVTK_MODULE_ENABLE_VTK_IOMPIParallel=NO
+    -DVTK_MODULE_ENABLE_VTK_IOParallel=NO
+    -DVTK_MODULE_ENABLE_VTK_IOParallelLSDyna=NO
+    -DVTK_MODULE_ENABLE_VTK_IOParallelNetCDF=NO
+    -DVTK_MODULE_ENABLE_VTK_IOParallelXML=NO
+    -DVTK_MODULE_ENABLE_VTK_RenderingParallel=NO
+    -DVTK_MODULE_ENABLE_VTK_IOHDF=NO
+    -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO
+    -DVTK_MODULE_ENABLE_VTK_IOH5part=NO
+    -DVTK_MODULE_ENABLE_VTK_IOH5Rage=NO
+    -DVTK_MODULE_ENABLE_VTK_netcdf=NO
+    -DVTK_MODULE_ENABLE_VTK_hdf5=NO
+    -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO
+    -DVTK_MODULE_ENABLE_VTK_libproj=NO
 
 jobs:
   # ── Windows: x86_64-w64-mingw32.static.posix (Rtools45 R-package toolchain) ─
@@ -45,7 +132,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-windows-static-posix-x64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-windows-static-posix-x64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install build tools via pacman (cmake + ninja only; compiler from static.posix)
         if: steps.cache.outputs.cache-hit != 'true'
@@ -87,38 +174,17 @@ jobs:
           # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
           # is GL-free; the windowing interactor (RenderingUI) is disabled for
           # this headless build.
+          # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+          # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
-            -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
-            -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
-            -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
-            -DVTK_MODULE_ENABLE_VTK_libproj=NO \
-            -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
-            -DVTK_MODULE_USE_EXTERNAL_VTK_libproj=NO \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj" \
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
 
@@ -142,6 +208,8 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           zip -r "${PKG}.zip" "${PKG}"
@@ -177,7 +245,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-windows-shared-posix-x64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-windows-shared-posix-x64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install build tools via pacman (cmake + ninja only)
         if: steps.cache.outputs.cache-hit != 'true'
@@ -246,40 +314,25 @@ jobs:
           # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
           # is GL-free; the windowing interactor (RenderingUI) is disabled for
           # this headless build.
+          # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+          # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
+          # Exclude winpthreads from DLL export tables: the all-modules build
+          # links libviskoresdiympi_nompi against libpthread.a, and MinGW's
+          # default auto-export would emit pthread_* thunks into that DLL's
+          # import lib. Those thunks then collide with libpthread.a when linking
+          # viskores_cont.dll ("multiple definition of 'pthread_once'", ...).
+          # winpthreads ships AS libpthread.a in the static.posix toolchain
+          # (archive members libwinpthread_la-*.o), so exclude just that lib.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
-            -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO \
-            -DVTK_MODULE_ENABLE_VTK_IOHDF=NO \
-            -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO \
-            -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
-            -DVTK_MODULE_ENABLE_VTK_netcdf=NO \
-            -DVTK_MODULE_ENABLE_VTK_libproj=NO \
-            -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF \
-            -DVTK_MODULE_USE_EXTERNAL_VTK_libproj=NO \
+            -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS -Wa,-mbig-obj" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++ -Wl,--exclude-libs,libpthread.a" \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
@@ -306,6 +359,8 @@ jobs:
           find install/lib -name "*.dll.a" -exec cp {} "${PKG}/lib/" \;
           # DLLs for run time
           find install/bin -name "*.dll" -exec cp {} "${PKG}/bin/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           echo "Import libs: $(find ${PKG}/lib -name '*.dll.a' | wc -l)"
           echo "DLLs:        $(find ${PKG}/bin -name '*.dll'   | wc -l)"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
@@ -331,7 +386,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-macos-arm64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-macos-arm64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install cmake + ninja
         if: steps.cache.outputs.cache-hit != 'true'
@@ -356,24 +411,9 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -427,6 +467,8 @@ jobs:
           fi
           # Static libraries
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -450,7 +492,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-macos-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-macos-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install cmake + ninja
         if: steps.cache.outputs.cache-hit != 'true'
@@ -475,24 +517,9 @@ jobs:
             -DCMAKE_OSX_ARCHITECTURES=x86_64 \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0 \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             ../VTK-${VER}
 
@@ -544,6 +571,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -567,7 +596,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-linux-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-linux-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install build dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -594,24 +623,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -631,7 +645,7 @@ jobs:
       # provides (or that references a missing peer module) can slip through.
       # -Wl,--whole-archive force-loads EVERY member object of EVERY static lib,
       # so any unresolved `_ZN3vtk*` symbol inside the bundle fails the link.
-      # The check asserts the 161-archive set is internally consistent; the only
+      # The check asserts the 160-archive set is internally consistent; the only
       # allowed externals are the C/C++ runtime + libc/libm/libdl/libpthread
       # (verified: zero GL/X11/zlib/PNG/jpeg/HDF5/netcdf externals in 9.7.2).
       #
@@ -647,7 +661,7 @@ jobs:
           }
           ARCHIVES=$(find install/lib -name '*.a' | sort)
           N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
-          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          test "$N" -eq 160 || { echo "expected 160 static libs, found $N" >&2; exit 1; }
           # Empty main: --whole-archive pulls every member regardless of needs.
           printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
           c++ -std=c++17 -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
@@ -669,6 +683,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -692,7 +708,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-linux-aarch64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-linux-aarch64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install build dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -719,24 +735,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="$PWD/../install" \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DCMAKE_C_FLAGS="-fPIC" \
             -DCMAKE_CXX_FLAGS="-fPIC" \
@@ -760,6 +761,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -793,7 +796,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-linux-x86_64-libcxx${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-linux-x86_64-libcxx${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Install build dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -826,24 +829,9 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-stdlib=libc++" \
             -DBUILD_SHARED_LIBS=OFF \
-            -DVTK_BUILD_ALL_MODULES=OFF \
-            -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-            -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-            -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-            -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
+            -DVTK_BUILD_ALL_MODULES=ON \
+            -DVTK_ENABLE_REMOTE_MODULES=OFF \
+            $VTK_DENY_MODULES \
             ../VTK-${VER}
 
       - name: Build and install VTK
@@ -872,20 +860,21 @@ jobs:
           echo "no libstdc++-ABI symbols in $(ls install/lib/*.a | wc -l | tr -d ' ') archives"
 
       # Same whole-archive internal-consistency check as the GCC build-linux job,
-      # but linked with clang++ -stdlib=libc++ to prove the full 161-archive set
+      # but linked with clang++ -stdlib=libc++ to prove the full 160-archive set
       # is mutually consistent under the exact runtime this archive ships for.
       # Runs unconditionally (even on a cache hit): a missing-module regression
       # stored in the cache must still fail the job.
       - name: Whole-archive link check (clang, libc++)
         run: |
           set -e
-          command -v clang++ >/dev/null 2>&1 || {
+          command -v clang++ >/dev/null 2>&1 && echo 'int main(){return 0;}' | \
+            clang++ -x c++ -stdlib=libc++ - -o /dev/null 2>/dev/null || {
             sudo apt-get update -qq
             sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
           }
           ARCHIVES=$(find install/lib -name '*.a' | sort)
           N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
-          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          test "$N" -eq 160 || { echo "expected 160 static libs, found $N" >&2; exit 1; }
           printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
           clang++ -std=c++17 -stdlib=libc++ -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
           clang++ /tmp/wa_check_main.o \
@@ -907,6 +896,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -937,7 +928,7 @@ jobs:
         uses: actions/cache@v5
         with:
           path: install
-          key: vtk-${{ env.VTK_VERSION }}-linux-musl-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
+          key: vtk-${{ env.VTK_VERSION }}-${{ env.VTK_MODULE_SET }}-linux-musl-x86_64${{ inputs.force_rebuild == 'true' && format('-bust-{0}', github.run_id) || '' }}
 
       - name: Download VTK source
         if: steps.cache.outputs.cache-hit != 'true'
@@ -946,51 +937,53 @@ jobs:
           MINOR="${VER%.*}"
           curl -fsSL "https://www.vtk.org/files/release/${MINOR}/VTK-${VER}.tar.gz" -o vtk-src.tar.gz
           tar -xzf vtk-src.tar.gz
+          # Vendored VTK-m testing/Testing.h guards FloatingPointExceptionTrap
+          # with `VISKORES_GCC && !__APPLE__`, but feenableexcept/fedisableexcept
+          # are glibc-only: the all-modules build now compiles viskores_cont_testing
+          # here and fails on musl.  The traps are only used by test executables
+          # (testing is disabled in this build), so no-op on musl is safe.
+          sed -i 's/#if defined(VISKORES_GCC) && !defined(__APPLE__)/#if defined(VISKORES_GCC) \&\& !defined(__APPLE__) \&\& defined(__GLIBC__)/' \
+            VTK-${VER}/ThirdParty/viskores/vtkviskores/viskores/viskores/testing/Testing.h
 
       - name: Build and install VTK inside Alpine container
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           VER="${{ env.VTK_VERSION }}"
+          # VTK_DENY_MODULES is a folded scalar whose value ends in a newline;
+          # expanding it in the outer bash would inject that newline into the
+          # sh -c string and truncate the cmake line.  Pass it through the
+          # container environment instead and expand it inside the container,
+          # where trailing-whitespace word-splitting is harmless (same pattern
+          # as \$(nproc) below).
           docker run --rm \
             -v "$PWD:/work" \
             -w /work \
+            -e VTK_DENY_MODULES \
             alpine:3.22 \
             sh -c "
               set -eux
               apk add --no-cache cmake ninja g++ make curl linux-headers
               mkdir -p build install
               cd build
-              # VTK_IOGeometry drags in RenderingCore; keep this headless build
-              # free of the windowing layer (RenderingUI would pull in
-              # Wayland/X11, which the bare Alpine container does not provide).
+              # Headless Alpine runner: windowing/renderer modules come from the
+              # shared deny-list (passed via -e VTK_DENY_MODULES).
+              # musl has no execinfo.h (backtrace); vendored loguru enables
+              # LOGURU_STACKTRACES on POSIX by default and would fail to compile
+              # viskores_cont.  Stack traces are diagnostic-only, so disabling
+              # them is safe for the prebuilt archives.  The define is read
+              # before loguru's own #ifndef default (also honored by VTK's own
+              # vtkloguru, which the all-modules build compiles).
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
                 -DBUILD_SHARED_LIBS=OFF \
-                -DVTK_BUILD_ALL_MODULES=OFF \
-                -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES \
-                -DVTK_MODULE_ENABLE_VTK_IOXML=YES \
-                -DVTK_MODULE_ENABLE_VTK_IOCore=YES \
-                -DVTK_MODULE_ENABLE_VTK_CommonCore=YES \
-                -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES \
-                -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES \
-                -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES \
-                -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES \
-                -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES \
-                -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES \
-                -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO \
-                -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO \
+                -DVTK_BUILD_ALL_MODULES=ON \
+                -DVTK_ENABLE_REMOTE_MODULES=OFF \
+                \$VTK_DENY_MODULES \
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                 -DCMAKE_C_FLAGS='-fPIC' \
-                -DCMAKE_CXX_FLAGS='-fPIC' \
+                -DCMAKE_CXX_FLAGS='-fPIC -DLOGURU_STACKTRACES=0' \
                 /work/VTK-${VER}
               ninja -j\$(nproc)
               ninja install
@@ -1007,6 +1000,8 @@ jobs:
             cp -R "${SRC_INC}/"* "${PKG}/include/vtk-${MINOR}/"
           fi
           find install/lib -name "*.a" -exec cp {} "${PKG}/lib/" \;
+          # Generate vtk_modules.txt (module list shipped in the archive)
+          tools/make-vtk-modules-list.sh install/lib "${PKG}/vtk_modules.txt"
           # Third-party license notices (all bundled components; see tools/prebuilt-licenses/README.md)
           cp -R tools/prebuilt-licenses "${PKG}/licenses"
           tar -czf "${PKG}.tar.gz" "${PKG}"
@@ -1068,6 +1063,7 @@ jobs:
           ```
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← static libraries (.a)
+          vtk_modules.txt        ← available VTK modules (see available_modules())
           licenses/              ← third-party license notices (all bundled components)
           ```
 
@@ -1076,6 +1072,7 @@ jobs:
           include/vtk-$MINOR/    ← VTK headers
           lib/                   ← import libraries (.dll.a, for link time)
           bin/                   ← DLLs (.dll, for run time)
+          vtk_modules.txt        ← available VTK modules (see available_modules())
           licenses/              ← third-party license notices (all bundled components)
           ```
 
@@ -1085,28 +1082,21 @@ jobs:
 
           ## CMake flags (all platforms)
 
+          All archives ship the same module set: every VTK module
+          (`-DVTK_BUILD_ALL_MODULES=ON`) except the curated deny-list below.
+          The exact set is recorded in each archive's `vtk_modules.txt`, which
+          rvtk's `available_modules()` reports at runtime.
+
           ```cmake
           # Static build:  -DBUILD_SHARED_LIBS=OFF
           # Shared build:  -DBUILD_SHARED_LIBS=ON
           #                -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++"
-          -DVTK_BUILD_ALL_MODULES=OFF
-          -DVTK_MODULE_ENABLE_VTK_IOLegacy=YES
-          -DVTK_MODULE_ENABLE_VTK_IOXML=YES
-          -DVTK_MODULE_ENABLE_VTK_IOCore=YES
-          -DVTK_MODULE_ENABLE_VTK_CommonCore=YES
-          -DVTK_MODULE_ENABLE_VTK_CommonDataModel=YES
-          -DVTK_MODULE_ENABLE_VTK_IOGeometry=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersCore=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersGeneral=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersGeometry=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersModeling=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersExtraction=YES
-          -DVTK_MODULE_ENABLE_VTK_ParallelDIY=YES
-          -DVTK_MODULE_ENABLE_VTK_ParallelCore=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersHyperTree=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersStatistics=YES
-          -DVTK_MODULE_ENABLE_VTK_IOCellGrid=YES
-          -DVTK_MODULE_ENABLE_VTK_FiltersCellGrid=YES
+          -DVTK_BUILD_ALL_MODULES=ON
+          -DVTK_ENABLE_REMOTE_MODULES=OFF
+          # One -DVTK_MODULE_ENABLE_VTK_<Name>=NO per denied module.  The deny-list
+          # (RenderingOpenGL2, RenderingUI, conduit, catalyst, fides, ioss,
+          # third-party IO, GUI toolkits, Python bindings, MPI, remote modules, ...)
+          # is maintained as the VTK_DENY_MODULES workflow variable.
           -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           ```
 
@@ -1115,19 +1105,10 @@ jobs:
           ```cmake
           # Compiler: x86_64-w64-mingw32.static.posix (Rtools45 R-package toolchain)
           # Set via CC/CXX/AR/RANLIB environment variables before cmake invocation.
-          # Modules disabled because static libs are not available in the sysroot:
-          -DVTK_MODULE_ENABLE_VTK_IONetCDF=NO
-          -DVTK_MODULE_ENABLE_VTK_IOHDF=NO
-          -DVTK_MODULE_ENABLE_VTK_GeovisCore=NO
-          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
-          # is GL-free; the windowing interactor (RenderingUI) is disabled for
-          # this static/headless build.
-          -DVTK_MODULE_ENABLE_VTK_RenderingCore=YES
-          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
-          -DVTK_MODULE_ENABLE_VTK_netcdf=NO
-          -DVTK_MODULE_ENABLE_VTK_libproj=NO
-          -DVTK_MODULE_USE_EXTERNAL_VTK_netcdf=OFF
-          -DVTK_MODULE_USE_EXTERNAL_VTK_libproj=NO
+          # The static-posix sysroot lacks netcdf/HDF5 static libs, so those
+          # modules come from the shared deny-list (VTK_DENY_MODULES) rather than
+          # explicit USE_EXTERNAL overrides; -DH5_HAVE_VASPRINTF is kept for the
+          # shared-DLL build whose bundled HDF5 is absent.
           -DH5_HAVE_VASPRINTF:INTERNAL=0
           ```
 
@@ -1137,13 +1118,9 @@ jobs:
           # Built via `docker run alpine:3.22` on the CI runner (not a container: job,
           # which would fail because the GitHub Actions Node.js runtime is glibc-linked).
           # X11 and OpenGL rendering are not available on the headless Alpine runner:
-          # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
-          # auto-enables the RenderingUI interactor, which needs Wayland via
-          # vtk_module_find_package(WAYLAND) — unavailable in the bare Alpine
-          # container — so disable RenderingUI explicitly.
+          # the windowing modules come from the shared deny-list (VTK_DENY_MODULES);
+          # only -DVTK_USE_X=OFF is specific to this headless build.
           -DVTK_USE_X=OFF
-          -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO
-          -DVTK_MODULE_ENABLE_VTK_RenderingUI=NO
           ```
 
           ### Linux libc++ (clang) additional flags
