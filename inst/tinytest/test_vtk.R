@@ -518,8 +518,19 @@ expect_true(grepl("Available modules", err_missing))
 # ── vtk_check_modules: base-R branch when cli is unavailable ──────────────────
 # testthat (Suggests) is used to mock the rvtk_has_cli() wrapper when available,
 # exactly as test_use_rvtk.R does; otherwise only the cli branch is kept.
+#
+# The "system installation" note is only appended for non-prebuilt installs
+# (read_vtk_conf()'s VTK_PREBUILT=yes), so like the read_vtk_conf tests above
+# we branch on whether the installed package resolved to a prebuilt tree.
 
 can_mock <- requireNamespace("testthat", quietly = TRUE)
+is_prebuilt <- tryCatch(
+  identical(
+    rvtk:::read_vtk_conf()[["VTK_PREBUILT"]],
+    "yes"
+  ),
+  error = function(e) FALSE
+)
 if (can_mock) {
   testthat::with_mocked_bindings(
     {
@@ -529,7 +540,9 @@ if (can_mock) {
       )
       expect_true(grepl("vtkTotallyNope", err_base))
       expect_true(grepl("Available modules", err_base))
-      expect_true(grepl("system installation", err_base))
+      expect_true(
+        grepl("system installation", err_base) == !is_prebuilt
+      )
     },
     rvtk_has_cli = function() FALSE,
     .package = "rvtk"
