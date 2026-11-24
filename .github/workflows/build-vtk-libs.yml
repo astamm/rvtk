@@ -321,13 +321,15 @@ jobs:
           # default auto-export would emit pthread_* thunks into that DLL's
           # import lib. Those thunks then collide with libpthread.a when linking
           # viskores_cont.dll ("multiple definition of 'pthread_once'", ...).
+          # winpthreads ships AS libpthread.a in the static.posix toolchain
+          # (archive members libwinpthread_la-*.o), so exclude just that lib.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
             -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS -Wa,-mbig-obj" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++ -Wl,--exclude-libs,libpthread.a,libwinpthread.a" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++ -Wl,--exclude-libs,libpthread.a" \
             -DVTK_BUILD_ALL_MODULES=ON \
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
