@@ -316,13 +316,18 @@ jobs:
           # this headless build.
           # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
           # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
+          # Exclude winpthreads from DLL export tables: the all-modules build
+          # links libviskoresdiympi_nompi against libpthread.a, and MinGW's
+          # default auto-export would emit pthread_* thunks into that DLL's
+          # import lib. Those thunks then collide with libpthread.a when linking
+          # viskores_cont.dll ("multiple definition of 'pthread_once'", ...).
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
             -DBUILD_SHARED_LIBS=ON \
             -DCMAKE_C_FLAGS="-fcommon -Djpeg_EXPORTS -Dtiff_EXPORTS" \
             -DCMAKE_CXX_FLAGS="-Dverdict_EXPORTS -Wa,-mbig-obj" \
-            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
+            -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++ -Wl,--exclude-libs,libpthread.a,libwinpthread.a" \
             -DVTK_BUILD_ALL_MODULES=ON \
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
@@ -930,6 +935,13 @@ jobs:
           MINOR="${VER%.*}"
           curl -fsSL "https://www.vtk.org/files/release/${MINOR}/VTK-${VER}.tar.gz" -o vtk-src.tar.gz
           tar -xzf vtk-src.tar.gz
+          # Vendored VTK-m testing/Testing.h guards FloatingPointExceptionTrap
+          # with `VISKORES_GCC && !__APPLE__`, but feenableexcept/fedisableexcept
+          # are glibc-only: the all-modules build now compiles viskores_cont_testing
+          # here and fails on musl.  The traps are only used by test executables
+          # (testing is disabled in this build), so no-op on musl is safe.
+          sed -i 's/#if defined(VISKORES_GCC) && !defined(__APPLE__)/#if defined(VISKORES_GCC) \&\& !defined(__APPLE__) \&\& defined(__GLIBC__)/' \
+            VTK-${VER}/ThirdParty/viskores/vtkviskores/viskores/viskores/testing/Testing.h
 
       - name: Build and install VTK inside Alpine container
         if: steps.cache.outputs.cache-hit != 'true'
