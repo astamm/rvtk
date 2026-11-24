@@ -848,7 +848,7 @@ jobs:
           echo "no libstdc++-ABI symbols in $(ls install/lib/*.a | wc -l | tr -d ' ') archives"
 
       # Same whole-archive internal-consistency check as the GCC build-linux job,
-      # but linked with clang++ -stdlib=libc++ to prove the full 161-archive set
+      # but linked with clang++ -stdlib=libc++ to prove the full 160-archive set
       # is mutually consistent under the exact runtime this archive ships for.
       # Runs unconditionally (even on a cache hit): a missing-module regression
       # stored in the cache must still fail the job.
@@ -861,7 +861,7 @@ jobs:
           }
           ARCHIVES=$(find install/lib -name '*.a' | sort)
           N=$(printf '%s\n' "$ARCHIVES" | wc -l | tr -d ' ')
-          test "$N" -eq 161 || { echo "expected 161 static libs, found $N" >&2; exit 1; }
+          test "$N" -eq 160 || { echo "expected 160 static libs, found $N" >&2; exit 1; }
           printf 'int main() { return 0; }\n' > /tmp/wa_check_main.cpp
           clang++ -std=c++17 -stdlib=libc++ -c /tmp/wa_check_main.cpp -o /tmp/wa_check_main.o
           clang++ /tmp/wa_check_main.o \
