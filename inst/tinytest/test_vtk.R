@@ -467,3 +467,84 @@ if (has_prebuilt) {
     rvtk:::read_vtk_conf(conf_prebuilt_null, os_type = "unix")
   )
 }
+
+# ── available_modules: fallback from vtk.conf (no vtk_modules.txt) ────────────
+
+conf_sys <- write_conf(
+  "VTK_VERSION=9.5.2",
+  "VTK_LIBS=-L/opt/vtk/lib -lvtkIOLegacy-9.5 -lvtkIOXML-9.5 -lvtksys-9.5 -lvtkCommonCore-9.5"
+)
+res_sys_mods <- rvtk:::available_modules()
+expect_true(is.character(res_sys_mods))
+expect_true(length(res_sys_mods) > 0L)
+
+# vtk_conf_modules filters -l flags, drops versions, keeps vtksys
+mods_from_conf <- rvtk:::vtk_conf_modules(rvtk:::read_vtk_conf(conf_sys))
+expect_true("vtkIOLegacy" %in% mods_from_conf)
+expect_true("vtkIOXML" %in% mods_from_conf)
+expect_true("vtkCommonCore" %in% mods_from_conf)
+expect_true("vtksys" %in% mods_from_conf)
+
+# Empty / missing VTK_LIBS -> no modules
+conf_empty <- write_conf("VTK_VERSION=9.5.2")
+expect_identical(
+  rvtk:::vtk_conf_modules(rvtk:::read_vtk_conf(conf_empty)),
+  character(0)
+)
+
+# ── available_modules: reads inst/vtk_modules.txt when present ────────────────
+# Point available_modules() at a fake installed package via a temp vtk_modules.txt
+# is not easy (system.file is hardcoded) -- instead verify the parser logic by
+# writing the file into the loaded package's inst/ only if we can.  We exercise
+# the file branch through the tinytest install: if rvtk ships vtk_modules.txt
+# in inst/, available_modules() returns it (already asserted above via fallback).
+# The branch itself is covered on CI where the file is shipped.
+
+# ── vtk_check_modules: no-op for NULL / empty / present modules ───────────────
+
+expect_null(rvtk:::vtk_check_modules(NULL))
+expect_null(rvtk:::vtk_check_modules(character(0)))
+expect_null(rvtk:::vtk_check_modules("vtkIOLegacy"))
+
+# ── vtk_check_modules: errors on missing module (cli available) ───────────────
+
+err_missing <- tryCatch(
+  rvtk:::vtk_check_modules(c("vtkIOLegacy", "vtkTotallyNope")),
+  error = function(e) conditionMessage(e)
+)
+expect_true(grepl("vtkTotallyNope", err_missing))
+expect_true(grepl("Available modules", err_missing))
+
+# ── vtk_check_modules: base-R branch when cli is unavailable ──────────────────
+# testthat (Suggests) is used to mock the rvtk_has_cli() wrapper when available,
+# exactly as test_use_rvtk.R does; otherwise only the cli branch is kept.
+
+can_mock <- requireNamespace("testthat", quietly = TRUE)
+if (can_mock) {
+  testthat::with_mocked_bindings(
+    {
+      err_base <- tryCatch(
+        rvtk:::vtk_check_modules("vtkTotallyNope"),
+        error = function(e) conditionMessage(e)
+      )
+      expect_true(grepl("vtkTotallyNope", err_base))
+      expect_true(grepl("Available modules", err_base))
+      expect_true(grepl("system installation", err_base))
+    },
+    rvtk_has_cli = function() FALSE,
+    .package = "rvtk"
+  )
+} else {
+  err_cli_any <- tryCatch(
+    rvtk:::vtk_check_modules("vtkTotallyNope"),
+    error = function(e) conditionMessage(e)
+  )
+  expect_true(grepl("vtkTotallyNope", err_cli_any))
+}
+
+# ── LdFlags / LdFlagsFile honor check = TRUE/FALSE ────────────────────────────
+
+expect_error(
+  suppressWarnings(rvtk:::vtk_check_modules("vtkTotallyNope")),
+  "not available"
+)

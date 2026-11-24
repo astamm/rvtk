@@ -145,6 +145,26 @@ if (link_type == "shared") {
   message("Copied ", n_copied, " VTK DLL(s) to ", dll_dest)
 }
 
+## Record the modules available in this pre-built archive.
+## available_modules() reads inst/vtk_modules.txt (installed to the package
+## root), so copy the file that ships at the archive root.
+modules_src <- file.path(dest_dir, "vtk_modules.txt")
+if (file.exists(modules_src)) {
+  file.copy(
+    modules_src,
+    file.path(inst_dir, "vtk_modules.txt"),
+    overwrite = TRUE
+  )
+  message("Copied: ", file.path(inst_dir, "vtk_modules.txt"))
+} else {
+  stop(
+    "Pre-built VTK archive is missing vtk_modules.txt at:\n  ",
+    modules_src,
+    "\nThis archive predates the module-availability contract; re-download from\n",
+    "a release >= v0.3.0."
+  )
+}
+
 ## Write inst/vtk.conf with symbolic identifiers only.
 ## CppFlags() / LdFlags() resolve the actual installed paths at runtime via
 ## system.file(), so only symbolic keys go here.

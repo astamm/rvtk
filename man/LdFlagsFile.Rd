@@ -4,7 +4,7 @@
 \alias{LdFlagsFile}
 \title{Write VTK linker flags to a response file}
 \usage{
-LdFlagsFile(path, modules = NULL, os_type = .Platform$OS.type)
+LdFlagsFile(path, modules = NULL, check = TRUE, os_type = .Platform$OS.type)
 }
 \arguments{
 \item{path}{Path (relative to the package source root, i.e. where
@@ -16,6 +16,10 @@ e.g. \code{c("vtkIOLegacy", "vtkCommonCore")}.  When \code{NULL} (the default) a
 available modules are included.  When non-\code{NULL}, only the requested
 modules are linked, which reduces link time and produces a smaller
 downstream package when only part of VTK is used.}
+
+\item{check}{Whether to verify that every requested module is available in
+the detected VTK installation (see \code{\link[=available_modules]{available_modules()}}) and fail with an
+actionable error when one is missing.  Default \code{TRUE}.}
 
 \item{os_type}{A string identifying the operating-system type, defaulting to
 \code{.Platform$OS.type}.  Override to \code{"windows"} or \code{"unix"} in tests to

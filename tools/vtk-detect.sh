@@ -107,6 +107,20 @@ EOF
     rm -f "${_tmpf}.cc" "${_tmpf}.out"
 }
 
+## vtk_generate_module_list OUT_FILE
+## Derive the available module list from the recorded linker flags (vtk_libs),
+## mirroring rvtk::vtk_conf_modules() in R: keep vtk<UpperCase> modules and
+## vtksys, drop bundled third-party libs, write sorted unique list to OUT_FILE.
+vtk_generate_module_list() {
+    _out="$1"
+    printf '%s\n' "${vtk_libs}" \
+    | tr ' ' '\n' \
+    | sed -n 's/^-l//p' \
+    | sed -E 's/^lib//; s/\.a$//; s/\.dll$//; s/-[0-9].*$//' \
+    | grep -E '^(vtk[A-Z]|vtksys)' \
+    | sort -u > "${_out}"
+}
+
 ## Initialise shared state variables.
 vtk_found="no"
 vtk_version_suffix=""

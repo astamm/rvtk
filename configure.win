@@ -223,5 +223,10 @@ VTK_LINK=${vtk_link_type}
 VTK_DLL_DIR=${vtk_dll_dir_win}
 EOF
 
+# Record the modules available in this system VTK installation.  This mirrors
+# what the pre-built archives ship as vtk_modules.txt, so available_modules()
+# reports consistently for both installation modes.
+vtk_generate_module_list inst/vtk_modules.txt
+
 echo "Written inst/vtk.conf (VTK ${vtk_version}, ${vtk_link_type})"
 echo "--- rvtk: Windows configuration complete ---"

@@ -4,7 +4,7 @@
 \alias{LdFlags}
 \title{Linker flags for packages linking against VTK}
 \usage{
-LdFlags(modules = NULL)
+LdFlags(modules = NULL, check = TRUE)
 }
 \arguments{
 \item{modules}{A character vector of VTK module names to link against,
@@ -12,6 +12,10 @@ e.g. \code{c("vtkIOLegacy", "vtkCommonCore")}.  When \code{NULL} (the default) a
 available modules are included.  When non-\code{NULL}, only the requested
 modules are linked, which reduces link time and produces a smaller
 downstream package when only part of VTK is used.}
+
+\item{check}{Whether to verify that every requested module is available in
+the detected VTK installation (see \code{\link[=available_modules]{available_modules()}}) and fail with an
+actionable error when one is missing.  Default \code{TRUE}.}
 }
 \value{
 A single character string of linker flags, written to stdout (so
