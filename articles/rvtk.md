@@ -353,8 +353,94 @@ if you need finer control in your own build scripts:
 
 # flags for just the I/O + core modules
 LdFlags(modules = c("vtkIOLegacy", "vtkCommonCore", "vtkCommonDataModel"))
-#> -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkcgns-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexodusII-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkhdf5_hl-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkhdf5-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkioss-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibproj-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtknetcdf-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group
+#> -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont_testing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_clean_grid-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_connected_components-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_contour-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_core-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_density_estimate-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_entity_extraction-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_conversion-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_transform-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_flow-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_geometry_refinement-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_image_processing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_mesh_info-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_multi_block-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_resampling-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_uncertainty-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_vector_analysis-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_zfp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_io-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_source-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_worklet-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskoresdiympi_nompi.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkvpic-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group
 ```
+
+### Module availability
+
+Since rvtk 0.3.0,
+[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) and
+[`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
+validate the requested modules by default (`check = TRUE`): if a module
+is not available in the detected VTK installation, configuration fails
+immediately with an actionable error listing the missing modules and the
+available set, instead of surfacing much later as a confusing linker
+error.
+
+Use
+[`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+to see exactly which modules the installation can link against:
+
+``` r
+
+# modules available in this VTK installation (pre-built archives ship the
+# complete set recorded in vtk_modules.txt; system VTK is derived from the
+# recorded linker flags)
+available_modules()
+#>   [1] "vtkAcceleratorsVTKmCore"        "vtkAcceleratorsVTKmDataModel"  
+#>   [3] "vtkAcceleratorsVTKmFilters"     "vtkChartsCore"                 
+#>   [5] "vtkCommonCache"                 "vtkCommonColor"                
+#>   [7] "vtkCommonComputationalGeometry" "vtkCommonCore"                 
+#>   [9] "vtkCommonDataModel"             "vtkCommonExecutionModel"       
+#>  [11] "vtkCommonMath"                  "vtkCommonMisc"                 
+#>  [13] "vtkCommonSystem"                "vtkCommonTransforms"           
+#>  [15] "vtkDICOMParser"                 "vtkDomainsChemistry"           
+#>  [17] "vtkFiltersAMR"                  "vtkFiltersCellGrid"            
+#>  [19] "vtkFiltersCore"                 "vtkFiltersExtraction"          
+#>  [21] "vtkFiltersFlowPaths"            "vtkFiltersGeneral"             
+#>  [23] "vtkFiltersGeneric"              "vtkFiltersGeometry"            
+#>  [25] "vtkFiltersGeometryPreview"      "vtkFiltersHybrid"              
+#>  [27] "vtkFiltersHyperTree"            "vtkFiltersImaging"             
+#>  [29] "vtkFiltersMeshing"              "vtkFiltersModeling"            
+#>  [31] "vtkFiltersParallel"             "vtkFiltersParallelDIY2"        
+#>  [33] "vtkFiltersParallelImaging"      "vtkFiltersPoints"              
+#>  [35] "vtkFiltersProgrammable"         "vtkFiltersReduction"           
+#>  [37] "vtkFiltersSelection"            "vtkFiltersSMP"                 
+#>  [39] "vtkFiltersSources"              "vtkFiltersStatistics"          
+#>  [41] "vtkFiltersTemporal"             "vtkFiltersTensor"              
+#>  [43] "vtkFiltersTexture"              "vtkFiltersTopology"            
+#>  [45] "vtkFiltersVerdict"              "vtkImagingColor"               
+#>  [47] "vtkImagingCore"                 "vtkImagingFourier"             
+#>  [49] "vtkImagingGeneral"              "vtkImagingHybrid"              
+#>  [51] "vtkImagingMath"                 "vtkImagingMorphological"       
+#>  [53] "vtkImagingSources"              "vtkImagingStatistics"          
+#>  [55] "vtkImagingStencil"              "vtkInfovisCore"                
+#>  [57] "vtkInfovisLayout"               "vtkInteractionImage"           
+#>  [59] "vtkInteractionStyle"            "vtkInteractionWidgets"         
+#>  [61] "vtkIOAsynchronous"              "vtkIOAvmesh"                   
+#>  [63] "vtkIOCellGrid"                  "vtkIOChemistry"                
+#>  [65] "vtkIOCityGML"                   "vtkIOCore"                     
+#>  [67] "vtkIOEngys"                     "vtkIOEnSight"                  
+#>  [69] "vtkIOExport"                    "vtkIOExportPDF"                
+#>  [71] "vtkIOFDS"                       "vtkIOGeoJSON"                  
+#>  [73] "vtkIOGeometry"                  "vtkIOImage"                    
+#>  [75] "vtkIOImport"                    "vtkIOInfovis"                  
+#>  [77] "vtkIOLANLX3D"                   "vtkIOLegacy"                   
+#>  [79] "vtkIOLSDyna"                    "vtkIOMotionFX"                 
+#>  [81] "vtkIOMovie"                     "vtkIOOggTheora"                
+#>  [83] "vtkIOOMF"                       "vtkIOPLY"                      
+#>  [85] "vtkIOSegY"                      "vtkIOSQL"                      
+#>  [87] "vtkIOTecplotTable"              "vtkIOVideo"                    
+#>  [89] "vtkIOVPIC"                      "vtkIOXML"                      
+#>  [91] "vtkIOXMLParser"                 "vtkParallelCore"               
+#>  [93] "vtkParallelDIY"                 "vtkRenderingAnnotation"        
+#>  [95] "vtkRenderingContext2D"          "vtkRenderingCore"              
+#>  [97] "vtkRenderingFreeType"           "vtkRenderingGridAxes"          
+#>  [99] "vtkRenderingHyperTreeGrid"      "vtkRenderingImage"             
+#> [101] "vtkRenderingLabel"              "vtkRenderingLOD"               
+#> [103] "vtkRenderingSceneGraph"         "vtkRenderingVolume"            
+#> [105] "vtkRenderingVtkJS"              "vtksys"                        
+#> [107] "vtkTestingDataModel"            "vtkTestingGenericBridge"       
+#> [109] "vtkTestingIOSQL"                "vtkWebGLExporter"              
+#> [111] "vtkWrappingTools"
+```
+
+With the pre-built archives this is the full module set the bundle was
+built with (every VTK module except a deny-list of modules that pull in
+unavailable external dependencies). With a system VTK it reflects that
+installation, so a request for a module the system VTK does not provide
+fails fast. Pass `check = FALSE` only if you intentionally link against
+whatever the installation provides.
 
 ## Writing the C++ that uses VTK
 

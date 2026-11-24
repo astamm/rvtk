@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -339,21 +339,89 @@
 <div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># flags for just the I/O + core modules</span></span>
 <span><span class="fu"><a href="../reference/LdFlags.html">LdFlags</a></span><span class="op">(</span>modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vtkIOLegacy"</span>, <span class="st">"vtkCommonCore"</span>, <span class="st">"vtkCommonDataModel"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkcgns-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexodusII-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkhdf5_hl-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkhdf5-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkioss-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibproj-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtknetcdf-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group</span></span></code></pre></div>
+<span><span class="co">#&gt; -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont_testing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_clean_grid-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_connected_components-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_contour-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_core-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_density_estimate-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_entity_extraction-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_conversion-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_transform-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_flow-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_geometry_refinement-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_image_processing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_mesh_info-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_multi_block-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_resampling-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_uncertainty-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_vector_analysis-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_zfp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_io-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_source-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_worklet-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskoresdiympi_nompi.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkvpic-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group</span></span></code></pre></div>
 </div>
-</section><section class="level2"><h2 id="writing-the-c-that-uses-vtk">Writing the C++ that uses VTK<a class="anchor" aria-label="anchor" href="#writing-the-c-that-uses-vtk"></a>
+<section class="level3"><h3 id="module-availability">Module availability<a class="anchor" aria-label="anchor" href="#module-availability"></a>
+</h3>
+<p>Since rvtk 0.3.0, <code><a href="../reference/LdFlags.html">LdFlags()</a></code> and <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> validate the requested modules by default (<code>check = TRUE</code>): if a module is not available in the detected VTK installation, configuration fails immediately with an actionable error listing the missing modules and the available set, instead of surfacing much later as a confusing linker error.</p>
+<p>Use <code><a href="../reference/available_modules.html">available_modules()</a></code> to see exactly which modules the installation can link against:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># modules available in this VTK installation (pre-built archives ship the</span></span>
+<span><span class="co"># complete set recorded in vtk_modules.txt; system VTK is derived from the</span></span>
+<span><span class="co"># recorded linker flags)</span></span>
+<span><span class="fu"><a href="../reference/available_modules.html">available_modules</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   [1] "vtkAcceleratorsVTKmCore"        "vtkAcceleratorsVTKmDataModel"  </span></span>
+<span><span class="co">#&gt;   [3] "vtkAcceleratorsVTKmFilters"     "vtkChartsCore"                 </span></span>
+<span><span class="co">#&gt;   [5] "vtkCommonCache"                 "vtkCommonColor"                </span></span>
+<span><span class="co">#&gt;   [7] "vtkCommonComputationalGeometry" "vtkCommonCore"                 </span></span>
+<span><span class="co">#&gt;   [9] "vtkCommonDataModel"             "vtkCommonExecutionModel"       </span></span>
+<span><span class="co">#&gt;  [11] "vtkCommonMath"                  "vtkCommonMisc"                 </span></span>
+<span><span class="co">#&gt;  [13] "vtkCommonSystem"                "vtkCommonTransforms"           </span></span>
+<span><span class="co">#&gt;  [15] "vtkDICOMParser"                 "vtkDomainsChemistry"           </span></span>
+<span><span class="co">#&gt;  [17] "vtkFiltersAMR"                  "vtkFiltersCellGrid"            </span></span>
+<span><span class="co">#&gt;  [19] "vtkFiltersCore"                 "vtkFiltersExtraction"          </span></span>
+<span><span class="co">#&gt;  [21] "vtkFiltersFlowPaths"            "vtkFiltersGeneral"             </span></span>
+<span><span class="co">#&gt;  [23] "vtkFiltersGeneric"              "vtkFiltersGeometry"            </span></span>
+<span><span class="co">#&gt;  [25] "vtkFiltersGeometryPreview"      "vtkFiltersHybrid"              </span></span>
+<span><span class="co">#&gt;  [27] "vtkFiltersHyperTree"            "vtkFiltersImaging"             </span></span>
+<span><span class="co">#&gt;  [29] "vtkFiltersMeshing"              "vtkFiltersModeling"            </span></span>
+<span><span class="co">#&gt;  [31] "vtkFiltersParallel"             "vtkFiltersParallelDIY2"        </span></span>
+<span><span class="co">#&gt;  [33] "vtkFiltersParallelImaging"      "vtkFiltersPoints"              </span></span>
+<span><span class="co">#&gt;  [35] "vtkFiltersProgrammable"         "vtkFiltersReduction"           </span></span>
+<span><span class="co">#&gt;  [37] "vtkFiltersSelection"            "vtkFiltersSMP"                 </span></span>
+<span><span class="co">#&gt;  [39] "vtkFiltersSources"              "vtkFiltersStatistics"          </span></span>
+<span><span class="co">#&gt;  [41] "vtkFiltersTemporal"             "vtkFiltersTensor"              </span></span>
+<span><span class="co">#&gt;  [43] "vtkFiltersTexture"              "vtkFiltersTopology"            </span></span>
+<span><span class="co">#&gt;  [45] "vtkFiltersVerdict"              "vtkImagingColor"               </span></span>
+<span><span class="co">#&gt;  [47] "vtkImagingCore"                 "vtkImagingFourier"             </span></span>
+<span><span class="co">#&gt;  [49] "vtkImagingGeneral"              "vtkImagingHybrid"              </span></span>
+<span><span class="co">#&gt;  [51] "vtkImagingMath"                 "vtkImagingMorphological"       </span></span>
+<span><span class="co">#&gt;  [53] "vtkImagingSources"              "vtkImagingStatistics"          </span></span>
+<span><span class="co">#&gt;  [55] "vtkImagingStencil"              "vtkInfovisCore"                </span></span>
+<span><span class="co">#&gt;  [57] "vtkInfovisLayout"               "vtkInteractionImage"           </span></span>
+<span><span class="co">#&gt;  [59] "vtkInteractionStyle"            "vtkInteractionWidgets"         </span></span>
+<span><span class="co">#&gt;  [61] "vtkIOAsynchronous"              "vtkIOAvmesh"                   </span></span>
+<span><span class="co">#&gt;  [63] "vtkIOCellGrid"                  "vtkIOChemistry"                </span></span>
+<span><span class="co">#&gt;  [65] "vtkIOCityGML"                   "vtkIOCore"                     </span></span>
+<span><span class="co">#&gt;  [67] "vtkIOEngys"                     "vtkIOEnSight"                  </span></span>
+<span><span class="co">#&gt;  [69] "vtkIOExport"                    "vtkIOExportPDF"                </span></span>
+<span><span class="co">#&gt;  [71] "vtkIOFDS"                       "vtkIOGeoJSON"                  </span></span>
+<span><span class="co">#&gt;  [73] "vtkIOGeometry"                  "vtkIOImage"                    </span></span>
+<span><span class="co">#&gt;  [75] "vtkIOImport"                    "vtkIOInfovis"                  </span></span>
+<span><span class="co">#&gt;  [77] "vtkIOLANLX3D"                   "vtkIOLegacy"                   </span></span>
+<span><span class="co">#&gt;  [79] "vtkIOLSDyna"                    "vtkIOMotionFX"                 </span></span>
+<span><span class="co">#&gt;  [81] "vtkIOMovie"                     "vtkIOOggTheora"                </span></span>
+<span><span class="co">#&gt;  [83] "vtkIOOMF"                       "vtkIOPLY"                      </span></span>
+<span><span class="co">#&gt;  [85] "vtkIOSegY"                      "vtkIOSQL"                      </span></span>
+<span><span class="co">#&gt;  [87] "vtkIOTecplotTable"              "vtkIOVideo"                    </span></span>
+<span><span class="co">#&gt;  [89] "vtkIOVPIC"                      "vtkIOXML"                      </span></span>
+<span><span class="co">#&gt;  [91] "vtkIOXMLParser"                 "vtkParallelCore"               </span></span>
+<span><span class="co">#&gt;  [93] "vtkParallelDIY"                 "vtkRenderingAnnotation"        </span></span>
+<span><span class="co">#&gt;  [95] "vtkRenderingContext2D"          "vtkRenderingCore"              </span></span>
+<span><span class="co">#&gt;  [97] "vtkRenderingFreeType"           "vtkRenderingGridAxes"          </span></span>
+<span><span class="co">#&gt;  [99] "vtkRenderingHyperTreeGrid"      "vtkRenderingImage"             </span></span>
+<span><span class="co">#&gt; [101] "vtkRenderingLabel"              "vtkRenderingLOD"               </span></span>
+<span><span class="co">#&gt; [103] "vtkRenderingSceneGraph"         "vtkRenderingVolume"            </span></span>
+<span><span class="co">#&gt; [105] "vtkRenderingVtkJS"              "vtksys"                        </span></span>
+<span><span class="co">#&gt; [107] "vtkTestingDataModel"            "vtkTestingGenericBridge"       </span></span>
+<span><span class="co">#&gt; [109] "vtkTestingIOSQL"                "vtkWebGLExporter"              </span></span>
+<span><span class="co">#&gt; [111] "vtkWrappingTools"</span></span></code></pre></div>
+</div>
+<p>With the pre-built archives this is the full module set the bundle was built with (every VTK module except a deny-list of modules that pull in unavailable external dependencies). With a system VTK it reflects that installation, so a request for a module the system VTK does not provide fails fast. Pass <code>check = FALSE</code> only if you intentionally link against whatever the installation provides.</p>
+</section></section><section class="level2"><h2 id="writing-the-c-that-uses-vtk">Writing the C++ that uses VTK<a class="anchor" aria-label="anchor" href="#writing-the-c-that-uses-vtk"></a>
 </h2>
 <p>A minimal <code>src/code.cpp</code> that exercises the link looks like this:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">// src/code.cpp</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vtkNew.h&gt;</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vtkPolyData.h&gt;</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="op">[[</span><span class="at">cpp11</span><span class="op">::</span><span class="at">register</span><span class="op">]]</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> vtk_poly_data_npoints<span class="op">()</span> <span class="op">{</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  vtkNew<span class="op">&lt;</span>vtkPolyData<span class="op">&gt;</span> pd<span class="op">;</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>pd<span class="op">-&gt;</span>GetNumberOfPoints<span class="op">());</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// src/code.cpp</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;cpp11.hpp&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vtkNew.h&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="pp">#include </span><span class="im">&lt;vtkPolyData.h&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="op">[[</span><span class="at">cpp11</span><span class="op">::</span><span class="at">register</span><span class="op">]]</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="dt">int</span> vtk_poly_data_npoints<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  vtkNew<span class="op">&lt;</span>vtkPolyData<span class="op">&gt;</span> pd<span class="op">;</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>pd<span class="op">-&gt;</span>GetNumberOfPoints<span class="op">());</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Include the headers exactly as the VTK include directory is laid out in the detected installation (e.g. <code>vtk-9.7</code>). <code>-isystem</code> (from <code><a href="../reference/CppFlags.html">CppFlags()</a></code> on macOS/Linux) makes these includes searchable without turning their content into warnings.</p>
 <p>If you use <code>cpp11</code> (as in rvtk’s own downstream CI), run <code><a href="https://cpp11.r-lib.org/reference/cpp_register.html" class="external-link">cpp11::cpp_register()</a></code> after adding your functions. <strong>Note:</strong> <code>cpp_register()</code> copies only the function name, return type, and arguments into <code>R/cpp11.R</code> — roxygen tags such as <code>#' @export</code> must live in a separate R file for the wrapper function you export, or the function will not appear in <code>NAMESPACE</code>.</p>
 </section><section class="level2"><h2 id="shared-vtk-on-windows">Shared VTK on Windows<a class="anchor" aria-label="anchor" href="#shared-vtk-on-windows"></a>
@@ -370,7 +438,7 @@
 </h2>
 <p>Before submitting your package, run a full <code>R CMD check</code>; then load the installed package in a fresh session and call the C++ entry point:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># in a fresh R session, after R CMD INSTALL</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">yourpackage</span><span class="op">)</span></span>
 <span><span class="fu">yourpackage</span><span class="fu">::</span><span class="fu">vtk_poly_data_npoints</span><span class="op">(</span><span class="op">)</span> <span class="co"># expect 0: a brand-new vtkPolyData has no points</span></span></code></pre></div>

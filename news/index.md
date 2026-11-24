@@ -1,5 +1,35 @@
 # Changelog
 
+## rvtk 0.3.0
+
+#### New features
+
+- **[`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+  reports the VTK modules in the detected installation.** Every
+  pre-built release archive now ships a `vtk_modules.txt` file listing
+  the exact module set it was built with, and the `configure` /
+  `configure.win` scripts install it (for a system VTK the list is
+  derived from the linker flags recorded in `vtk.conf`, mirroring the
+  same filtering logic).
+
+- **[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) /
+  [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
+  validate requested modules (`check = TRUE` by default).** A downstream
+  package that requests a module the installation does not provide now
+  fails fast at install time with an actionable error listing the
+  missing module(s) and the available set, instead of failing later with
+  a confusing linker error. Set `check = FALSE` to skip validation and
+  link whatever the installation provides.
+
+- **Pre-built archives now ship every VTK module except a curated
+  deny-list.** The hand-curated 18-module bundle is replaced by
+  `VTK_BUILD_ALL_MODULES=ON` minus modules that pull in unavailable
+  external dependencies (rendering toolkits, Python bindings, MPI,
+  HDF5/netcdf/Exodus third-party IO, remote modules, …). The archive
+  layout and the 160-archive whole-archive link check are updated
+  accordingly; `vtk_modules.txt` is generated from the installed
+  libraries so it always reflects exactly what an archive contains.
+
 ## rvtk 0.2.0
 
 CRAN release: 2026-11-18

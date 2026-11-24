@@ -113,6 +113,8 @@ the package downloads pre-built libraries automatically.
   : Write VTK linker flags to a response file
 - [`VtkVersion()`](https://astamm.github.io/rvtk/reference/VtkVersion.md)
   : VTK version used by this package
+- [`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+  : VTK modules available in this installation
 - [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md) :
   Set up a downstream package to use rvtk
 
