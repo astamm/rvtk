@@ -967,6 +967,12 @@ jobs:
               cd build
               # Headless Alpine runner: windowing/renderer modules come from the
               # shared deny-list (passed via -e VTK_DENY_MODULES).
+              # musl has no execinfo.h (backtrace); vendored loguru enables
+              # LOGURU_STACKTRACES on POSIX by default and would fail to compile
+              # viskores_cont.  Stack traces are diagnostic-only, so disabling
+              # them is safe for the prebuilt archives.  The define is read
+              # before loguru's own #ifndef default (also honored by VTK's own
+              # vtkloguru, which the all-modules build compiles).
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
@@ -977,7 +983,7 @@ jobs:
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                 -DCMAKE_C_FLAGS='-fPIC' \
-                -DCMAKE_CXX_FLAGS='-fPIC' \
+                -DCMAKE_CXX_FLAGS='-fPIC -DLOGURU_STACKTRACES=0' \
                 /work/VTK-${VER}
               ninja -j\$(nproc)
               ninja install
