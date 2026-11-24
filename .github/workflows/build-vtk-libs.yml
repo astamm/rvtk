@@ -174,6 +174,8 @@ jobs:
           # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
           # is GL-free; the windowing interactor (RenderingUI) is disabled for
           # this headless build.
+          # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+          # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
@@ -182,8 +184,6 @@ jobs:
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
-            # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
             -DCMAKE_CXX_FLAGS="-Wa,-mbig-obj" \
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
@@ -314,6 +314,8 @@ jobs:
           # VTK_IOGeometry requires FiltersHybrid -> RenderingCore. RenderingCore
           # is GL-free; the windowing interactor (RenderingUI) is disabled for
           # this headless build.
+          # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
+          # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
           cmake -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
@@ -325,8 +327,6 @@ jobs:
             -DVTK_ENABLE_REMOTE_MODULES=OFF \
             $VTK_DENY_MODULES \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            # viskores_cont/UnknownArrayHandle.cxx exceeds the default PE/COFF
-            # 32767-section limit; -Wa,-mbig-obj switches as to the bigobj format.
             -DH5_HAVE_VASPRINTF:INTERNAL=0 \
             ../VTK-${VER}
 
@@ -860,7 +860,8 @@ jobs:
       - name: Whole-archive link check (clang, libc++)
         run: |
           set -e
-          command -v clang++ >/dev/null 2>&1 || {
+          command -v clang++ >/dev/null 2>&1 && echo 'int main(){return 0;}' | \
+            clang++ -x c++ -stdlib=libc++ - -o /dev/null 2>/dev/null || {
             sudo apt-get update -qq
             sudo apt-get install -y --no-install-recommends clang libc++-dev libc++abi-dev
           }
@@ -934,9 +935,16 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           VER="${{ env.VTK_VERSION }}"
+          # VTK_DENY_MODULES is a folded scalar whose value ends in a newline;
+          # expanding it in the outer bash would inject that newline into the
+          # sh -c string and truncate the cmake line.  Pass it through the
+          # container environment instead and expand it inside the container,
+          # where trailing-whitespace word-splitting is harmless (same pattern
+          # as \$(nproc) below).
           docker run --rm \
             -v "$PWD:/work" \
             -w /work \
+            -e VTK_DENY_MODULES \
             alpine:3.22 \
             sh -c "
               set -eux
@@ -944,15 +952,14 @@ jobs:
               mkdir -p build install
               cd build
               # Headless Alpine runner: windowing/renderer modules come from the
-              # shared deny-list, expanded by the outer bash before the string
-              # reaches sh inside the container.
+              # shared deny-list (passed via -e VTK_DENY_MODULES).
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
                 -DBUILD_SHARED_LIBS=OFF \
                 -DVTK_BUILD_ALL_MODULES=ON \
                 -DVTK_ENABLE_REMOTE_MODULES=OFF \
-                $VTK_DENY_MODULES \
+                \$VTK_DENY_MODULES \
                 -DVTK_USE_X=OFF \
                 -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
                 -DCMAKE_C_FLAGS='-fPIC' \
