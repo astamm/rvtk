@@ -939,8 +939,8 @@ jobs:
               mkdir -p build install
               cd build
               # Headless Alpine runner: windowing/renderer modules come from the
-              # shared deny-list ($VTK_DENY_MODULES, expanded by the outer bash
-              # before the string reaches sh inside the container).
+              # shared deny-list, expanded by the outer bash before the string
+              # reaches sh inside the container.
               cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX=/work/install \
