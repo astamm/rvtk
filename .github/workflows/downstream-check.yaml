@@ -219,6 +219,7 @@ jobs:
       # which persists correctly across all subsequent steps on every platform.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache-version: "downstream-check-v1"
           working-directory: rvtk
           extra-packages: |
             any::rcmdcheck

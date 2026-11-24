@@ -185,6 +185,7 @@ jobs:
       # here.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache-version: "riot-check-v1"
           packages: |
             any::pak
             any::tinytest
