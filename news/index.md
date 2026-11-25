@@ -109,7 +109,7 @@ CRAN release: 2026-11-18
   and its internals (`rvtk_use_package`, `rvtk_write_file`,
   `rvtk_use_git_ignore`, `rvtk_rel_path`), including the base-R fallback
   messaging branches. The package now reports 100% line coverage under
-  [`covr::package_coverage()`](https://covr.r-lib.org/reference/package_coverage.html).
+  `covr::package_coverage()`.
 
 #### Bug fixes
 

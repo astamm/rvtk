@@ -466,11 +466,11 @@ macOS/Linux) makes these includes searchable without turning their
 content into warnings.
 
 If you use `cpp11` (as in rvtk’s own downstream CI), run
-[`cpp11::cpp_register()`](https://cpp11.r-lib.org/reference/cpp_register.html)
-after adding your functions. **Note:** `cpp_register()` copies only the
-function name, return type, and arguments into `R/cpp11.R` — roxygen
-tags such as `#' @export` must live in a separate R file for the wrapper
-function you export, or the function will not appear in `NAMESPACE`.
+`cpp11::cpp_register()` after adding your functions. **Note:**
+`cpp_register()` copies only the function name, return type, and
+arguments into `R/cpp11.R` — roxygen tags such as `#' @export` must live
+in a separate R file for the wrapper function you export, or the
+function will not appear in `NAMESPACE`.
 
 ## Shared VTK on Windows
 
