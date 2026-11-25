@@ -37,6 +37,9 @@ rvtk gives you four things:
 This vignette explains how VTK is located on each platform, what files a
 downstream package needs, how the two setup strategies (`use_rvtk()` versus
 hand-written files) relate, and how to verify that linking actually worked.
+A companion vignette,
+[rvtk-integration](rvtk-integration.html), covers how rvtk is itself tested
+with real downstream packages on CI.
 
 ## How rvtk finds VTK
 
@@ -84,37 +87,31 @@ combinations; a system VTK installation (≥ 9.1.0) found via `VTK_DIR`,
 | Linux aarch64 | static `.a` | |
 | Windows x64 | static `.a` (default) or shared DLLs (`VTK_LINK_TYPE=shared`) | |
 
-On Windows the modules `VTK_IONetCDF`, `VTK_IOHDF`, and `VTK_GeovisCore` are
-disabled because `netcdf` and `libproj` are not available in the Rtools45
-`static.posix` sysroot; downstream packages requiring them cannot be built on
-Windows with rvtk's pre-built libraries.
+The archives are the same on every platform: the impossible-to-ship optional
+third-party stacks (see below) are disabled in the build, so any platform
+difference is limited to the C++ toolchain the static libraries were compiled
+with.
 
 ### Bundled VTK modules
 
-The pre-built bundles are built with `VTK_BUILD_ALL_MODULES=OFF` and the
-following modules explicitly enabled (VTK resolves and includes all
-transitive dependencies automatically):
+The pre-built bundles are built with `VTK_BUILD_ALL_MODULES=ON` and a curated
+deny-list of modules that pull in external dependencies unavailable in a
+headless, self-contained static build (rendering toolkits such as Qt, OpenGL,
+OpenXR/OpenVR, Vulkan; Python bindings; MPI and parallel IO; HDF5, netCDF,
+Exodus, ADIOS2, GDAL, FFmpeg, and similar third-party IO stacks; remote
+modules). The archive layout and the resulting `vtk_modules.txt` are generated
+from the installed libraries, so the module list shipped in an archive always
+reflects exactly what that archive contains.
 
-| Module | Purpose |
-|---|---|
-| `VTK_IOLegacy` | Legacy VTK file format reader/writer (`.vtk`) |
-| `VTK_IOXML` | XML-based VTK file formats (`.vtp`, `.vtu`, `.vts`, …) |
-| `VTK_IOCore` | Core I/O infrastructure shared by all I/O modules |
-| `VTK_IOGeometry` | Readers/writers for common geometric formats (`.ply`, `.stl`, …) |
-| `VTK_FiltersCore` | Core algorithmic filters (threshold, transform points, …) |
-| `VTK_FiltersGeneral` | General-purpose filters (append, clip, decimate, …) |
-| `VTK_FiltersGeometry` | Filters that modify or convert dataset geometry |
-| `VTK_FiltersModeling` | Filters for geometric modeling and meshing |
-| `VTK_FiltersExtraction` | Filters that extract subsets of data |
-| `VTK_CommonCore` | Core data structures, object model, logging |
-| `VTK_CommonDataModel` | Datasets, cells, point/cell data arrays |
-
-Each module's transitive dependencies are resolved automatically by CMake —
-for `VTK_FiltersExtraction` that includes `VTK_ParallelDIY`,
-`VTK_ParallelCore`, `VTK_FiltersHyperTree`, and `VTK_FiltersStatistics` — and
-the resulting bundle ships as 161 static archives on each platform (every I/O
-reader, every filter group, rendering, imaging, …; only `IOJSON`, `IOGDAL`,
-and `GUISupportQt` are absent).
+The result is a complete VTK without those exotics: every I/O reader (Legacy,
+XML, PLY, STL, VTU/VTP, …), every filter group, imaging, rendering
+infrastructure, plus the Viskores acceleration modules. Concretely, each
+archive ships **160 static libraries**. The module file lists the 110 VTK kit
+modules (e.g. `vtkIOLegacy`, `vtkFiltersCore`, …), and the archive also
+contains `vtksys`, the 23 `libviskores*` libraries, and 26 third-party
+libraries under the `libvtk` prefix (expat, fmt, freetype, jpeg, jsoncpp,
+libxml2, lz4, ogg, png, sqlite, tiff, theora, zlib, …) that VTK needs at link
+time even when your code never calls them directly.
 
 ### Pre-built ABI compatibility
 
@@ -146,19 +143,19 @@ runtimes at load time fails with an undefined symbol:
   (musl's GCC libstdc++; Rtools45 MinGW on Windows); link with the matching
   R toolchain for the platform.
 
-Releases after the macOS archives were rebuilt with
-`-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` are compatible with macOS 13 and newer.
+The macOS archives are compiled with `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` and
+are compatible with macOS 13 and newer.
 
-### Valgrind
+### Memory checkers
 
 A minimal downstream program that reads a VTK file reports ~1.5 KB
-"definitely lost" under valgrind, allocated inside VTK's pipeline internals
-(`vtkInformation`, pipeline executives — see the rhub valgrind findings on
-the **riot** downstream check). This is inherent to the statically linked VTK
-build and does not indicate a leak in downstream code. A suppression file is
-shipped at `inst/valgrind/vtk.supp`; point valgrind at it (or set
-`_R_CHECK_VALGRIND_SUPPRESSIONS_=` for `R CMD check`'s valgrind leg) to get a
-clean report.
+"definitely lost" under Valgrind, allocated inside VTK's pipeline internals
+(`vtkInformation`, pipeline executives). This is inherent to the statically
+linked VTK build and does not indicate a leak in downstream code. A
+suppression file is shipped at `inst/valgrind/vtk.supp`; point Valgrind at it
+(or set `_R_CHECK_VALGRIND_SUPPRESSIONS_` for `R CMD check`'s Valgrind leg) to
+get a clean report. The `rvtk-integration` vignette discusses how rvtk itself
+exercises memory-checker legs on CRAN platforms.
 
 Once rvtk is installed, `CppFlags()`, `LdFlags()`, `LdFlagsFile()`, and
 `VtkVersion()` read `vtk.conf` and report whatever VTK was found:
@@ -282,9 +279,10 @@ raw flags are returned directly.
 
 ## Choosing the VTK modules to link against
 
-The pre-built bundles shipped with rvtk contain the full VTK library
-(161 static archives on each platform: every I/O reader, every filter group,
-rendering, imaging, …). By default `use_rvtk()` links **all** of them:
+The pre-built bundles shipped with rvtk contain the full buildable VTK
+(160 static archives on each platform: every I/O reader, every filter group,
+rendering, imaging, Viskores, …). By default `use_rvtk()` links **all** of
+them:
 
 ```{r}
 modules = NULL

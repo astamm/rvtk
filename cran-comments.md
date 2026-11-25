@@ -1,143 +1,119 @@
 ## Update
 
-This is a submission of the package update from v0.1.3 to v0.2.0 (a regular
+This is a submission of the package update from v0.2.0 to v0.3.0 (a regular
 version update; not a resubmission of a previously rejected package).
 
 ## Summary of the update
 
-* VTK version bumped from 9.5.2 to 9.7.2.
-* Six additional VTK modules are now bundled by default: `VTK_IOGeometry`,
-  `VTK_FiltersCore`, `VTK_FiltersGeneral`, `VTK_FiltersGeometry`,
-  `VTK_FiltersModeling`, and `VTK_FiltersExtraction`.
-* Test coverage raised to 100% (line coverage) with new tests exercising the
-  module-filtering logic and every branch of `use_rvtk()`.
-* New vignette documenting how downstream R packages link against VTK through
-  rvtk, both manually and via `use_rvtk()`.
+* **Module availability is now explicit.** Each pre-built release archive ships
+  a `vtk_modules.txt` recording the exact module set it was built with;
+  `available_modules()` reports it at run time. `LdFlags()` and `LdFlagsFile()`
+  validate requested modules by default (`check = TRUE`): a request for a
+  module the installation does not provide fails fast at install time with an
+  actionable error, instead of surfacing later as a linker error.
+* **Pre-built archives now contain every buildable VTK module.** The hand-curated
+  18-module bundle of 0.2.0 is replaced by `VTK_BUILD_ALL_MODULES=ON` minus a
+  deny-list of modules that pull in unavailable external dependencies
+  (rendering toolkits, Python bindings, MPI, HDF5/netcdf/Exodus third-party IO,
+  remote modules, ...). The archives therefore provide all modules that can be
+  built without external dependencies, and downstream packages opt in to
+  linking a subset (`modules = ...` in `LdFlags()`, `LdFlagsFile()`,
+  `use_rvtk()`) to reduce link time and storage. Each archive holds
+  **160 static libraries**: 110 VTK kit modules, `libvtksys`, 23 viskores
+  libraries, and 26 third-party libraries.
+* **System-VTK behavior is now fail-fast too.** When rvtk links against a
+  system VTK installation, the available modules are derived from the
+  recorded linker flags and a downstream package requesting a module the
+  system VTK does not provide hard-fails at install time rather than at load.
+* **Third-party license notices in the archives were audited and corrected.**
+  The `licenses/` tree bundled into each archive now matches exactly what the
+  archives contain: notices for components that are not shipped (CGNS,
+  ExodusII, HDF5, IOSS, netCDF, PROJ) were removed, and notices for shipped
+  components that were missing (Viskores, LCL, lodepng, VPIC) were added.
+* **Previous pre-built archive issues are resolved.** The four issues raised by
+  CRAN-facing rhub runs of 0.2.0 (downstream undefined symbols from a
+  too-small curated module set, libstdc++ ABI incompatibility for
+  clang/libc++ consumers, macOS deployment target, and Valgrind "definitely
+  lost" reports in VTK internals) are addressed: see the CI section, the
+  README, and the package vignettes.
 
-## All issues raised in the CRAN check results are resolved
+## CI on CRAN-relevant platforms
 
-The check results at
-<https://cran.r-project.org/web/checks/check_results_rvtk.html> show all 13
-standard flavors with status OK for v0.1.3, and two entries under "Additional
-issues": linux-arm64 and musl. Both are resolved in 0.2.0 and are now covered
-by a dedicated CI workflow (`.github/workflows/prebuilt-audit.yaml`) that
-replicates each checker's environment and proves the fix by installing the
-package and compiling, linking, and running a real C++ program against the
-downloaded pre-built archives:
+Because this package conditionally downloads pre-built binaries at install
+time, CI replicates the CRAN environments where hosted runners cannot reach
+the archives:
 
-1. **linux-arm64** (`r-devel/linux-arm64-checks`): `ERROR: Unsupported Linux
-   architecture 'aarch64'.` The v0.1.3 `configure` had no aarch64 branch.
-   0.2.0 downloads `vtk-9.7.2-linux-aarch64.tar.gz` (ELF aarch64, glibc) when
-   no system VTK is found on aarch64 Linux. The `arm64-ubuntu` leg of the
-   `prebuilt-audit` workflow runs on an arm64 runner in
-   `ghcr.io/r-devel/rcheckserver/ubuntu:latest` — the exact image used by
-   CRAN's linux-arm64 checker — and verifies the aarch64 archive is selected,
-   the tinytest suite passes (118 tests), and a VTK 9.7.2 C++ program links
-   and runs.
+* **`prebuilt-audit.yaml`** runs two legs in the *exact* containers CRAN's
+  checkers use:
+  * `arm64-ubuntu` — `ghcr.io/r-devel/rcheckserver/ubuntu:latest` on an arm64
+    runner (CRAN's linux-arm64 checker image). Installs the source tarball,
+    asserts the `linux-aarch64` archive is selected, runs the tinytest suite,
+    and compiles, links, and runs a C++ program against the real aarch64
+    archives.
+  * `musl-alpine` — `ghcr.io/bastistician/rcheck-musl:latest` (Alpine, R built
+    against musl; the environment of CRAN's `bastistician/Rcheck`). Same
+    recipe, asserting the musl archive is selected and that the busybox
+    `mktemp` guard holds.
+* **`R-CMD-check.yaml`** runs `R CMD check` on 8 matrix legs: macOS (arm64;
+  system VTK and pre-built), Windows (system VTK and pre-built), and Linux
+  (release, oldrel-1, and devel; system VTK and pre-built).
+* **`rhub.yaml`** runs the standard `r-hub/actions/check-for-cran` workflow on
+  Linux, Windows, and macOS at every release candidate.
 
-2. **Alpine / musl** (`bastistician/Rcheck`): v0.1.3 downloaded the glibc
-   x86_64 archive on musl systems (no musl branch existed) and the download
-   failed with `mktemp: : Invalid argument` because the template
-   `mktemp /tmp/vtk-prebuilt.XXXXXX.tar.gz` does not end in `XXXXXX` (busybox
-   rejects it). 0.2.0 selects `vtk-9.7.2-linux-musl-x86_64.tar.gz` on musl
-   (detected with the POSIX-portable `getconf GNU_LIBC_VERSION` probe) and
-   uses a valid `mktemp` template. The `musl-alpine` leg of `prebuilt-audit`
-   runs in `ghcr.io/bastistician/rcheck-musl:latest` (Alpine 3.24, R built
-   against musl), asserts that the new libc probe identifies musl, verifies
-   the musl archive is selected, runs the tinytest suite (118 tests), and
-   links and runs a VTK 9.7.2 C++ program.
+The archive build workflow (`build-vtk-libs.yml`) additionally gates each
+archive before publication with a whole-archive link check, a macOS
+deployment-target check (`otool` asserts `minos 13.0`), and a libc++-ABI
+check (no `__try_use_facet` / `__cxa_call_terminate` in the libc++ archive).
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes (locally, on macOS arm64).
+0 errors | 0 warnings | 0 notes (locally, on macOS arm64, and on the CI
+matrix above).
 
 ### Platforms checked
 
-* **CRAN standard flavors (13)** — all OK on v0.1.3 (the version currently
-  listed by CRAN):
-  * r-devel-linux-x86_64-debian-clang, r-devel-linux-x86_64-debian-gcc,
-    r-devel-linux-x86_64-fedora-clang, r-devel-linux-x86_64-fedora-gcc
-  * r-devel-windows-x86_64
-  * r-patched-linux-x86_64
-  * r-release-linux-x86_64, r-release-macos-arm64, r-release-macos-x86_64,
-    r-release-windows-x86_64
-  * r-oldrel-macos-arm64, r-oldrel-macos-x86_64, r-oldrel-windows-x86_64
-* **R-hub (33 platforms)** — `R CMD check` run on: linux, m1-san, windows,
-  macos-arm64, atlas, c23, clang16, clang17, clang18, clang19, clang20,
-  clang21, clang22, clang-asan, clang-ubsan, donttest, gcc13, gcc14, gcc15,
-  gcc16, gcc-asan, intel, lto, mkl, nold, noremap, nosuggests, ubuntu-clang,
-  ubuntu-gcc12, ubuntu-next, ubuntu-release, valgrind. 32 of 33 completed
-  cleanly; the `macos` (R-devel) job was cancelled by the 24-hour workflow
-  limit of the R-hub Intel macOS checker. macOS x86_64 is additionally covered
-  by CRAN's own `r-release-macos-x86_64` and `r-oldrel-macos-x86_64` checkers
-  (both OK) and by the CI matrix below.
-* **GitHub Actions CI (this package)** — `R CMD check` on macOS (arm64;
-  system VTK and pre-built), Windows (system VTK and pre-built), and Linux
-  (release, oldrel-1, and devel; system VTK and pre-built), 8 matrix legs.
-  Also run on every push/PR: pkgdown, test coverage, and `R CMD check`.
-* **Downstream integration checks** — `downstream-check` builds and checks a
-  minimal downstream R package (compiled against rvtk via `use_rvtk()` and a
-  hand-written manual setup, asserted byte-identical) on 18 matrix legs
-  covering system, prebuilt-static, prebuilt-shared, and built-shared VTK on
-  macOS, Windows, and Linux. `riot-check` installs and checks the real
-  downstream package `riot` on 11 matrix legs and round-trips riot's VTK
-  bundle files.
-* **prebuilt-audit (CRAN checker environments)** — the two container legs
-  described above: Linux aarch64 (CRAN's arm64 checker image) and Linux x86_64
-  musl (bastistician's `rcheck-musl` image). Both force the pre-built VTK
-  fallback, verify the correct archive is selected per OS/arch/libc, run the
-  full tinytest suite, and compile, link, and run a C++ program against the
-  real archives.
+* **CRAN standard flavors** — all OK on v0.2.0 (the version currently listed
+  by CRAN); v0.3.0 is checked locally and on the CI matrix above, and is
+  submitted for the full 13-flavor run.
+* **R-hub** — see `rhub.yaml`; earlier 0.2.0 rhub runs are documented below.
 
 ## Notes
 
 * The package downloads pre-built VTK 9.7.2 libraries at install time from
   <https://github.com/astamm/rvtk/releases/tag/v9.7.2> when no suitable system
-  VTK installation is found.
-* Pre-built binaries are provided for Windows (Rtools45 static.posix x64,
-  static and shared), macOS arm64, macOS x86_64, Linux x86_64 (glibc),
-  Linux x86_64 (musl / Alpine), and Linux aarch64.
-* The installed package does not contain compiled code
-  (`NeedsCompilation: no`); it ships pre-built VTK libraries that downstream
-  packages link against at build time.
+  VTK installation is found. Pre-built binaries are provided for Windows
+  (Rtools45 static.posix x64, static and shared), macOS arm64, macOS x86_64,
+  Linux x86_64 (glibc), Linux x86_64 (musl / Alpine), Linux x86_64
+  (glibc, libc++/clang), and Linux aarch64.
+* The installed package contains no compiled code (`NeedsCompilation: no`); it
+  ships the pre-built VTK libraries and the build-time glue that downstream
+  packages use to link against them.
 * Since v0.1.3 both CRAN-flagged platforms (linux-arm64 and musl) are
   exercised on every push and PR via the `prebuilt-audit` workflow.
+* The pre-built libraries are static; downstream packages compiled against them
+  are self-contained. The ABI and deployment-target constraints are documented
+  in the README and vignette, and the libc++ archive serves CRAN's
+  `r-devel-linux-x86_64-fedora-clang` flavor.
 
-## Resubmission notes (v0.2.0, post-Rhub)
+## Resubmission notes (v0.2.0, post-Rhub — retained for reference)
 
-Four issues were raised by the rhub runs of the downstream package `riot`
-against rvtk 0.2.0's pre-built VTK. All are resolved in the current revision:
+The rhub runs of 0.2.0 raised four issues, all resolved in 0.3.0:
 
 1. **Downstream undefined-symbol failures (#14).** `vtkFiltersExtraction`
    depends on `vtkParallelDIY`, `vtkParallelCore`, and `vtkFiltersHyperTree`,
-   which were missing from the curated default `modules` list, so downstream
-   packages using extraction filters failed at load with undefined symbols.
-   The pre-built bundles always contained the full VTK library (161 static
-   archives); `use_rvtk()` now links **all** bundled modules by default
+   which were missing from the curated default `modules` list. The pre-built
+   bundles always contained the full VTK library; 0.3.0 ships every buildable
+   module and `use_rvtk()` links **all** bundled modules by default
    (`modules = NULL`), which cannot fail with missing-module symbols.
-   Restricting via `modules` (now available for all of `LdFlags()`,
-   `LdFlagsFile()`, `use_rvtk()`) is an explicit optimisation for
-   smaller/faster builds. The 24-module `configure` fallback list (for the
-   system-VTK path) now also includes the six new extraction modules.
-
-2. **Pre-built ABI constraints (#15).** The archives are GCC / libstdc++
-   builds. Downstream packages built with Clang `-stdlib=libc++` or with newer
-   GCC than the build toolchain can fail at load (`__try_use_facet`,
-   `__cxa_call_terminate`). This is now documented in the README and vignette;
-   the recommendation is to match the compiler or link a system VTK.
-
+2. **Pre-built ABI constraints (#15).** The GCC/libstdc++-built archives broke
+   consumers using clang `-stdlib=libc++` or newer GCC. 0.3.0 adds a
+   `*-linux-x86_64-libcxx` archive built with clang + libc++, selected by
+   configure when the compiler targets libc++, and asserts at build time that
+   it is free of libstdc++-ABI symbols.
 3. **macOS deployment target (#16).** Older macOS archives carried
-   `LC_BUILD_VERSION minos 26.0`. The build workflow now passes
-   `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` for both macOS jobs; rebuilt archives
-   load on macOS 13 and newer.
-
+   `LC_BUILD_VERSION minos 26.0`. The build workflow passes
+   `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` for both macOS jobs and asserts the
+   resulting `minos 13.0` before packaging.
 4. **Valgrind "definitely lost" report (#17).** ~1.5 KB of VTK pipeline
-   internals (`vtkInformation` / executives) are reported as lost; inherent to
-   the static build. A suppression file ships at `inst/valgrind/vtk.supp` and
-   is documented.
-
-The pre-built release archives at
-<https://github.com/astamm/rvtk/releases/tag/v9.7.2> predate fixes 2-4; the
-package installs whatever the release provides, so a fresh release with the
-macOS deployment target and documented ABI is being published alongside this
-revision.
+   internals are reported as lost; inherent to the static build. A suppression
+   file ships at `inst/valgrind/vtk.supp` and is documented in the vignette.

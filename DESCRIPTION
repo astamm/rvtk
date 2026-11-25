@@ -16,8 +16,9 @@ Description: Makes the Visualization Toolkit ('VTK') available to R packages
     'Imports: rvtk' and obtain the correct compiler and linker flags at
     install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk()
     helper writes all required build-time files in one step. Pre-built
-    libraries are provided for macOS, Linux, and Windows; on Windows a
-    shared-DLL build is available via 'VTK_LINK_TYPE=shared'.
+    libraries cover all VTK modules that can be built without external
+    dependencies, and downstream packages can opt in to linking only the
+    modules they need.
 License: MIT + file LICENSE
 Encoding: UTF-8
 URL: https://github.com/astamm/rvtk, https://astamm.github.io/rvtk/
