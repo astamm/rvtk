@@ -60,6 +60,11 @@ jobs:
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
+      # rvtk uses Quarto vignettes (VignetteBuilder: quarto), but rhub's
+      # setup-deps installs dependencies with install-quarto: false.  Install
+      # the quarto CLI explicitly so the vignette rebuild during R CMD check
+      # works (same action r-lib's setup-r-dependencies uses for install-quarto).
+      - uses: quarto-dev/quarto-actions/setup@v2
       - uses: r-hub/actions/run-check@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -89,6 +94,11 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
+      # rvtk uses Quarto vignettes (VignetteBuilder: quarto), but rhub's
+      # setup-deps installs dependencies with install-quarto: false.  Install
+      # the quarto CLI explicitly so the vignette rebuild during R CMD check
+      # works (same action r-lib's setup-r-dependencies uses for install-quarto).
+      - uses: quarto-dev/quarto-actions/setup@v2
       - uses: r-hub/actions/run-check@v1
         with:
           job-config: ${{ matrix.config.job-config }}
