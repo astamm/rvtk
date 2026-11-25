@@ -19,7 +19,9 @@
   The hand-curated 18-module bundle is replaced by `VTK_BUILD_ALL_MODULES=ON`
   minus modules that pull in unavailable external dependencies (rendering
   toolkits, Python bindings, MPI, HDF5/netcdf/Exodus third-party IO, remote
-  modules, ...). The archive layout and the 160-archive whole-archive link
+  modules, ...). Under pre-built VTK, rvtk therefore provides all modules that
+  can be built without external dependencies and downstream packages opt in to
+  linking a subset. The archive layout and the 160-archive whole-archive link
   check are updated accordingly; `vtk_modules.txt` is generated from the
   installed libraries so it always reflects exactly what an archive contains.
 
