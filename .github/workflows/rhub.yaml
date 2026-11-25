@@ -94,6 +94,13 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
+          # Pre-install the package into the workflow library.  On Windows,
+          # the R subprocess spawned by the quarto CLI during the vignette
+          # rebuild does not see the temp library R CMD build installs the
+          # package into (quarto-dev/quarto-r#217); a pre-installed copy in
+          # R_LIBS avoids the "there is no package called 'rvtk'" failure
+          # seen on the rhub windows (R-devel) leg.
+          extra-packages: 'local::.'
       # rvtk uses Quarto vignettes (VignetteBuilder: quarto), but rhub's
       # setup-deps installs dependencies with install-quarto: false.  Install
       # the quarto CLI explicitly so the vignette rebuild during R CMD check
