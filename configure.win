@@ -23,7 +23,7 @@ VTK_MIN_SUFFIX="$(echo "${VTK_MIN_VERSION}" | sed 's/\([0-9]*\)\.\([0-9]*\)\..*/
 # ---------------------------------------------------------------------------
 # Shared detection helpers.
 # ---------------------------------------------------------------------------
-. "$(dirname "$0")/tools/vtk-detect.sh"
+. tools/vtk-detect.sh
 
 # Extra state variables (in addition to those set by vtk-detect.sh).
 vtk_link_type="static"
