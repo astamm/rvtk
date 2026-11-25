@@ -65,7 +65,11 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache-version: "r-cmd-check-v1"
-          extra-packages: any::rcmdcheck
+          # Install the package itself (not just its dependencies) into the
+          # managed library: on Windows the quarto vignette rebuild subprocess
+          # cannot see R CMD build's temporary install, so library(rvtk) in the
+          # vignette fails unless rvtk is already on .libPaths() here.
+          extra-packages: any::rcmdcheck, local::.
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
