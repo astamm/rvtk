@@ -24,6 +24,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache-version: "test-coverage-v1"
           extra-packages: any::covr, any::xml2
           needs: coverage
 
