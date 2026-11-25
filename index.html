@@ -10,8 +10,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bindings for the Visualization Toolkit (VTK)">
-<meta name="description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries are provided for macOS, Linux, and Windows; on Windows a shared-DLL build is available via VTK_LINK_TYPE=shared.">
-<meta property="og:description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries are provided for macOS, Linux, and Windows; on Windows a shared-DLL build is available via VTK_LINK_TYPE=shared.">
+<meta name="description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries cover all VTK modules that can be built without external dependencies, and downstream packages can opt in to linking only the modules they need.">
+<meta property="og:description" content="Makes the Visualization Toolkit (VTK) available to R packages so their C++ code can link against it without requiring users to install VTK manually. When no suitable system installation is found, pre-built static libraries are downloaded automatically. Downstream packages declare Imports: rvtk and obtain the correct compiler and linker flags at install time from CppFlags(), LdFlags(), and LdFlagsFile(); the use_rvtk() helper writes all required build-time files in one step. Pre-built libraries cover all VTK modules that can be built without external dependencies, and downstream packages can opt in to linking only the modules they need.">
 <meta property="og:image" content="https://astamm.github.io/rvtk/logo.png">
 </head>
 <body>
@@ -33,6 +33,12 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/rvtk-integration.html">Testing rvtk with downstream packages</a></li>
+  </ul>
+</li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-news">
@@ -71,16 +77,20 @@
 <blockquote>
 <p><strong>ABI compatibility of the pre-built libraries.</strong> The pre-built archives are compiled with <strong>GCC and libstdc++</strong> (on Windows, the Rtools45 <code>static.posix</code> MinGW toolchain), except for the dedicated Linux x86_64 <strong>libc++</strong> archive built with Clang. Downstream packages should use a matching toolchain: linking the libstdc++ archive with Clang <code>-stdlib=libc++</code> fails to load with an undefined <code>__try_use_facet</code> symbol, and linking with a much newer GCC than the build toolchain may fail with <code>__cxa_call_terminate</code>. On Linux x86_64, <code>configure</code> detects which standard library the compiler targets and downloads the matching archive; on other platforms, install a system VTK (e.g. via Homebrew or apt) if your toolchain cannot match the bundled one.</p>
 </blockquote>
-<p><strong>See the <a href="https://astamm.github.io/rvtk/articles/rvtk.html">vignette</a> for full details:</strong> how VTK is located on each platform (with the compatibility matrix), which VTK modules are bundled, manually writing the build files, restricting linking with the <code>modules</code> argument, and verifying that linking worked.</p>
 <div class="section level2">
-<h2 id="valgrind">Valgrind<a class="anchor" aria-label="anchor" href="#valgrind"></a>
+<h2 id="which-vtk-modules-are-available">Which VTK modules are available<a class="anchor" aria-label="anchor" href="#which-vtk-modules-are-available"></a>
 </h2>
-<p>A minimal downstream program that reads a VTK file reports ~1.5 KB “definitely lost” under valgrind, allocated inside VTK’s pipeline internals (<code>vtkInformation</code> / pipeline executives). This is inherent to the statically-linked VTK build and is not a leak in your code. A suppression file is shipped at <code>inst/valgrind/vtk.supp</code>; point valgrind at it (or set <code>_R_CHECK_VALGRIND_SUPPRESSIONS_</code> for <code>R CMD check</code>’s valgrind leg) to get a clean report.</p>
+<p>The pre-built archives bundle <strong>all VTK modules that can be built without external dependencies</strong> (160 static libraries, including the Viskores acceleration modules). Downstream packages can opt in to link against only the modules they need — pass the <code>modules</code> argument to <code><a href="reference/use_rvtk.html">use_rvtk()</a></code> or <code><a href="reference/LdFlags.html">LdFlags()</a></code>/<code><a href="reference/LdFlagsFile.html">LdFlagsFile()</a></code> to reduce link time and storage footprint:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># link only what your C++ code uses</span></span>
+<span><span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="reference/use_rvtk.html">use_rvtk</a></span><span class="op">(</span>modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CommonCore"</span>, <span class="st">"CommonDataModel"</span>, <span class="st">"IOLegacy"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>With a system VTK installation, rvtk records which modules are available on that machine and <strong>hard-fails at install time</strong> if a downstream package requests a module that is not present — instead of failing later with a confusing linker error. <code><a href="reference/available_modules.html">rvtk::available_modules()</a></code> lists the modules of the VTK that rvtk resolved to.</p>
+<p><strong>See the <a href="https://astamm.github.io/rvtk/articles/rvtk.html">vignette</a> for full details:</strong> how VTK is located on each platform (with the compatibility matrix), which VTK modules are bundled, manually writing the build files, and restricting linking with the <code>modules</code> argument.</p>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install rvtk (from CRAN, or the development version)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rvtk"</span><span class="op">)</span></span>
 <span><span class="co"># pak::pak("astamm/rvtk")</span></span>
@@ -92,7 +102,7 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># from CRAN</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rvtk"</span><span class="op">)</span></span>
 <span></span>
@@ -107,6 +117,7 @@
 <ul>
 <li><a href="https://astamm.github.io/rvtk/reference/index.html">Function reference</a></li>
 <li><a href="https://astamm.github.io/rvtk/articles/rvtk.html">Vignette: linking downstream R packages to VTK</a></li>
+<li><a href="https://astamm.github.io/rvtk/articles/rvtk-integration.html">Vignette: integration testing with downstream packages</a></li>
 <li><a href="https://vtk.org/" class="external-link">VTK</a></li>
 </ul>
 </div>

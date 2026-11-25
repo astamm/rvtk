@@ -17,6 +17,10 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/rvtk-integration.html">Testing rvtk with downstream packages</a></li>
+  </ul></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-news"><li><h6 class="dropdown-header" data-toc-skip>Releases</h6></li>
@@ -44,7 +48,7 @@
 <h4 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h4>
 <ul><li><p><strong><code><a href="../reference/available_modules.html">available_modules()</a></code> reports the VTK modules in the detected installation.</strong> Every pre-built release archive now ships a <code>vtk_modules.txt</code> file listing the exact module set it was built with, and the <code>configure</code> / <code>configure.win</code> scripts install it (for a system VTK the list is derived from the linker flags recorded in <code>vtk.conf</code>, mirroring the same filtering logic).</p></li>
 <li><p><strong><code><a href="../reference/LdFlags.html">LdFlags()</a></code> / <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> validate requested modules (<code>check = TRUE</code> by default).</strong> A downstream package that requests a module the installation does not provide now fails fast at install time with an actionable error listing the missing module(s) and the available set, instead of failing later with a confusing linker error. Set <code>check = FALSE</code> to skip validation and link whatever the installation provides.</p></li>
-<li><p><strong>Pre-built archives now ship every VTK module except a curated deny-list.</strong> The hand-curated 18-module bundle is replaced by <code>VTK_BUILD_ALL_MODULES=ON</code> minus modules that pull in unavailable external dependencies (rendering toolkits, Python bindings, MPI, HDF5/netcdf/Exodus third-party IO, remote modules, …). The archive layout and the 160-archive whole-archive link check are updated accordingly; <code>vtk_modules.txt</code> is generated from the installed libraries so it always reflects exactly what an archive contains.</p></li>
+<li><p><strong>Pre-built archives now ship every VTK module except a curated deny-list.</strong> The hand-curated 18-module bundle is replaced by <code>VTK_BUILD_ALL_MODULES=ON</code> minus modules that pull in unavailable external dependencies (rendering toolkits, Python bindings, MPI, HDF5/netcdf/Exodus third-party IO, remote modules, …). Under pre-built VTK, rvtk therefore provides all modules that can be built without external dependencies and downstream packages opt in to linking a subset. The archive layout and the 160-archive whole-archive link check are updated accordingly; <code>vtk_modules.txt</code> is generated from the installed libraries so it always reflects exactly what an archive contains.</p></li>
 </ul></div>
 </div>
     <div class="section level2">

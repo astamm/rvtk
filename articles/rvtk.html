@@ -34,6 +34,12 @@
 <li class="active nav-item"><a class="nav-link" href="../articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/rvtk-integration.html">Testing rvtk with downstream packages</a></li>
+  </ul>
+</li>
+<li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-news">
 <li><h6 class="dropdown-header" data-toc-skip>Releases</h6></li>
@@ -87,7 +93,7 @@
 <li>
 <strong>Automated setup</strong> — <code><a href="../reference/use_rvtk.html">rvtk::use_rvtk()</a></code> writes all the build-time glue files for you.</li>
 </ol>
-<p>This vignette explains how VTK is located on each platform, what files a downstream package needs, how the two setup strategies (<code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> versus hand-written files) relate, and how to verify that linking actually worked.</p>
+<p>This vignette explains how VTK is located on each platform, what files a downstream package needs, how the two setup strategies (<code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> versus hand-written files) relate, and how to verify that linking actually worked. A companion vignette, <a href="rvtk-integration.html">rvtk-integration</a>, covers how rvtk is itself tested with real downstream packages on CI.</p>
 </section><section class="level2"><h2 id="how-rvtk-finds-vtk">How rvtk finds VTK<a class="anchor" aria-label="anchor" href="#how-rvtk-finds-vtk"></a>
 </h2>
 <p>rvtk’s own <code>configure</code> script runs at <em>install time</em> and writes the result to <code>inst/vtk.conf</code>. The strategies differ by platform.</p>
@@ -170,67 +176,11 @@
 </tr>
 </tbody>
 </table>
-<p>On Windows the modules <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, and <code>VTK_GeovisCore</code> are disabled because <code>netcdf</code> and <code>libproj</code> are not available in the Rtools45 <code>static.posix</code> sysroot; downstream packages requiring them cannot be built on Windows with rvtk’s pre-built libraries.</p>
+<p>The archives are the same on every platform: the impossible-to-ship optional third-party stacks (see below) are disabled in the build, so any platform difference is limited to the C++ toolchain the static libraries were compiled with.</p>
 </section><section class="level3"><h3 id="bundled-vtk-modules">Bundled VTK modules<a class="anchor" aria-label="anchor" href="#bundled-vtk-modules"></a>
 </h3>
-<p>The pre-built bundles are built with <code>VTK_BUILD_ALL_MODULES=OFF</code> and the following modules explicitly enabled (VTK resolves and includes all transitive dependencies automatically):</p>
-<table class="table caption-top">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead><tr class="header">
-<th>Module</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>VTK_IOLegacy</code></td>
-<td>Legacy VTK file format reader/writer (<code>.vtk</code>)</td>
-</tr>
-<tr class="even">
-<td><code>VTK_IOXML</code></td>
-<td>XML-based VTK file formats (<code>.vtp</code>, <code>.vtu</code>, <code>.vts</code>, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_IOCore</code></td>
-<td>Core I/O infrastructure shared by all I/O modules</td>
-</tr>
-<tr class="even">
-<td><code>VTK_IOGeometry</code></td>
-<td>Readers/writers for common geometric formats (<code>.ply</code>, <code>.stl</code>, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersCore</code></td>
-<td>Core algorithmic filters (threshold, transform points, …)</td>
-</tr>
-<tr class="even">
-<td><code>VTK_FiltersGeneral</code></td>
-<td>General-purpose filters (append, clip, decimate, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersGeometry</code></td>
-<td>Filters that modify or convert dataset geometry</td>
-</tr>
-<tr class="even">
-<td><code>VTK_FiltersModeling</code></td>
-<td>Filters for geometric modeling and meshing</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersExtraction</code></td>
-<td>Filters that extract subsets of data</td>
-</tr>
-<tr class="even">
-<td><code>VTK_CommonCore</code></td>
-<td>Core data structures, object model, logging</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_CommonDataModel</code></td>
-<td>Datasets, cells, point/cell data arrays</td>
-</tr>
-</tbody>
-</table>
-<p>Each module’s transitive dependencies are resolved automatically by CMake — for <code>VTK_FiltersExtraction</code> that includes <code>VTK_ParallelDIY</code>, <code>VTK_ParallelCore</code>, <code>VTK_FiltersHyperTree</code>, and <code>VTK_FiltersStatistics</code> — and the resulting bundle ships as 161 static archives on each platform (every I/O reader, every filter group, rendering, imaging, …; only <code>IOJSON</code>, <code>IOGDAL</code>, and <code>GUISupportQt</code> are absent).</p>
+<p>The pre-built bundles are built with <code>VTK_BUILD_ALL_MODULES=ON</code> and a curated deny-list of modules that pull in external dependencies unavailable in a headless, self-contained static build (rendering toolkits such as Qt, OpenGL, OpenXR/OpenVR, Vulkan; Python bindings; MPI and parallel IO; HDF5, netCDF, Exodus, ADIOS2, GDAL, FFmpeg, and similar third-party IO stacks; remote modules). The archive layout and the resulting <code>vtk_modules.txt</code> are generated from the installed libraries, so the module list shipped in an archive always reflects exactly what that archive contains.</p>
+<p>The result is a complete VTK without those exotics: every I/O reader (Legacy, XML, PLY, STL, VTU/VTP, …), every filter group, imaging, rendering infrastructure, plus the Viskores acceleration modules. Concretely, each archive ships <strong>160 static libraries</strong>. The module file lists the 110 VTK kit modules (e.g. <code>vtkIOLegacy</code>, <code>vtkFiltersCore</code>, …), and the archive also contains <code>vtksys</code>, the 23 <code>libviskores*</code> libraries, and 26 third-party libraries under the <code>libvtk</code> prefix (expat, fmt, freetype, jpeg, jsoncpp, libxml2, lz4, ogg, png, sqlite, tiff, theora, zlib, …) that VTK needs at link time even when your code never calls them directly.</p>
 </section><section class="level3"><h3 id="pre-built-abi-compatibility">Pre-built ABI compatibility<a class="anchor" aria-label="anchor" href="#pre-built-abi-compatibility"></a>
 </h3>
 <p>Each pre-built archive is compiled with the platform’s default C++ toolchain, so downstream packages must link with a compatible C++ runtime. VTK headers pull in <code>&lt;vector&gt;</code>, <code>&lt;string&gt;</code>, etc., and the statically linked archives embed the C++ standard library symbols they reference (in particular the third-party objects such as <code>libvtkscn</code> that are always linked), so mixing runtimes at load time fails with an undefined symbol:</p>
@@ -244,10 +194,10 @@
 <li>
 <strong>Musl/Alpine and Windows.</strong> Built with the platform’s native C++ toolchain (musl’s GCC libstdc++; Rtools45 MinGW on Windows); link with the matching R toolchain for the platform.</li>
 </ul>
-<p>Releases after the macOS archives were rebuilt with <code>-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0</code> are compatible with macOS 13 and newer.</p>
-</section><section class="level3"><h3 id="valgrind">Valgrind<a class="anchor" aria-label="anchor" href="#valgrind"></a>
+<p>The macOS archives are compiled with <code>-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0</code> and are compatible with macOS 13 and newer.</p>
+</section><section class="level3"><h3 id="memory-checkers">Memory checkers<a class="anchor" aria-label="anchor" href="#memory-checkers"></a>
 </h3>
-<p>A minimal downstream program that reads a VTK file reports ~1.5 KB “definitely lost” under valgrind, allocated inside VTK’s pipeline internals (<code>vtkInformation</code>, pipeline executives — see the rhub valgrind findings on the <strong>riot</strong> downstream check). This is inherent to the statically linked VTK build and does not indicate a leak in downstream code. A suppression file is shipped at <code>inst/valgrind/vtk.supp</code>; point valgrind at it (or set <code>_R_CHECK_VALGRIND_SUPPRESSIONS_=</code> for <code>R CMD check</code>’s valgrind leg) to get a clean report.</p>
+<p>A minimal downstream program that reads a VTK file reports ~1.5 KB “definitely lost” under Valgrind, allocated inside VTK’s pipeline internals (<code>vtkInformation</code>, pipeline executives). This is inherent to the statically linked VTK build and does not indicate a leak in downstream code. A suppression file is shipped at <code>inst/valgrind/vtk.supp</code>; point Valgrind at it (or set <code>_R_CHECK_VALGRIND_SUPPRESSIONS_</code> for <code>R CMD check</code>’s Valgrind leg) to get a clean report. The <code>rvtk-integration</code> vignette discusses how rvtk itself exercises memory-checker legs on CRAN platforms.</p>
 <p>Once rvtk is installed, <code><a href="../reference/CppFlags.html">CppFlags()</a></code>, <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, and <code><a href="../reference/VtkVersion.html">VtkVersion()</a></code> read <code>vtk.conf</code> and report whatever VTK was found:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
@@ -316,7 +266,7 @@
 <p>The <code>--libs</code> path calls <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, not <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, because the full set of VTK <code>-l</code> flags can exceed the 8 191-character Windows command-line limit. On Windows the flags are written to <code>src/vtk_libs.rsp</code> and <code>PKG_LIBS</code> receives the short token <code>@vtk_libs.rsp</code>. On macOS and Linux the raw flags are returned directly.</p>
 </section></section><section class="level2"><h2 id="choosing-the-vtk-modules-to-link-against">Choosing the VTK modules to link against<a class="anchor" aria-label="anchor" href="#choosing-the-vtk-modules-to-link-against"></a>
 </h2>
-<p>The pre-built bundles shipped with rvtk contain the full VTK library (161 static archives on each platform: every I/O reader, every filter group, rendering, imaging, …). By default <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> links <strong>all</strong> of them:</p>
+<p>The pre-built bundles shipped with rvtk contain the full buildable VTK (160 static archives on each platform: every I/O reader, every filter group, rendering, imaging, Viskores, …). By default <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> links <strong>all</strong> of them:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">modules</span> <span class="op">=</span> <span class="cn">NULL</span></span></code></pre></div>

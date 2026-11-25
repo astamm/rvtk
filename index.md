@@ -42,21 +42,33 @@ the matching Linux archive automatically.
 > VTK (e.g. via Homebrew or apt) if your toolchain cannot match the
 > bundled one.
 
+## Which VTK modules are available
+
+The pre-built archives bundle **all VTK modules that can be built
+without external dependencies** (160 static libraries, including the
+Viskores acceleration modules). Downstream packages can opt in to link
+against only the modules they need — pass the `modules` argument to
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md) or
+[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md)/[`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
+to reduce link time and storage footprint:
+
+``` r
+
+# link only what your C++ code uses
+rvtk::use_rvtk(modules = c("CommonCore", "CommonDataModel", "IOLegacy"))
+```
+
+With a system VTK installation, rvtk records which modules are available
+on that machine and **hard-fails at install time** if a downstream
+package requests a module that is not present — instead of failing later
+with a confusing linker error.
+[`rvtk::available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+lists the modules of the VTK that rvtk resolved to.
+
 **See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html)
 for full details:** how VTK is located on each platform (with the
 compatibility matrix), which VTK modules are bundled, manually writing
-the build files, restricting linking with the `modules` argument, and
-verifying that linking worked.
-
-## Valgrind
-
-A minimal downstream program that reads a VTK file reports ~1.5 KB
-“definitely lost” under valgrind, allocated inside VTK’s pipeline
-internals (`vtkInformation` / pipeline executives). This is inherent to
-the statically-linked VTK build and is not a leak in your code. A
-suppression file is shipped at `inst/valgrind/vtk.supp`; point valgrind
-at it (or set `_R_CHECK_VALGRIND_SUPPRESSIONS_` for `R CMD check`’s
-valgrind leg) to get a clean report.
+the build files, and restricting linking with the `modules` argument.
 
 ## Quick start
 
@@ -99,4 +111,6 @@ the package downloads pre-built libraries automatically.
   reference](https://astamm.github.io/rvtk/reference/index.html)
 - [Vignette: linking downstream R packages to
   VTK](https://astamm.github.io/rvtk/articles/rvtk.html)
+- [Vignette: integration testing with downstream
+  packages](https://astamm.github.io/rvtk/articles/rvtk-integration.html)
 - [VTK](https://vtk.org/)
