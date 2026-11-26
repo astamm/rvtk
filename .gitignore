@@ -6,6 +6,7 @@ inst/vtk.conf
 inst/vtk_modules.txt
 windows/
 vtk-prebuilt/
+CRAN-SUBMISSION
 
 # macOS
 .DS_Store
