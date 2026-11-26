@@ -3,7 +3,11 @@ name: Build VTK Static Libraries
 on:
   push:
     tags:
-      - 'v*'
+      # VTK version tags only (v9.5.2, v9.7.2, ...). Publishing a package
+      # release (v0.x.y) must not trigger a rebuild: the publish step would
+      # overwrite the VTK release assets with archives built from the
+      # package's (possibly stale) workflow, silently corrupting v9.x assets.
+      - 'v9.*'
   workflow_dispatch:
     inputs:
       vtk_version:
@@ -1028,6 +1032,34 @@ jobs:
 
       - name: List artifacts
         run: find artifacts -type f | sort
+
+      # Guard against the #20 regression: a release run from a workflow (or
+      # commit) that predates the module-list generation would otherwise
+      # silently overwrite the v9.x release assets with archives lacking
+      # vtk_modules.txt, breaking every prebuilt VTK consumer (configure
+      # hard-errors: "Pre-built VTK archive does not contain vtk_modules.txt").
+      # Assert every archive ships it BEFORE any asset is uploaded.
+      - name: Assert all archives ship vtk_modules.txt
+        run: |
+          set -euo pipefail
+          missing=0
+          for f in $(find artifacts -type f \( -name '*.tar.gz' -o -name '*.zip' \)); do
+            if [[ "$f" == *.zip ]]; then
+              has=$(unzip -l "$f" | grep -c 'vtk_modules\.txt' || true)
+            else
+              has=$(tar -tzf "$f" | grep -c 'vtk_modules\.txt' || true)
+            fi
+            if [ "$has" -eq 0 ]; then
+              echo "MISSING vtk_modules.txt in $f"
+              missing=1
+            else
+              echo "OK: vtk_modules.txt present in $f"
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "ERROR: refusing to publish archives missing vtk_modules.txt" >&2
+            exit 1
+          fi
 
       - name: Delete stale ucrt-x64 asset if present
         env:
