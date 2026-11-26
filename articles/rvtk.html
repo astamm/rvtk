@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,12 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/rvtk-integration.html">Testing rvtk with downstream packages</a></li>
+  </ul>
+</li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-news">
@@ -61,7 +67,7 @@
 
 
 
-      <small class="dont-index">Source: <a href="https://github.com/astamm/rvtk/blob/v0.2.0/vignettes/rvtk.qmd" class="external-link"><code>vignettes/rvtk.qmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/astamm/rvtk/blob/main/vignettes/rvtk.qmd" class="external-link"><code>vignettes/rvtk.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
     </div>
 
@@ -87,7 +93,7 @@
 <li>
 <strong>Automated setup</strong> — <code><a href="../reference/use_rvtk.html">rvtk::use_rvtk()</a></code> writes all the build-time glue files for you.</li>
 </ol>
-<p>This vignette explains how VTK is located on each platform, what files a downstream package needs, how the two setup strategies (<code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> versus hand-written files) relate, and how to verify that linking actually worked.</p>
+<p>This vignette explains how VTK is located on each platform, what files a downstream package needs, how the two setup strategies (<code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> versus hand-written files) relate, and how to verify that linking actually worked. A companion vignette, <a href="rvtk-integration.html">rvtk-integration</a>, covers how rvtk is itself tested with real downstream packages on CI.</p>
 </section><section class="level2"><h2 id="how-rvtk-finds-vtk">How rvtk finds VTK<a class="anchor" aria-label="anchor" href="#how-rvtk-finds-vtk"></a>
 </h2>
 <p>rvtk’s own <code>configure</code> script runs at <em>install time</em> and writes the result to <code>inst/vtk.conf</code>. The strategies differ by platform.</p>
@@ -130,101 +136,68 @@
 <td>macOS arm64</td>
 <td>static <code>.a</code>
 </td>
-<td></td>
+<td>Apple Clang / libc++</td>
 </tr>
 <tr class="even">
 <td>macOS x86_64</td>
 <td>static <code>.a</code>
 </td>
-<td></td>
+<td>Apple Clang / libc++</td>
 </tr>
 <tr class="odd">
 <td>Linux x86_64 (glibc)</td>
 <td>static <code>.a</code>
 </td>
-<td></td>
+<td>GCC / libstdc++</td>
 </tr>
 <tr class="even">
+<td>Linux x86_64 (glibc, libc++)</td>
+<td>static <code>.a</code>
+</td>
+<td>Clang <code>-stdlib=libc++</code> (selected by <code>configure</code>; see ABI note)</td>
+</tr>
+<tr class="odd">
 <td>Linux x86_64 (musl / Alpine)</td>
 <td>static <code>.a</code>
 </td>
 <td>headless build: <code>VTK_USE_X=OFF</code>, <code>RenderingOpenGL2=NO</code>
 </td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Linux aarch64</td>
 <td>static <code>.a</code>
 </td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Windows x64</td>
 <td>static <code>.a</code> (default) or shared DLLs (<code>VTK_LINK_TYPE=shared</code>)</td>
 <td></td>
 </tr>
 </tbody>
 </table>
-<p>On Windows the modules <code>VTK_IONetCDF</code>, <code>VTK_IOHDF</code>, and <code>VTK_GeovisCore</code> are disabled because <code>netcdf</code> and <code>libproj</code> are not available in the Rtools45 <code>static.posix</code> sysroot; downstream packages requiring them cannot be built on Windows with rvtk’s pre-built libraries.</p>
+<p>The archives are the same on every platform: the impossible-to-ship optional third-party stacks (see below) are disabled in the build, so any platform difference is limited to the C++ toolchain the static libraries were compiled with.</p>
 </section><section class="level3"><h3 id="bundled-vtk-modules">Bundled VTK modules<a class="anchor" aria-label="anchor" href="#bundled-vtk-modules"></a>
 </h3>
-<p>The pre-built bundles are built with <code>VTK_BUILD_ALL_MODULES=OFF</code> and the following modules explicitly enabled (VTK resolves and includes all transitive dependencies automatically):</p>
-<table class="table caption-top">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
-<thead><tr class="header">
-<th>Module</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>VTK_IOLegacy</code></td>
-<td>Legacy VTK file format reader/writer (<code>.vtk</code>)</td>
-</tr>
-<tr class="even">
-<td><code>VTK_IOXML</code></td>
-<td>XML-based VTK file formats (<code>.vtp</code>, <code>.vtu</code>, <code>.vts</code>, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_IOCore</code></td>
-<td>Core I/O infrastructure shared by all I/O modules</td>
-</tr>
-<tr class="even">
-<td><code>VTK_IOGeometry</code></td>
-<td>Readers/writers for common geometric formats (<code>.ply</code>, <code>.stl</code>, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersCore</code></td>
-<td>Core algorithmic filters (threshold, transform points, …)</td>
-</tr>
-<tr class="even">
-<td><code>VTK_FiltersGeneral</code></td>
-<td>General-purpose filters (append, clip, decimate, …)</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersGeometry</code></td>
-<td>Filters that modify or convert dataset geometry</td>
-</tr>
-<tr class="even">
-<td><code>VTK_FiltersModeling</code></td>
-<td>Filters for geometric modeling and meshing</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_FiltersExtraction</code></td>
-<td>Filters that extract subsets of data</td>
-</tr>
-<tr class="even">
-<td><code>VTK_CommonCore</code></td>
-<td>Core data structures, object model, logging</td>
-</tr>
-<tr class="odd">
-<td><code>VTK_CommonDataModel</code></td>
-<td>Datasets, cells, point/cell data arrays</td>
-</tr>
-</tbody>
-</table>
-<p>Typical transitive dependencies pulled in automatically include <code>VTK_CommonExecutionModel</code>, <code>VTK_CommonMath</code>, <code>VTK_CommonMisc</code>, <code>VTK_CommonSystem</code>, <code>VTK_CommonTransforms</code>, <code>VTK_IOXMLParser</code>, and <code>vtksys</code>.</p>
+<p>The pre-built bundles are built with <code>VTK_BUILD_ALL_MODULES=ON</code> and a curated deny-list of modules that pull in external dependencies unavailable in a headless, self-contained static build (rendering toolkits such as Qt, OpenGL, OpenXR/OpenVR, Vulkan; Python bindings; MPI and parallel IO; HDF5, netCDF, Exodus, ADIOS2, GDAL, FFmpeg, and similar third-party IO stacks; remote modules). The archive layout and the resulting <code>vtk_modules.txt</code> are generated from the installed libraries, so the module list shipped in an archive always reflects exactly what that archive contains.</p>
+<p>The result is a complete VTK without those exotics: every I/O reader (Legacy, XML, PLY, STL, VTU/VTP, …), every filter group, imaging, rendering infrastructure, plus the Viskores acceleration modules. Concretely, each archive ships <strong>160 static libraries</strong>. The module file lists the 110 VTK kit modules (e.g. <code>vtkIOLegacy</code>, <code>vtkFiltersCore</code>, …), and the archive also contains <code>vtksys</code>, the 23 <code>libviskores*</code> libraries, and 26 third-party libraries under the <code>libvtk</code> prefix (expat, fmt, freetype, jpeg, jsoncpp, libxml2, lz4, ogg, png, sqlite, tiff, theora, zlib, …) that VTK needs at link time even when your code never calls them directly.</p>
+</section><section class="level3"><h3 id="pre-built-abi-compatibility">Pre-built ABI compatibility<a class="anchor" aria-label="anchor" href="#pre-built-abi-compatibility"></a>
+</h3>
+<p>Each pre-built archive is compiled with the platform’s default C++ toolchain, so downstream packages must link with a compatible C++ runtime. VTK headers pull in <code>&lt;vector&gt;</code>, <code>&lt;string&gt;</code>, etc., and the statically linked archives embed the C++ standard library symbols they reference (in particular the third-party objects such as <code>libvtkscn</code> that are always linked), so mixing runtimes at load time fails with an undefined symbol:</p>
+<ul>
+<li>
+<strong>Linux x86_64 (glibc).</strong> Two variants are shipped: the default archive is compiled with <strong>GCC and libstdc++</strong>; a second archive, suffixed <code>-linux-x86_64-libcxx</code>, is compiled with Clang <code>-stdlib=libc++</code> for toolchains that target libc++ (CRAN’s <code>r-devel-linux-x86_64-fedora-clang</code> flavor compiles packages with clang and defaults to libc++). rvtk’s <code>configure</code> detects which standard library the build compiler targets and downloads the matching archive automatically; a manual install can force the choice with <code>CXX</code> (or <code>R_MAKEVARS_USER</code>).</li>
+<li>
+<strong>macOS.</strong> The archives are compiled with the default Apple Clang toolchain, which targets <strong>libc++</strong> (symbols land in the <code>std::__1</code> namespace). Do not force <code>-stdlib=libstdc++</code> when linking them: the libstdc++-built objects will not interoperate.</li>
+<li>
+<strong>Much newer GCC than the build toolchain.</strong> Even a matching libstdc++/GCC pairing can fail if the downstream compiler release changed the <code>libstdc++</code> ABI stub; the failure shows up at load time as an undefined <code>__cxa_call_terminate</code>. Match the compiler generation, or install a system VTK (via Homebrew, apt, …) and rvtk will link that instead.</li>
+<li>
+<strong>Musl/Alpine and Windows.</strong> Built with the platform’s native C++ toolchain (musl’s GCC libstdc++; Rtools45 MinGW on Windows); link with the matching R toolchain for the platform.</li>
+</ul>
+<p>The macOS archives are compiled with <code>-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0</code> and are compatible with macOS 13 and newer.</p>
+</section><section class="level3"><h3 id="memory-checkers">Memory checkers<a class="anchor" aria-label="anchor" href="#memory-checkers"></a>
+</h3>
+<p>A minimal downstream program that reads a VTK file reports ~1.5 KB “definitely lost” under Valgrind, allocated inside VTK’s pipeline internals (<code>vtkInformation</code>, pipeline executives). This is inherent to the statically linked VTK build and does not indicate a leak in downstream code. A suppression file is shipped at <code>inst/valgrind/vtk.supp</code>; point Valgrind at it (or set <code>_R_CHECK_VALGRIND_SUPPRESSIONS_</code> for <code>R CMD check</code>’s Valgrind leg) to get a clean report. The <code>rvtk-integration</code> vignette discusses how rvtk itself exercises memory-checker legs on CRAN platforms.</p>
 <p>Once rvtk is installed, <code><a href="../reference/CppFlags.html">CppFlags()</a></code>, <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, and <code><a href="../reference/VtkVersion.html">VtkVersion()</a></code> read <code>vtk.conf</code> and report whatever VTK was found:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
@@ -272,26 +245,7 @@
 <code class="sourceCode R"><span><span class="va">args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/commandArgs.html" class="external-link">commandArgs</a></span><span class="op">(</span>trailingOnly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">flag</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">args</span><span class="op">)</span><span class="op">)</span> <span class="va">args</span><span class="op">[</span><span class="fl">1L</span><span class="op">]</span> <span class="kw">else</span> <span class="st">"--cppflags"</span></span>
 <span></span>
-<span><span class="va">vtk_modules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"vtkIOLegacy"</span>,</span>
-<span>  <span class="st">"vtkIOXML"</span>,</span>
-<span>  <span class="st">"vtkIOXMLParser"</span>,</span>
-<span>  <span class="st">"vtkIOCore"</span>,</span>
-<span>  <span class="st">"vtkIOGeometry"</span>,</span>
-<span>  <span class="st">"vtkFiltersCore"</span>,</span>
-<span>  <span class="st">"vtkFiltersGeneral"</span>,</span>
-<span>  <span class="st">"vtkFiltersGeometry"</span>,</span>
-<span>  <span class="st">"vtkFiltersModeling"</span>,</span>
-<span>  <span class="st">"vtkFiltersExtraction"</span>,</span>
-<span>  <span class="st">"vtkCommonCore"</span>,</span>
-<span>  <span class="st">"vtkCommonDataModel"</span>,</span>
-<span>  <span class="st">"vtkCommonExecutionModel"</span>,</span>
-<span>  <span class="st">"vtkCommonMath"</span>,</span>
-<span>  <span class="st">"vtkCommonMisc"</span>,</span>
-<span>  <span class="st">"vtkCommonSystem"</span>,</span>
-<span>  <span class="st">"vtkCommonTransforms"</span>,</span>
-<span>  <span class="st">"vtksys"</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">vtk_modules</span> <span class="op">&lt;-</span> <span class="cn">NULL</span></span>
 <span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">flag</span> <span class="op">==</span> <span class="st">"--cppflags"</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="../reference/CppFlags.html">CppFlags</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -312,44 +266,15 @@
 <p>The <code>--libs</code> path calls <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, not <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, because the full set of VTK <code>-l</code> flags can exceed the 8 191-character Windows command-line limit. On Windows the flags are written to <code>src/vtk_libs.rsp</code> and <code>PKG_LIBS</code> receives the short token <code>@vtk_libs.rsp</code>. On macOS and Linux the raw flags are returned directly.</p>
 </section></section><section class="level2"><h2 id="choosing-the-vtk-modules-to-link-against">Choosing the VTK modules to link against<a class="anchor" aria-label="anchor" href="#choosing-the-vtk-modules-to-link-against"></a>
 </h2>
-<p>The pre-built bundles shipped with rvtk contain far more than the modules you are likely to use (I/O, filtering, and core modules plus their transitive dependencies). By default <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> links the following set:</p>
+<p>The pre-built bundles shipped with rvtk contain the full buildable VTK (160 static archives on each platform: every I/O reader, every filter group, rendering, imaging, Viskores, …). By default <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> links <strong>all</strong> of them:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"vtkIOLegacy"</span>,</span>
-<span>  <span class="st">"vtkIOXML"</span>,</span>
-<span>  <span class="st">"vtkIOXMLParser"</span>,</span>
-<span>  <span class="st">"vtkIOCore"</span>,</span>
-<span>  <span class="st">"vtkIOGeometry"</span>,</span>
-<span>  <span class="st">"vtkFiltersCore"</span>,</span>
-<span>  <span class="st">"vtkFiltersGeneral"</span>,</span>
-<span>  <span class="st">"vtkFiltersGeometry"</span>,</span>
-<span>  <span class="st">"vtkFiltersModeling"</span>,</span>
-<span>  <span class="st">"vtkFiltersExtraction"</span>,</span>
-<span>  <span class="st">"vtkCommonCore"</span>,</span>
-<span>  <span class="st">"vtkCommonDataModel"</span>,</span>
-<span>  <span class="st">"vtkCommonExecutionModel"</span>,</span>
-<span>  <span class="st">"vtkCommonMath"</span>,</span>
-<span>  <span class="st">"vtkCommonMisc"</span>,</span>
-<span>  <span class="st">"vtkCommonSystem"</span>,</span>
-<span>  <span class="st">"vtkCommonTransforms"</span>,</span>
-<span>  <span class="st">"vtksys"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "vtkIOLegacy"             "vtkIOXML"               </span></span>
-<span><span class="co">#&gt;  [3] "vtkIOXMLParser"          "vtkIOCore"              </span></span>
-<span><span class="co">#&gt;  [5] "vtkIOGeometry"           "vtkFiltersCore"         </span></span>
-<span><span class="co">#&gt;  [7] "vtkFiltersGeneral"       "vtkFiltersGeometry"     </span></span>
-<span><span class="co">#&gt;  [9] "vtkFiltersModeling"      "vtkFiltersExtraction"   </span></span>
-<span><span class="co">#&gt; [11] "vtkCommonCore"           "vtkCommonDataModel"     </span></span>
-<span><span class="co">#&gt; [13] "vtkCommonExecutionModel" "vtkCommonMath"          </span></span>
-<span><span class="co">#&gt; [15] "vtkCommonMisc"           "vtkCommonSystem"        </span></span>
-<span><span class="co">#&gt; [17] "vtkCommonTransforms"     "vtksys"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">modules</span> <span class="op">=</span> <span class="cn">NULL</span></span></code></pre></div>
 </div>
-<p>Restricting linking to only the modules you need is strongly recommended when you use the <strong>pre-built static bundle on macOS</strong>. The bundle is built as a collection of static archives, and the linker (with R’s default <code>-undefined dynamic_lookup</code>) resolves symbols lazily at load time rather than at build time. If a kept library contains an object file that references a symbol from a module that is <em>not</em> in your requested set, that object can be dragged in and the missing symbol shows up only when the package is loaded:</p>
-<pre><code>symbol not found in flat namespace '__ZN17vtkCellGridReader3NewEv'</code></pre>
-<p>For example, the pre-built libraries contain modules (such as I/O readers) that are not part of the default module list; linking too broadly can pull in an object referencing one of them. Because the pre-built libraries are static archives on macOS/Linux, the fixed module list in <code>tools/configure.R</code> is what prevents this. Pass only the modules your code actually uses:</p>
+<p>This is safe because the archives are static libraries and the linker extracts only the object files your code actually references — linking everything does not mean your final binary contains every VTK feature. It also means a downstream package can never fail with a “module missing from the default list” error (earlier releases curated a fixed 18- or 24-module default, and any package using a module outside it — for example the <code>vtkParallelDIY</code> / <code>vtkIOCellGrid</code> dependencies of <code>vtkFiltersExtraction</code>, or <code>vtkIOPLY</code> for PLY files — failed at link or load time with an undefined-symbol error).</p>
+<p>Passing a subset of modules is an <em>optimisation</em>, not a requirement. It reduces link time and keeps the compiled package smaller, which is worth it for packages that use only a small part of VTK:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">rvtk</span><span class="fu">::</span><span class="fu"><a href="../reference/use_rvtk.html">use_rvtk</a></span><span class="op">(</span></span>
 <span>  modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"vtkIOLegacy"</span>,</span>
@@ -358,16 +283,83 @@
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>This also keeps link time down and reduces the size of your compiled code. With a system shared VTK installation, the loader resolves symbols at run time and the full <code>modules = NULL</code> set is fine.</p>
-<p>If you set up files manually, edit the <code>vtk_modules</code> vector in <code>tools/configure.R</code> the same way.</p>
+<p>When you restrict the list, make sure every module your code uses (including transitive dependencies such as <code>vtkParallelDIY</code> and <code>vtkIOCellGrid</code>) is included. If you set up files manually, set the <code>vtk_modules</code> variable in <code>tools/configure.R</code> to <code>NULL</code> (all modules) or your chosen subset.</p>
 <p>The <code>modules</code> argument is also accepted directly by <code><a href="../reference/LdFlags.html">LdFlags()</a></code> and <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> if you need finer control in your own build scripts:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># flags for just the I/O + core modules</span></span>
 <span><span class="fu"><a href="../reference/LdFlags.html">LdFlags</a></span><span class="op">(</span>modules <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"vtkIOLegacy"</span>, <span class="st">"vtkCommonCore"</span>, <span class="st">"vtkCommonDataModel"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont_testing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_clean_grid-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_connected_components-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_contour-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_core-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_density_estimate-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_entity_extraction-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_conversion-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_transform-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_flow-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_geometry_refinement-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_image_processing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_mesh_info-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_multi_block-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_resampling-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_uncertainty-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_vector_analysis-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_zfp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_io-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_source-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_worklet-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskoresdiympi_nompi.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkvpic-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group</span></span></code></pre></div>
 </div>
-</section><section class="level2"><h2 id="writing-the-c-that-uses-vtk">Writing the C++ that uses VTK<a class="anchor" aria-label="anchor" href="#writing-the-c-that-uses-vtk"></a>
+<section class="level3"><h3 id="module-availability">Module availability<a class="anchor" aria-label="anchor" href="#module-availability"></a>
+</h3>
+<p>Since rvtk 0.3.0, <code><a href="../reference/LdFlags.html">LdFlags()</a></code> and <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> validate the requested modules by default (<code>check = TRUE</code>): if a module is not available in the detected VTK installation, configuration fails immediately with an actionable error listing the missing modules and the available set, instead of surfacing much later as a confusing linker error.</p>
+<p>Use <code><a href="../reference/available_modules.html">available_modules()</a></code> to see exactly which modules the installation can link against:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># modules available in this VTK installation (pre-built archives ship the</span></span>
+<span><span class="co"># complete set recorded in vtk_modules.txt; system VTK is derived from the</span></span>
+<span><span class="co"># recorded linker flags)</span></span>
+<span><span class="fu"><a href="../reference/available_modules.html">available_modules</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   [1] "vtkAcceleratorsVTKmCore"        "vtkAcceleratorsVTKmDataModel"  </span></span>
+<span><span class="co">#&gt;   [3] "vtkAcceleratorsVTKmFilters"     "vtkChartsCore"                 </span></span>
+<span><span class="co">#&gt;   [5] "vtkCommonCache"                 "vtkCommonColor"                </span></span>
+<span><span class="co">#&gt;   [7] "vtkCommonComputationalGeometry" "vtkCommonCore"                 </span></span>
+<span><span class="co">#&gt;   [9] "vtkCommonDataModel"             "vtkCommonExecutionModel"       </span></span>
+<span><span class="co">#&gt;  [11] "vtkCommonMath"                  "vtkCommonMisc"                 </span></span>
+<span><span class="co">#&gt;  [13] "vtkCommonSystem"                "vtkCommonTransforms"           </span></span>
+<span><span class="co">#&gt;  [15] "vtkDICOMParser"                 "vtkDomainsChemistry"           </span></span>
+<span><span class="co">#&gt;  [17] "vtkFiltersAMR"                  "vtkFiltersCellGrid"            </span></span>
+<span><span class="co">#&gt;  [19] "vtkFiltersCore"                 "vtkFiltersExtraction"          </span></span>
+<span><span class="co">#&gt;  [21] "vtkFiltersFlowPaths"            "vtkFiltersGeneral"             </span></span>
+<span><span class="co">#&gt;  [23] "vtkFiltersGeneric"              "vtkFiltersGeometry"            </span></span>
+<span><span class="co">#&gt;  [25] "vtkFiltersGeometryPreview"      "vtkFiltersHybrid"              </span></span>
+<span><span class="co">#&gt;  [27] "vtkFiltersHyperTree"            "vtkFiltersImaging"             </span></span>
+<span><span class="co">#&gt;  [29] "vtkFiltersMeshing"              "vtkFiltersModeling"            </span></span>
+<span><span class="co">#&gt;  [31] "vtkFiltersParallel"             "vtkFiltersParallelDIY2"        </span></span>
+<span><span class="co">#&gt;  [33] "vtkFiltersParallelImaging"      "vtkFiltersPoints"              </span></span>
+<span><span class="co">#&gt;  [35] "vtkFiltersProgrammable"         "vtkFiltersReduction"           </span></span>
+<span><span class="co">#&gt;  [37] "vtkFiltersSelection"            "vtkFiltersSMP"                 </span></span>
+<span><span class="co">#&gt;  [39] "vtkFiltersSources"              "vtkFiltersStatistics"          </span></span>
+<span><span class="co">#&gt;  [41] "vtkFiltersTemporal"             "vtkFiltersTensor"              </span></span>
+<span><span class="co">#&gt;  [43] "vtkFiltersTexture"              "vtkFiltersTopology"            </span></span>
+<span><span class="co">#&gt;  [45] "vtkFiltersVerdict"              "vtkImagingColor"               </span></span>
+<span><span class="co">#&gt;  [47] "vtkImagingCore"                 "vtkImagingFourier"             </span></span>
+<span><span class="co">#&gt;  [49] "vtkImagingGeneral"              "vtkImagingHybrid"              </span></span>
+<span><span class="co">#&gt;  [51] "vtkImagingMath"                 "vtkImagingMorphological"       </span></span>
+<span><span class="co">#&gt;  [53] "vtkImagingSources"              "vtkImagingStatistics"          </span></span>
+<span><span class="co">#&gt;  [55] "vtkImagingStencil"              "vtkInfovisCore"                </span></span>
+<span><span class="co">#&gt;  [57] "vtkInfovisLayout"               "vtkInteractionImage"           </span></span>
+<span><span class="co">#&gt;  [59] "vtkInteractionStyle"            "vtkInteractionWidgets"         </span></span>
+<span><span class="co">#&gt;  [61] "vtkIOAsynchronous"              "vtkIOAvmesh"                   </span></span>
+<span><span class="co">#&gt;  [63] "vtkIOCellGrid"                  "vtkIOChemistry"                </span></span>
+<span><span class="co">#&gt;  [65] "vtkIOCityGML"                   "vtkIOCore"                     </span></span>
+<span><span class="co">#&gt;  [67] "vtkIOEngys"                     "vtkIOEnSight"                  </span></span>
+<span><span class="co">#&gt;  [69] "vtkIOExport"                    "vtkIOExportPDF"                </span></span>
+<span><span class="co">#&gt;  [71] "vtkIOFDS"                       "vtkIOGeoJSON"                  </span></span>
+<span><span class="co">#&gt;  [73] "vtkIOGeometry"                  "vtkIOImage"                    </span></span>
+<span><span class="co">#&gt;  [75] "vtkIOImport"                    "vtkIOInfovis"                  </span></span>
+<span><span class="co">#&gt;  [77] "vtkIOLANLX3D"                   "vtkIOLegacy"                   </span></span>
+<span><span class="co">#&gt;  [79] "vtkIOLSDyna"                    "vtkIOMotionFX"                 </span></span>
+<span><span class="co">#&gt;  [81] "vtkIOMovie"                     "vtkIOOggTheora"                </span></span>
+<span><span class="co">#&gt;  [83] "vtkIOOMF"                       "vtkIOPLY"                      </span></span>
+<span><span class="co">#&gt;  [85] "vtkIOSegY"                      "vtkIOSQL"                      </span></span>
+<span><span class="co">#&gt;  [87] "vtkIOTecplotTable"              "vtkIOVideo"                    </span></span>
+<span><span class="co">#&gt;  [89] "vtkIOVPIC"                      "vtkIOXML"                      </span></span>
+<span><span class="co">#&gt;  [91] "vtkIOXMLParser"                 "vtkParallelCore"               </span></span>
+<span><span class="co">#&gt;  [93] "vtkParallelDIY"                 "vtkRenderingAnnotation"        </span></span>
+<span><span class="co">#&gt;  [95] "vtkRenderingContext2D"          "vtkRenderingCore"              </span></span>
+<span><span class="co">#&gt;  [97] "vtkRenderingFreeType"           "vtkRenderingGridAxes"          </span></span>
+<span><span class="co">#&gt;  [99] "vtkRenderingHyperTreeGrid"      "vtkRenderingImage"             </span></span>
+<span><span class="co">#&gt; [101] "vtkRenderingLabel"              "vtkRenderingLOD"               </span></span>
+<span><span class="co">#&gt; [103] "vtkRenderingSceneGraph"         "vtkRenderingVolume"            </span></span>
+<span><span class="co">#&gt; [105] "vtkRenderingVtkJS"              "vtksys"                        </span></span>
+<span><span class="co">#&gt; [107] "vtkTestingDataModel"            "vtkTestingGenericBridge"       </span></span>
+<span><span class="co">#&gt; [109] "vtkTestingIOSQL"                "vtkWebGLExporter"              </span></span>
+<span><span class="co">#&gt; [111] "vtkWrappingTools"</span></span></code></pre></div>
+</div>
+<p>With the pre-built archives this is the full module set the bundle was built with (every VTK module except a deny-list of modules that pull in unavailable external dependencies). With a system VTK it reflects that installation, so a request for a module the system VTK does not provide fails fast. Pass <code>check = FALSE</code> only if you intentionally link against whatever the installation provides.</p>
+</section></section><section class="level2"><h2 id="writing-the-c-that-uses-vtk">Writing the C++ that uses VTK<a class="anchor" aria-label="anchor" href="#writing-the-c-that-uses-vtk"></a>
 </h2>
 <p>A minimal <code>src/code.cpp</code> that exercises the link looks like this:</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// src/code.cpp</span></span>
@@ -381,7 +373,7 @@
 <span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> <span class="kw">static_cast</span><span class="op">&lt;</span><span class="dt">int</span><span class="op">&gt;(</span>pd<span class="op">-&gt;</span>GetNumberOfPoints<span class="op">());</span></span>
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
 <p>Include the headers exactly as the VTK include directory is laid out in the detected installation (e.g. <code>vtk-9.7</code>). <code>-isystem</code> (from <code><a href="../reference/CppFlags.html">CppFlags()</a></code> on macOS/Linux) makes these includes searchable without turning their content into warnings.</p>
-<p>If you use <code>cpp11</code> (as in rvtk’s own downstream CI), run <code><a href="https://cpp11.r-lib.org/reference/cpp_register.html" class="external-link">cpp11::cpp_register()</a></code> after adding your functions. <strong>Note:</strong> <code>cpp_register()</code> copies only the function name, return type, and arguments into <code>R/cpp11.R</code> — roxygen tags such as <code>#' @export</code> must live in a separate R file for the wrapper function you export, or the function will not appear in <code>NAMESPACE</code>.</p>
+<p>If you use <code>cpp11</code> (as in rvtk’s own downstream CI), run <code>cpp11::cpp_register()</code> after adding your functions. <strong>Note:</strong> <code>cpp_register()</code> copies only the function name, return type, and arguments into <code>R/cpp11.R</code> — roxygen tags such as <code>#' @export</code> must live in a separate R file for the wrapper function you export, or the function will not appear in <code>NAMESPACE</code>.</p>
 </section><section class="level2"><h2 id="shared-vtk-on-windows">Shared VTK on Windows<a class="anchor" aria-label="anchor" href="#shared-vtk-on-windows"></a>
 </h2>
 <p>If rvtk is installed with <code>VTK_LINK_TYPE=shared</code> (or a system installation provides only shared libraries), downstream packages link against <code>.dll.a</code> import libraries and load the VTK DLLs at run time from rvtk’s <code>inst/vtk-dlls/</code> (prepended to <code>PATH</code> by rvtk’s <code>.onLoad</code> hook). Two consequences for package authors:</p>
@@ -401,14 +393,14 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">yourpackage</span><span class="op">)</span></span>
 <span><span class="fu">yourpackage</span><span class="fu">::</span><span class="fu">vtk_poly_data_npoints</span><span class="op">(</span><span class="op">)</span> <span class="co"># expect 0: a brand-new vtkPolyData has no points</span></span></code></pre></div>
 </div>
-<p>If the package builds but fails to load with an undefined-symbol error, the usual cause is a module being referenced by the code but missing from the <code>modules</code> vector, or a symbol being dragged in from a module outside the requested set (e.g. <code>vtkCellGridReader</code> when <code>vtkIOCellGrid</code> is not listed). Narrow the module list to exactly what the code uses and rebuild.</p>
+<p>If the package builds but fails to load with an undefined-symbol error, the cause is a symbol being dragged in from a module outside the <em>requested</em> <code>modules</code> subset (older rvtk versions curated a fixed default list, so e.g. <code>vtkCellGridReader</code> failed to resolve when <code>vtkIOCellGrid</code> was not listed). With the default <code>modules = NULL</code> this cannot happen. If you restricted the list, widen it back to <code>NULL</code> or add the module that defines the missing symbol, then rebuild.</p>
 </section><section class="level2"><h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
 <ul>
 <li>rvtk locates VTK at install time and exposes the resulting flags through <code><a href="../reference/CppFlags.html">CppFlags()</a></code>, <code><a href="../reference/LdFlags.html">LdFlags()</a></code>, <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>, and <code><a href="../reference/VtkVersion.html">VtkVersion()</a></code>.</li>
 <li>
 <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> writes every build-time file for a downstream package; the same files can be written manually, byte-for-byte identically.</li>
-<li>Use the <code>modules</code> argument to link only what you need — especially with the macOS static bundle.</li>
+<li>By default the full bundled VTK is linked; use the <code>modules</code> argument only to restrict linking when you want shorter link times or smaller packages.</li>
 <li>Prefer <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> on Windows to avoid the command-line length limit.</li>
 <li>For CRAN, prefer the static pre-built build; for Windows shared builds, keep rvtk and the downstream package in lockstep.</li>
 </ul></section><script id="quarto-html-after-body" type="application/javascript">

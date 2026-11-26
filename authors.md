@@ -8,15 +8,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/astamm/rvtk/blob/v0.2.0/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/astamm/rvtk/blob/main/DESCRIPTION)
 
 Stamm A (2026). *rvtk: Bindings for the Visualization Toolkit ('VTK')*.
-R package version 0.2.0, <https://github.com/astamm/rvtk>.
+R package version 0.3.0, <https://github.com/astamm/rvtk>.
 
     @Manual{,
       title = {rvtk: Bindings for the Visualization Toolkit ('VTK')},
       author = {Aymeric Stamm},
       year = {2026},
-      note = {R package version 0.2.0},
+      note = {R package version 0.3.0},
       url = {https://github.com/astamm/rvtk},
     }

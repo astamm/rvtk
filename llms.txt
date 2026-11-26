@@ -24,14 +24,51 @@ Everything can also be set up by hand — the two approaches produce
 identical files.
 
 Pre-built libraries are provided for macOS (arm64 and x86_64), Linux
-(x86_64 glibc, x86_64 musl/Alpine, and aarch64), and Windows (static or
-shared DLLs).
+(x86_64 glibc, x86_64 musl/Alpine, aarch64, and a clang `-stdlib=libc++`
+variant of x86_64 glibc), and Windows (static or shared DLLs). rvtk’s
+`configure` script detects the compiler’s C++ standard library and picks
+the matching Linux archive automatically.
+
+> **ABI compatibility of the pre-built libraries.** The pre-built
+> archives are compiled with **GCC and libstdc++** (on Windows, the
+> Rtools45 `static.posix` MinGW toolchain), except for the dedicated
+> Linux x86_64 **libc++** archive built with Clang. Downstream packages
+> should use a matching toolchain: linking the libstdc++ archive with
+> Clang `-stdlib=libc++` fails to load with an undefined
+> `__try_use_facet` symbol, and linking with a much newer GCC than the
+> build toolchain may fail with `__cxa_call_terminate`. On Linux x86_64,
+> `configure` detects which standard library the compiler targets and
+> downloads the matching archive; on other platforms, install a system
+> VTK (e.g. via Homebrew or apt) if your toolchain cannot match the
+> bundled one.
+
+## Which VTK modules are available
+
+The pre-built archives bundle **all VTK modules that can be built
+without external dependencies** (160 static libraries, including the
+Viskores acceleration modules). Downstream packages can opt in to link
+against only the modules they need — pass the `modules` argument to
+[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md) or
+[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md)/[`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
+to reduce link time and storage footprint:
+
+``` r
+
+# link only what your C++ code uses
+rvtk::use_rvtk(modules = c("CommonCore", "CommonDataModel", "IOLegacy"))
+```
+
+With a system VTK installation, rvtk records which modules are available
+on that machine and **hard-fails at install time** if a downstream
+package requests a module that is not present — instead of failing later
+with a confusing linker error.
+[`rvtk::available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+lists the modules of the VTK that rvtk resolved to.
 
 **See the [vignette](https://astamm.github.io/rvtk/articles/rvtk.html)
 for full details:** how VTK is located on each platform (with the
 compatibility matrix), which VTK modules are bundled, manually writing
-the build files, restricting linking with the `modules` argument, and
-verifying that linking worked.
+the build files, and restricting linking with the `modules` argument.
 
 ## Quick start
 
@@ -74,6 +111,8 @@ the package downloads pre-built libraries automatically.
   reference](https://astamm.github.io/rvtk/reference/index.html)
 - [Vignette: linking downstream R packages to
   VTK](https://astamm.github.io/rvtk/articles/rvtk.html)
+- [Vignette: integration testing with downstream
+  packages](https://astamm.github.io/rvtk/articles/rvtk-integration.html)
 - [VTK](https://vtk.org/)
 
 # Package index
@@ -88,6 +127,8 @@ the package downloads pre-built libraries automatically.
   : Write VTK linker flags to a response file
 - [`VtkVersion()`](https://astamm.github.io/rvtk/reference/VtkVersion.md)
   : VTK version used by this package
+- [`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
+  : VTK modules available in this installation
 - [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md) :
   Set up a downstream package to use rvtk
 
@@ -95,5 +136,7 @@ the package downloads pre-built libraries automatically.
 
 ### All vignettes
 
+- [Testing rvtk with downstream
+  packages](https://astamm.github.io/rvtk/articles/rvtk-integration.md):
 - [Linking downstream R packages to
   VTK](https://astamm.github.io/rvtk/articles/rvtk.md):

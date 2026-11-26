@@ -33,27 +33,25 @@ VTK compiler and linker flags are resolved automatically at
 ## Usage
 
 ``` r
-use_rvtk(
-  modules = c("vtkIOLegacy", "vtkIOXML", "vtkIOXMLParser", "vtkIOCore", "vtkIOGeometry",
-    "vtkFiltersCore", "vtkFiltersGeneral", "vtkFiltersGeometry", "vtkFiltersModeling",
-    "vtkFiltersExtraction", "vtkCommonCore", "vtkCommonDataModel",
-    "vtkCommonExecutionModel", "vtkCommonMath", "vtkCommonMisc", "vtkCommonSystem",
-    "vtkCommonTransforms", "vtksys"),
-  path = "."
-)
+use_rvtk(modules = NULL, path = ".")
 ```
 
 ## Arguments
 
 - modules:
 
-  A character vector of VTK module names to link against. These are
-  passed to
+  A character vector of VTK module names to link against, or `NULL` (the
+  default) to link the full set of VTK modules bundled with **rvtk**.
+  These are passed to
   [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
-  in the generated `tools/configure.R`, restricting linking to only the
-  modules the downstream package needs. Defaults to a standard set
-  covering the common I/O, filtering, core, and data-model modules
-  bundled with **rvtk**.
+  in the generated `tools/configure.R`. The pre-built archives are
+  static libraries, so the linker extracts only the object files
+  actually referenced by your code: linking everything by default cannot
+  fail with "missing module" symbols (e.g. the `vtkParallelDIY` /
+  `vtkIOCellGrid` failures seen with older curated defaults), and
+  passing a subset such as `c("vtkIOLegacy", "vtkCommonCore")` is an
+  optimisation that reduces link time and keeps the resulting binary
+  smaller for packages that use only part of VTK.
 
 - path:
 
