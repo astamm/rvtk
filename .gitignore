@@ -3,6 +3,7 @@
 *.tar.gz
 *.zip
 inst/vtk.conf
+inst/vtk_modules.txt
 windows/
 vtk-prebuilt/
 
