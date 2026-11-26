@@ -1,38 +1,5 @@
 # Changelog
 
-## rvtk 0.3.0
-
-#### New features
-
-- **[`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
-  reports the VTK modules in the detected installation.** Every
-  pre-built release archive now ships a `vtk_modules.txt` file listing
-  the exact module set it was built with, and the `configure` /
-  `configure.win` scripts install it (for a system VTK the list is
-  derived from the linker flags recorded in `vtk.conf`, mirroring the
-  same filtering logic).
-
-- **[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) /
-  [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
-  validate requested modules (`check = TRUE` by default).** A downstream
-  package that requests a module the installation does not provide now
-  fails fast at install time with an actionable error listing the
-  missing module(s) and the available set, instead of failing later with
-  a confusing linker error. Set `check = FALSE` to skip validation and
-  link whatever the installation provides.
-
-- **Pre-built archives now ship every VTK module except a curated
-  deny-list.** The hand-curated 18-module bundle is replaced by
-  `VTK_BUILD_ALL_MODULES=ON` minus modules that pull in unavailable
-  external dependencies (rendering toolkits, Python bindings, MPI,
-  HDF5/netcdf/Exodus third-party IO, remote modules, …). Under pre-built
-  VTK, rvtk therefore provides all modules that can be built without
-  external dependencies and downstream packages opt in to linking a
-  subset. The archive layout and the 160-archive whole-archive link
-  check are updated accordingly; `vtk_modules.txt` is generated from the
-  installed libraries so it always reflects exactly what an archive
-  contains.
-
 ## rvtk 0.2.0
 
 CRAN release: 2026-11-18
@@ -45,17 +12,14 @@ CRAN release: 2026-11-18
   `vtk-9.6` before earlier `pkg-config` versions, and `tools/winlibs.R`
   downloads the 9.7.2 build.
 
-- **Six additional VTK modules enabled in the pre-built bundles.** The
-  pre-built bundles now explicitly enable `VTK_IOGeometry`,
-  `VTK_FiltersCore`, `VTK_FiltersGeneral`, `VTK_FiltersGeometry`,
-  `VTK_FiltersModeling`, and `VTK_FiltersExtraction` (closing issue
-  [\#5](https://github.com/astamm/rvtk/issues/5)), together with their
-  transitive dependencies `VTK_ParallelDIY`, `VTK_ParallelCore`,
-  `VTK_FiltersHyperTree`, and `VTK_FiltersStatistics` (closing the
-  undefined-symbol failures of issue
-  [\#14](https://github.com/astamm/rvtk/issues/14)). These modules are
-  also linked by `configure`’s `vtk_build_flags()` when a system VTK
-  installation is found.
+- **Six additional VTK modules bundled by default.** The pre-built
+  bundles now explicitly enable `VTK_IOGeometry`, `VTK_FiltersCore`,
+  `VTK_FiltersGeneral`, `VTK_FiltersGeometry`, `VTK_FiltersModeling`,
+  and `VTK_FiltersExtraction` (closing issue
+  [\#5](https://github.com/astamm/rvtk/issues/5)). These are also added
+  to the default `modules` set used by
+  [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
+  and linked in `configure`’s `vtk_build_flags()`.
 
 - **[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md):
   one-call downstream package setup.** A new
@@ -79,12 +43,11 @@ CRAN release: 2026-11-18
       so that `R CMD check` does not warn about an unused `Imports`
       entry.
 
-  By default the **full bundled VTK** is linked (`modules = NULL`); the
-  `modules` argument lets downstream developers restrict linking to only
-  the VTK modules they need, reducing link time and producing a smaller
-  downstream package (an optimisation, not a requirement — see “Bug
-  fixes” below). Uses **cli** for formatted console output when
-  available (it is an optional dependency, listed in `Suggests`).
+  The `modules` argument (default: the standard I/O + core set) lets
+  downstream developers restrict linking to only the VTK modules they
+  need, avoiding unintended symbol drag-in (important on macOS static
+  bundles). Uses **cli** for formatted console output when available (it
+  is an optional dependency, listed in `Suggests`).
 
 - **Linux x86_64 musl (Alpine Linux) support.** The pre-built static
   fallback now provides a `vtk-X.Y.Z-linux-musl-x86_64.tar.gz` archive
@@ -112,31 +75,15 @@ CRAN release: 2026-11-18
   and its internals (`rvtk_use_package`, `rvtk_write_file`,
   `rvtk_use_git_ignore`, `rvtk_rel_path`), including the base-R fallback
   messaging branches. The package now reports 100% line coverage under
-  `covr::package_coverage()`.
+  [`covr::package_coverage()`](https://covr.r-lib.org/reference/package_coverage.html).
 
 #### Bug fixes
 
-- **[`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
-  links the full bundled VTK by default (`modules = NULL`).** Downstream
-  packages were failing to install or load on macOS and Linux with
-  undefined-symbol errors such as
-  `symbol not found: __ZN17vtkCellGridReader3NewEv` whenever they used a
-  VTK feature outside rvtk’s curated 18- or 24-module default list. The
-  pre-built bundles have always contained the full VTK library (161
-  static archives), so the default is now to link **all** of them.
-  Because the archives are static and the linker extracts only the
-  object files a package references, linking everything adds no runtime
-  code a package does not use. Restricting via `modules` is now purely
-  an optimisation for link time and package size (closing issue
-  [\#14](https://github.com/astamm/rvtk/issues/14) for good:
-  `vtkParallelDIY`, `vtkParallelCore`, `vtkFiltersHyperTree`,
-  `vtkIOCellGrid`, `vtkIOPLY`, … are all available with the default).
-
-- **`configure`: `mktemp` incompatibility with BusyBox.** The temporary
-  file for the pre-built archive download was created with a dotted
-  suffix (`/tmp/vtk-prebuilt.XXXXXX.tar.gz`), which BusyBox `mktemp`
-  rejects with `Invalid argument`. The suffix has been removed; the file
-  is renamed internally before extraction.
+- **`configure`: fixed `mktemp` incompatibility with BusyBox.** The
+  temporary file for the pre-built archive download was created with a
+  dotted suffix (`/tmp/vtk-prebuilt.XXXXXX.tar.gz`), which BusyBox
+  `mktemp` rejects with `Invalid argument`. The suffix has been removed;
+  the file is renamed internally before extraction.
 
 - **`modules` argument for
   [`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) and
@@ -146,14 +93,14 @@ CRAN release: 2026-11-18
   `c("vtkIOLegacy", "vtkCommonCore")`). When `NULL` (the default) all
   available modules are included, preserving backward compatibility.
 
-  Restricting the list is an *optimisation* (shorter link times, smaller
-  downstream packages), not a safety requirement: since the macOS static
-  link no longer uses `-all_load` (see the next bullet), the only
-  objects pulled from the pre-built archives are those your code
-  actually references, so linking all 161 modules by default cannot drag
-  `AppKit`-only symbols such as `_NSEventTrackingRunLoopMode` into a
-  downstream `.so`. Packages that want a smaller build can pass only the
-  modules they need:
+  This is particularly important when using the pre-built static bundle
+  on macOS: the bundle contains the full VTK (including rendering
+  modules that reference `_NSEventTrackingRunLoopMode` from
+  `AppKit.framework`). Without filtering, `-Wl,-all_load` forces those
+  symbols into every downstream `.so`, causing `dlopen()` failures at
+  `R CMD check` time for packages that do not actually use any rendering
+  functionality. Downstream packages should pass only the modules they
+  need:
 
   ``` sh
   VTK_LIBS="$("${R_HOME}/bin/Rscript" --vanilla -e "rvtk::LdFlagsFile(
@@ -186,31 +133,6 @@ CRAN release: 2026-11-18
   are now routed through small internal wrappers (`rvtk_has_cli()`,
   `rvtk_interactive()`, `rvtk_readline()`) so the messaging and
   overwrite branches can be unit-tested.
-
-#### Documentation
-
-- **Pre-built ABI constraints documented** (issue
-  [\#15](https://github.com/astamm/rvtk/issues/15)). The pre-built
-  static libraries are compiled with GCC and `libstdc++`. Downstream
-  packages built with Clang `-stdlib=libc++` may fail to load with
-  `__try_use_facet` undefined; packages built with newer GCC versions
-  than the build toolchain may fail with `__cxa_call_terminate`. The
-  README now documents that the archives are GCC / libstdc++ builds and
-  recommends matching the compiler or linking against a system VTK
-  installation.
-- **macOS deployment target raised** (issue
-  [\#16](https://github.com/astamm/rvtk/issues/16)). The pre-built macOS
-  archives are now built with `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0`
-  (previously they carried `LC_BUILD_VERSION minos 26.0`, which prevents
-  loading on older macOS). The GitHub Actions workflow sets this for
-  both the arm64 and x86_64 macOS jobs.
-- **Valgrind report documented** (issue
-  [\#17](https://github.com/astamm/rvtk/issues/17)). VTK’s pipeline
-  internals allocate objects that valgrind reports as “definitely lost”
-  (~1.5 KB) even in a minimal downstream consumer; this is inherent to
-  the static libraries and does not indicate a leak in downstream code.
-  An optional suppression file is shipped at `inst/valgrind/vtk.supp`
-  and documented in the README / vignette.
 
 ## rvtk 0.1.3
 

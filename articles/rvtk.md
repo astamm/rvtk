@@ -34,9 +34,7 @@ This vignette explains how VTK is located on each platform, what files a
 downstream package needs, how the two setup strategies
 ([`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
 versus hand-written files) relate, and how to verify that linking
-actually worked. A companion vignette,
-[rvtk-integration](https://astamm.github.io/rvtk/articles/rvtk-integration.md),
-covers how rvtk is itself tested with real downstream packages on CI.
+actually worked.
 
 ## How rvtk finds VTK
 
@@ -79,90 +77,42 @@ present.
 
 | Platform | Pre-built fallback | Notes |
 |----|----|----|
-| macOS arm64 | static `.a` | Apple Clang / libc++ |
-| macOS x86_64 | static `.a` | Apple Clang / libc++ |
-| Linux x86_64 (glibc) | static `.a` | GCC / libstdc++ |
-| Linux x86_64 (glibc, libc++) | static `.a` | Clang `-stdlib=libc++` (selected by `configure`; see ABI note) |
+| macOS arm64 | static `.a` |  |
+| macOS x86_64 | static `.a` |  |
+| Linux x86_64 (glibc) | static `.a` |  |
 | Linux x86_64 (musl / Alpine) | static `.a` | headless build: `VTK_USE_X=OFF`, `RenderingOpenGL2=NO` |
 | Linux aarch64 | static `.a` |  |
 | Windows x64 | static `.a` (default) or shared DLLs (`VTK_LINK_TYPE=shared`) |  |
 
-The archives are the same on every platform: the impossible-to-ship
-optional third-party stacks (see below) are disabled in the build, so
-any platform difference is limited to the C++ toolchain the static
-libraries were compiled with.
+On Windows the modules `VTK_IONetCDF`, `VTK_IOHDF`, and `VTK_GeovisCore`
+are disabled because `netcdf` and `libproj` are not available in the
+Rtools45 `static.posix` sysroot; downstream packages requiring them
+cannot be built on Windows with rvtk’s pre-built libraries.
 
 ### Bundled VTK modules
 
-The pre-built bundles are built with `VTK_BUILD_ALL_MODULES=ON` and a
-curated deny-list of modules that pull in external dependencies
-unavailable in a headless, self-contained static build (rendering
-toolkits such as Qt, OpenGL, OpenXR/OpenVR, Vulkan; Python bindings; MPI
-and parallel IO; HDF5, netCDF, Exodus, ADIOS2, GDAL, FFmpeg, and similar
-third-party IO stacks; remote modules). The archive layout and the
-resulting `vtk_modules.txt` are generated from the installed libraries,
-so the module list shipped in an archive always reflects exactly what
-that archive contains.
+The pre-built bundles are built with `VTK_BUILD_ALL_MODULES=OFF` and the
+following modules explicitly enabled (VTK resolves and includes all
+transitive dependencies automatically):
 
-The result is a complete VTK without those exotics: every I/O reader
-(Legacy, XML, PLY, STL, VTU/VTP, …), every filter group, imaging,
-rendering infrastructure, plus the Viskores acceleration modules.
-Concretely, each archive ships **160 static libraries**. The module file
-lists the 110 VTK kit modules (e.g. `vtkIOLegacy`, `vtkFiltersCore`, …),
-and the archive also contains `vtksys`, the 23 `libviskores*` libraries,
-and 26 third-party libraries under the `libvtk` prefix (expat, fmt,
-freetype, jpeg, jsoncpp, libxml2, lz4, ogg, png, sqlite, tiff, theora,
-zlib, …) that VTK needs at link time even when your code never calls
-them directly.
+| Module | Purpose |
+|----|----|
+| `VTK_IOLegacy` | Legacy VTK file format reader/writer (`.vtk`) |
+| `VTK_IOXML` | XML-based VTK file formats (`.vtp`, `.vtu`, `.vts`, …) |
+| `VTK_IOCore` | Core I/O infrastructure shared by all I/O modules |
+| `VTK_IOGeometry` | Readers/writers for common geometric formats (`.ply`, `.stl`, …) |
+| `VTK_FiltersCore` | Core algorithmic filters (threshold, transform points, …) |
+| `VTK_FiltersGeneral` | General-purpose filters (append, clip, decimate, …) |
+| `VTK_FiltersGeometry` | Filters that modify or convert dataset geometry |
+| `VTK_FiltersModeling` | Filters for geometric modeling and meshing |
+| `VTK_FiltersExtraction` | Filters that extract subsets of data |
+| `VTK_CommonCore` | Core data structures, object model, logging |
+| `VTK_CommonDataModel` | Datasets, cells, point/cell data arrays |
 
-### Pre-built ABI compatibility
-
-Each pre-built archive is compiled with the platform’s default C++
-toolchain, so downstream packages must link with a compatible C++
-runtime. VTK headers pull in `<vector>`, `<string>`, etc., and the
-statically linked archives embed the C++ standard library symbols they
-reference (in particular the third-party objects such as `libvtkscn`
-that are always linked), so mixing runtimes at load time fails with an
-undefined symbol:
-
-- **Linux x86_64 (glibc).** Two variants are shipped: the default
-  archive is compiled with **GCC and libstdc++**; a second archive,
-  suffixed `-linux-x86_64-libcxx`, is compiled with Clang
-  `-stdlib=libc++` for toolchains that target libc++ (CRAN’s
-  `r-devel-linux-x86_64-fedora-clang` flavor compiles packages with
-  clang and defaults to libc++). rvtk’s `configure` detects which
-  standard library the build compiler targets and downloads the matching
-  archive automatically; a manual install can force the choice with
-  `CXX` (or `R_MAKEVARS_USER`).
-- **macOS.** The archives are compiled with the default Apple Clang
-  toolchain, which targets **libc++** (symbols land in the `std::__1`
-  namespace). Do not force `-stdlib=libstdc++` when linking them: the
-  libstdc++-built objects will not interoperate.
-- **Much newer GCC than the build toolchain.** Even a matching
-  libstdc++/GCC pairing can fail if the downstream compiler release
-  changed the `libstdc++` ABI stub; the failure shows up at load time as
-  an undefined `__cxa_call_terminate`. Match the compiler generation, or
-  install a system VTK (via Homebrew, apt, …) and rvtk will link that
-  instead.
-- **Musl/Alpine and Windows.** Built with the platform’s native C++
-  toolchain (musl’s GCC libstdc++; Rtools45 MinGW on Windows); link with
-  the matching R toolchain for the platform.
-
-The macOS archives are compiled with
-`-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0` and are compatible with macOS 13
-and newer.
-
-### Memory checkers
-
-A minimal downstream program that reads a VTK file reports ~1.5 KB
-“definitely lost” under Valgrind, allocated inside VTK’s pipeline
-internals (`vtkInformation`, pipeline executives). This is inherent to
-the statically linked VTK build and does not indicate a leak in
-downstream code. A suppression file is shipped at
-`inst/valgrind/vtk.supp`; point Valgrind at it (or set
-`_R_CHECK_VALGRIND_SUPPRESSIONS_` for `R CMD check`’s Valgrind leg) to
-get a clean report. The `rvtk-integration` vignette discusses how rvtk
-itself exercises memory-checker legs on CRAN platforms.
+Typical transitive dependencies pulled in automatically include
+`VTK_CommonExecutionModel`, `VTK_CommonMath`, `VTK_CommonMisc`,
+`VTK_CommonSystem`, `VTK_CommonTransforms`, `VTK_IOXMLParser`, and
+`vtksys`.
 
 Once rvtk is installed,
 [`CppFlags()`](https://astamm.github.io/rvtk/reference/CppFlags.md),
@@ -251,7 +201,26 @@ PKG_LIBS = $(shell "$(R_HOME)/bin$(R_ARCH_BIN)/Rscript" ../tools/configure.R --l
 args <- commandArgs(trailingOnly = TRUE)
 flag <- if (length(args)) args[1L] else "--cppflags"
 
-vtk_modules <- NULL
+vtk_modules <- c(
+  "vtkIOLegacy",
+  "vtkIOXML",
+  "vtkIOXMLParser",
+  "vtkIOCore",
+  "vtkIOGeometry",
+  "vtkFiltersCore",
+  "vtkFiltersGeneral",
+  "vtkFiltersGeometry",
+  "vtkFiltersModeling",
+  "vtkFiltersExtraction",
+  "vtkCommonCore",
+  "vtkCommonDataModel",
+  "vtkCommonExecutionModel",
+  "vtkCommonMath",
+  "vtkCommonMisc",
+  "vtkCommonSystem",
+  "vtkCommonTransforms",
+  "vtksys"
+)
 
 if (flag == "--cppflags") {
   rvtk::CppFlags()
@@ -301,30 +270,62 @@ Windows command-line limit. On Windows the flags are written to
 
 ## Choosing the VTK modules to link against
 
-The pre-built bundles shipped with rvtk contain the full buildable VTK
-(160 static archives on each platform: every I/O reader, every filter
-group, rendering, imaging, Viskores, …). By default
+The pre-built bundles shipped with rvtk contain far more than the
+modules you are likely to use (I/O, filtering, and core modules plus
+their transitive dependencies). By default
 [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
-links **all** of them:
+links the following set:
 
 ``` r
 
-modules = NULL
+c(
+  "vtkIOLegacy",
+  "vtkIOXML",
+  "vtkIOXMLParser",
+  "vtkIOCore",
+  "vtkIOGeometry",
+  "vtkFiltersCore",
+  "vtkFiltersGeneral",
+  "vtkFiltersGeometry",
+  "vtkFiltersModeling",
+  "vtkFiltersExtraction",
+  "vtkCommonCore",
+  "vtkCommonDataModel",
+  "vtkCommonExecutionModel",
+  "vtkCommonMath",
+  "vtkCommonMisc",
+  "vtkCommonSystem",
+  "vtkCommonTransforms",
+  "vtksys"
+)
+#>  [1] "vtkIOLegacy"             "vtkIOXML"               
+#>  [3] "vtkIOXMLParser"          "vtkIOCore"              
+#>  [5] "vtkIOGeometry"           "vtkFiltersCore"         
+#>  [7] "vtkFiltersGeneral"       "vtkFiltersGeometry"     
+#>  [9] "vtkFiltersModeling"      "vtkFiltersExtraction"   
+#> [11] "vtkCommonCore"           "vtkCommonDataModel"     
+#> [13] "vtkCommonExecutionModel" "vtkCommonMath"          
+#> [15] "vtkCommonMisc"           "vtkCommonSystem"        
+#> [17] "vtkCommonTransforms"     "vtksys"
 ```
 
-This is safe because the archives are static libraries and the linker
-extracts only the object files your code actually references — linking
-everything does not mean your final binary contains every VTK feature.
-It also means a downstream package can never fail with a “module missing
-from the default list” error (earlier releases curated a fixed 18- or
-24-module default, and any package using a module outside it — for
-example the `vtkParallelDIY` / `vtkIOCellGrid` dependencies of
-`vtkFiltersExtraction`, or `vtkIOPLY` for PLY files — failed at link or
-load time with an undefined-symbol error).
+Restricting linking to only the modules you need is strongly recommended
+when you use the **pre-built static bundle on macOS**. The bundle is
+built as a collection of static archives, and the linker (with R’s
+default `-undefined dynamic_lookup`) resolves symbols lazily at load
+time rather than at build time. If a kept library contains an object
+file that references a symbol from a module that is *not* in your
+requested set, that object can be dragged in and the missing symbol
+shows up only when the package is loaded:
 
-Passing a subset of modules is an *optimisation*, not a requirement. It
-reduces link time and keeps the compiled package smaller, which is worth
-it for packages that use only a small part of VTK:
+    symbol not found in flat namespace '__ZN17vtkCellGridReader3NewEv'
+
+For example, the pre-built libraries contain modules (such as I/O
+readers) that are not part of the default module list; linking too
+broadly can pull in an object referencing one of them. Because the
+pre-built libraries are static archives on macOS/Linux, the fixed module
+list in `tools/configure.R` is what prevents this. Pass only the modules
+your code actually uses:
 
 ``` r
 
@@ -337,11 +338,12 @@ rvtk::use_rvtk(
 )
 ```
 
-When you restrict the list, make sure every module your code uses
-(including transitive dependencies such as `vtkParallelDIY` and
-`vtkIOCellGrid`) is included. If you set up files manually, set the
-`vtk_modules` variable in `tools/configure.R` to `NULL` (all modules) or
-your chosen subset.
+This also keeps link time down and reduces the size of your compiled
+code. With a system shared VTK installation, the loader resolves symbols
+at run time and the full `modules = NULL` set is fine.
+
+If you set up files manually, edit the `vtk_modules` vector in
+`tools/configure.R` the same way.
 
 The `modules` argument is also accepted directly by
 [`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) and
@@ -354,92 +356,6 @@ if you need finer control in your own build scripts:
 LdFlags(modules = c("vtkIOLegacy", "vtkCommonCore", "vtkCommonDataModel"))
 #> -Wl,--start-group /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont_testing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_cont-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_clean_grid-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_connected_components-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_contour-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_core-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_density_estimate-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_entity_extraction-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_conversion-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_field_transform-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_flow-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_geometry_refinement-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_image_processing-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_mesh_info-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_multi_block-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_resampling-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_uncertainty-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_vector_analysis-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_filter_zfp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_io-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_source-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskores_worklet-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libviskoresdiympi_nompi.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonCore-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkCommonDataModel-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkexpat-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfmt-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkfreetype-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkgl2ps-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkglad-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkIOLegacy-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjpeg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkjsoncpp-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkkissfft-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibharu-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklibxml2-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkloguru-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklz4-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtklzma-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkmetaio-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkogg-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpng-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkpugixml-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkscn-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksqlite-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtksys-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktheora-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktiff-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtktoken-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkverdict-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkvpic-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkx11-9.7.a /home/runner/work/_temp/Library/rvtk/prebuilt/lib/libvtkzlib-9.7.a -Wl,--end-group
 ```
-
-### Module availability
-
-Since rvtk 0.3.0,
-[`LdFlags()`](https://astamm.github.io/rvtk/reference/LdFlags.md) and
-[`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
-validate the requested modules by default (`check = TRUE`): if a module
-is not available in the detected VTK installation, configuration fails
-immediately with an actionable error listing the missing modules and the
-available set, instead of surfacing much later as a confusing linker
-error.
-
-Use
-[`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md)
-to see exactly which modules the installation can link against:
-
-``` r
-
-# modules available in this VTK installation (pre-built archives ship the
-# complete set recorded in vtk_modules.txt; system VTK is derived from the
-# recorded linker flags)
-available_modules()
-#>   [1] "vtkAcceleratorsVTKmCore"        "vtkAcceleratorsVTKmDataModel"  
-#>   [3] "vtkAcceleratorsVTKmFilters"     "vtkChartsCore"                 
-#>   [5] "vtkCommonCache"                 "vtkCommonColor"                
-#>   [7] "vtkCommonComputationalGeometry" "vtkCommonCore"                 
-#>   [9] "vtkCommonDataModel"             "vtkCommonExecutionModel"       
-#>  [11] "vtkCommonMath"                  "vtkCommonMisc"                 
-#>  [13] "vtkCommonSystem"                "vtkCommonTransforms"           
-#>  [15] "vtkDICOMParser"                 "vtkDomainsChemistry"           
-#>  [17] "vtkFiltersAMR"                  "vtkFiltersCellGrid"            
-#>  [19] "vtkFiltersCore"                 "vtkFiltersExtraction"          
-#>  [21] "vtkFiltersFlowPaths"            "vtkFiltersGeneral"             
-#>  [23] "vtkFiltersGeneric"              "vtkFiltersGeometry"            
-#>  [25] "vtkFiltersGeometryPreview"      "vtkFiltersHybrid"              
-#>  [27] "vtkFiltersHyperTree"            "vtkFiltersImaging"             
-#>  [29] "vtkFiltersMeshing"              "vtkFiltersModeling"            
-#>  [31] "vtkFiltersParallel"             "vtkFiltersParallelDIY2"        
-#>  [33] "vtkFiltersParallelImaging"      "vtkFiltersPoints"              
-#>  [35] "vtkFiltersProgrammable"         "vtkFiltersReduction"           
-#>  [37] "vtkFiltersSelection"            "vtkFiltersSMP"                 
-#>  [39] "vtkFiltersSources"              "vtkFiltersStatistics"          
-#>  [41] "vtkFiltersTemporal"             "vtkFiltersTensor"              
-#>  [43] "vtkFiltersTexture"              "vtkFiltersTopology"            
-#>  [45] "vtkFiltersVerdict"              "vtkImagingColor"               
-#>  [47] "vtkImagingCore"                 "vtkImagingFourier"             
-#>  [49] "vtkImagingGeneral"              "vtkImagingHybrid"              
-#>  [51] "vtkImagingMath"                 "vtkImagingMorphological"       
-#>  [53] "vtkImagingSources"              "vtkImagingStatistics"          
-#>  [55] "vtkImagingStencil"              "vtkInfovisCore"                
-#>  [57] "vtkInfovisLayout"               "vtkInteractionImage"           
-#>  [59] "vtkInteractionStyle"            "vtkInteractionWidgets"         
-#>  [61] "vtkIOAsynchronous"              "vtkIOAvmesh"                   
-#>  [63] "vtkIOCellGrid"                  "vtkIOChemistry"                
-#>  [65] "vtkIOCityGML"                   "vtkIOCore"                     
-#>  [67] "vtkIOEngys"                     "vtkIOEnSight"                  
-#>  [69] "vtkIOExport"                    "vtkIOExportPDF"                
-#>  [71] "vtkIOFDS"                       "vtkIOGeoJSON"                  
-#>  [73] "vtkIOGeometry"                  "vtkIOImage"                    
-#>  [75] "vtkIOImport"                    "vtkIOInfovis"                  
-#>  [77] "vtkIOLANLX3D"                   "vtkIOLegacy"                   
-#>  [79] "vtkIOLSDyna"                    "vtkIOMotionFX"                 
-#>  [81] "vtkIOMovie"                     "vtkIOOggTheora"                
-#>  [83] "vtkIOOMF"                       "vtkIOPLY"                      
-#>  [85] "vtkIOSegY"                      "vtkIOSQL"                      
-#>  [87] "vtkIOTecplotTable"              "vtkIOVideo"                    
-#>  [89] "vtkIOVPIC"                      "vtkIOXML"                      
-#>  [91] "vtkIOXMLParser"                 "vtkParallelCore"               
-#>  [93] "vtkParallelDIY"                 "vtkRenderingAnnotation"        
-#>  [95] "vtkRenderingContext2D"          "vtkRenderingCore"              
-#>  [97] "vtkRenderingFreeType"           "vtkRenderingGridAxes"          
-#>  [99] "vtkRenderingHyperTreeGrid"      "vtkRenderingImage"             
-#> [101] "vtkRenderingLabel"              "vtkRenderingLOD"               
-#> [103] "vtkRenderingSceneGraph"         "vtkRenderingVolume"            
-#> [105] "vtkRenderingVtkJS"              "vtksys"                        
-#> [107] "vtkTestingDataModel"            "vtkTestingGenericBridge"       
-#> [109] "vtkTestingIOSQL"                "vtkWebGLExporter"              
-#> [111] "vtkWrappingTools"
-```
-
-With the pre-built archives this is the full module set the bundle was
-built with (every VTK module except a deny-list of modules that pull in
-unavailable external dependencies). With a system VTK it reflects that
-installation, so a request for a module the system VTK does not provide
-fails fast. Pass `check = FALSE` only if you intentionally link against
-whatever the installation provides.
 
 ## Writing the C++ that uses VTK
 
@@ -465,11 +381,11 @@ macOS/Linux) makes these includes searchable without turning their
 content into warnings.
 
 If you use `cpp11` (as in rvtk’s own downstream CI), run
-`cpp11::cpp_register()` after adding your functions. **Note:**
-`cpp_register()` copies only the function name, return type, and
-arguments into `R/cpp11.R` — roxygen tags such as `#' @export` must live
-in a separate R file for the wrapper function you export, or the
-function will not appear in `NAMESPACE`.
+[`cpp11::cpp_register()`](https://cpp11.r-lib.org/reference/cpp_register.html)
+after adding your functions. **Note:** `cpp_register()` copies only the
+function name, return type, and arguments into `R/cpp11.R` — roxygen
+tags such as `#' @export` must live in a separate R file for the wrapper
+function you export, or the function will not appear in `NAMESPACE`.
 
 ## Shared VTK on Windows
 
@@ -505,12 +421,11 @@ yourpackage::vtk_poly_data_npoints() # expect 0: a brand-new vtkPolyData has no 
 ```
 
 If the package builds but fails to load with an undefined-symbol error,
-the cause is a symbol being dragged in from a module outside the
-*requested* `modules` subset (older rvtk versions curated a fixed
-default list, so e.g. `vtkCellGridReader` failed to resolve when
-`vtkIOCellGrid` was not listed). With the default `modules = NULL` this
-cannot happen. If you restricted the list, widen it back to `NULL` or
-add the module that defines the missing symbol, then rebuild.
+the usual cause is a module being referenced by the code but missing
+from the `modules` vector, or a symbol being dragged in from a module
+outside the requested set (e.g. `vtkCellGridReader` when `vtkIOCellGrid`
+is not listed). Narrow the module list to exactly what the code uses and
+rebuild.
 
 ## Summary
 
@@ -524,9 +439,8 @@ add the module that defines the missing symbol, then rebuild.
 - [`use_rvtk()`](https://astamm.github.io/rvtk/reference/use_rvtk.md)
   writes every build-time file for a downstream package; the same files
   can be written manually, byte-for-byte identically.
-- By default the full bundled VTK is linked; use the `modules` argument
-  only to restrict linking when you want shorter link times or smaller
-  packages.
+- Use the `modules` argument to link only what you need — especially
+  with the macOS static bundle.
 - Prefer
   [`LdFlagsFile()`](https://astamm.github.io/rvtk/reference/LdFlagsFile.md)
   on Windows to avoid the command-line length limit.

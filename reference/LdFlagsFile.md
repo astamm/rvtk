@@ -9,7 +9,7 @@ keeping the command line short.
 ## Usage
 
 ``` r
-LdFlagsFile(path, modules = NULL, check = TRUE, os_type = .Platform$OS.type)
+LdFlagsFile(path, modules = NULL, os_type = .Platform$OS.type)
 ```
 
 ## Arguments
@@ -25,15 +25,9 @@ LdFlagsFile(path, modules = NULL, check = TRUE, os_type = .Platform$OS.type)
   A character vector of VTK module names to link against, e.g.
   `c("vtkIOLegacy", "vtkCommonCore")`. When `NULL` (the default) all
   available modules are included. When non-`NULL`, only the requested
-  modules are linked, which reduces link time and produces a smaller
-  downstream package when only part of VTK is used.
-
-- check:
-
-  Whether to verify that every requested module is available in the
-  detected VTK installation (see
-  [`available_modules()`](https://astamm.github.io/rvtk/reference/available_modules.md))
-  and fail with an actionable error when one is missing. Default `TRUE`.
+  modules are linked, which avoids pulling in object files that
+  reference symbols from modules outside the selected set when using the
+  pre-built static bundle.
 
 - os_type:
 

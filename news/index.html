@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rvtk</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -17,10 +17,6 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/rvtk.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/rvtk-integration.html">Testing rvtk with downstream packages</a></li>
-  </ul></li>
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-news"><li><h6 class="dropdown-header" data-toc-skip>Releases</h6></li>
@@ -39,24 +35,15 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/astamm/rvtk/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/astamm/rvtk/blob/v0.2.0/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.3.0" id="rvtk-030">rvtk 0.3.0<a class="anchor" aria-label="anchor" href="#rvtk-030"></a></h2>
-<div class="section level4">
-<h4 id="new-features-0-3-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-3-0"></a></h4>
-<ul><li><p><strong><code><a href="../reference/available_modules.html">available_modules()</a></code> reports the VTK modules in the detected installation.</strong> Every pre-built release archive now ships a <code>vtk_modules.txt</code> file listing the exact module set it was built with, and the <code>configure</code> / <code>configure.win</code> scripts install it (for a system VTK the list is derived from the linker flags recorded in <code>vtk.conf</code>, mirroring the same filtering logic).</p></li>
-<li><p><strong><code><a href="../reference/LdFlags.html">LdFlags()</a></code> / <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code> validate requested modules (<code>check = TRUE</code> by default).</strong> A downstream package that requests a module the installation does not provide now fails fast at install time with an actionable error listing the missing module(s) and the available set, instead of failing later with a confusing linker error. Set <code>check = FALSE</code> to skip validation and link whatever the installation provides.</p></li>
-<li><p><strong>Pre-built archives now ship every VTK module except a curated deny-list.</strong> The hand-curated 18-module bundle is replaced by <code>VTK_BUILD_ALL_MODULES=ON</code> minus modules that pull in unavailable external dependencies (rendering toolkits, Python bindings, MPI, HDF5/netcdf/Exodus third-party IO, remote modules, …). Under pre-built VTK, rvtk therefore provides all modules that can be built without external dependencies and downstream packages opt in to linking a subset. The archive layout and the 160-archive whole-archive link check are updated accordingly; <code>vtk_modules.txt</code> is generated from the installed libraries so it always reflects exactly what an archive contains.</p></li>
-</ul></div>
-</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.2.0" id="rvtk-020">rvtk 0.2.0<a class="anchor" aria-label="anchor" href="#rvtk-020"></a></h2><p class="text-muted">CRAN release: 2026-11-18</p>
 <div class="section level4">
 <h4 id="new-features-0-2-0">New features<a class="anchor" aria-label="anchor" href="#new-features-0-2-0"></a></h4>
 <ul><li><p><strong>VTK bumped from 9.5.2 to 9.7.2.</strong> The pre-built static libraries shipped via GitHub Releases and the Windows build are built against VTK 9.7.2. The <code>configure</code> script now also probes <code>vtk-9.7</code> and <code>vtk-9.6</code> before earlier <code>pkg-config</code> versions, and <code>tools/winlibs.R</code> downloads the 9.7.2 build.</p></li>
-<li><p><strong>Six additional VTK modules enabled in the pre-built bundles.</strong> The pre-built bundles now explicitly enable <code>VTK_IOGeometry</code>, <code>VTK_FiltersCore</code>, <code>VTK_FiltersGeneral</code>, <code>VTK_FiltersGeometry</code>, <code>VTK_FiltersModeling</code>, and <code>VTK_FiltersExtraction</code> (closing issue <a href="https://github.com/astamm/rvtk/issues/5" class="external-link">#5</a>), together with their transitive dependencies <code>VTK_ParallelDIY</code>, <code>VTK_ParallelCore</code>, <code>VTK_FiltersHyperTree</code>, and <code>VTK_FiltersStatistics</code> (closing the undefined-symbol failures of issue <a href="https://github.com/astamm/rvtk/issues/14" class="external-link">#14</a>). These modules are also linked by <code>configure</code>’s <code>vtk_build_flags()</code> when a system VTK installation is found.</p></li>
+<li><p><strong>Six additional VTK modules bundled by default.</strong> The pre-built bundles now explicitly enable <code>VTK_IOGeometry</code>, <code>VTK_FiltersCore</code>, <code>VTK_FiltersGeneral</code>, <code>VTK_FiltersGeometry</code>, <code>VTK_FiltersModeling</code>, and <code>VTK_FiltersExtraction</code> (closing issue <a href="https://github.com/astamm/rvtk/issues/5" class="external-link">#5</a>). These are also added to the default <code>modules</code> set used by <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> and linked in <code>configure</code>’s <code>vtk_build_flags()</code>.</p></li>
 <li>
 <p><strong><code><a href="../reference/use_rvtk.html">use_rvtk()</a></code>: one-call downstream package setup.</strong> A new <a href="https://usethis.r-lib.org/" class="external-link">usethis</a>-style helper that configures a downstream R package to link against VTK in one step. Running <code><a href="../reference/use_rvtk.html">rvtk::use_rvtk()</a></code> inside a downstream package project:</p>
 <ol style="list-style-type: decimal"><li>Adds <code>rvtk</code> to the <code>Imports</code> field of <code>DESCRIPTION</code>.</li>
@@ -65,22 +52,21 @@
 <li>Writes <code>tools/configure.R</code> that calls <code><a href="../reference/CppFlags.html">rvtk::CppFlags()</a></code> and <code><a href="../reference/LdFlagsFile.html">rvtk::LdFlagsFile()</a></code> with a customisable list of VTK modules.</li>
 <li>Adds <code>src/vtk_libs.rsp</code> to <code>.gitignore</code>.</li>
 <li>Creates <code>R/rvtk_imports.R</code> with a minimal <code>@importFrom rvtk</code> tag so that <code>R CMD check</code> does not warn about an unused <code>Imports</code> entry.</li>
-</ol><p>By default the <strong>full bundled VTK</strong> is linked (<code>modules = NULL</code>); the <code>modules</code> argument lets downstream developers restrict linking to only the VTK modules they need, reducing link time and producing a smaller downstream package (an optimisation, not a requirement — see “Bug fixes” below). Uses <strong>cli</strong> for formatted console output when available (it is an optional dependency, listed in <code>Suggests</code>).</p>
+</ol><p>The <code>modules</code> argument (default: the standard I/O + core set) lets downstream developers restrict linking to only the VTK modules they need, avoiding unintended symbol drag-in (important on macOS static bundles). Uses <strong>cli</strong> for formatted console output when available (it is an optional dependency, listed in <code>Suggests</code>).</p>
 </li>
 <li>
 <p><strong>Linux x86_64 musl (Alpine Linux) support.</strong> The pre-built static fallback now provides a <code>vtk-X.Y.Z-linux-musl-x86_64.tar.gz</code> archive built inside an Alpine 3.22 container via <code>docker run</code> on the GitHub Actions runner (the <code>container:</code> job directive was not used because GitHub Actions’ Node.js runtime is glibc-linked and crashes on musl). The <code>configure</code> script detects musl by inspecting <code>ldd --version</code> output and automatically downloads the correct archive; no user action is required. This fixes installation on the CRAN musl check platform (<code>x86_64-pc-linux-musl</code>, Alpine Linux).</p>
 <p>The following extra CMake flags are set for the musl build to avoid X11 and rendering dependencies unavailable on the headless Alpine runner: <code>-DVTK_USE_X=OFF -DVTK_MODULE_ENABLE_VTK_RenderingOpenGL2=NO</code>.</p>
 </li>
 <li><p><strong>Linux aarch64 support.</strong> The pre-built static fallback now provides a <code>vtk-X.Y.Z-linux-aarch64.tar.gz</code> archive built on <code>ubuntu-24.04-arm</code>. The <code>configure</code> script detects the host architecture and downloads the correct archive automatically, so no user action is required.</p></li>
-<li><p><strong>Test coverage raised from ~48% to 100%.</strong> New tinytest coverage exercises the <code>filter_libs()</code> module filtering and every branch of <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> and its internals (<code>rvtk_use_package</code>, <code>rvtk_write_file</code>, <code>rvtk_use_git_ignore</code>, <code>rvtk_rel_path</code>), including the base-R fallback messaging branches. The package now reports 100% line coverage under <code>covr::package_coverage()</code>.</p></li>
+<li><p><strong>Test coverage raised from ~48% to 100%.</strong> New tinytest coverage exercises the <code>filter_libs()</code> module filtering and every branch of <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> and its internals (<code>rvtk_use_package</code>, <code>rvtk_write_file</code>, <code>rvtk_use_git_ignore</code>, <code>rvtk_rel_path</code>), including the base-R fallback messaging branches. The package now reports 100% line coverage under <code><a href="https://covr.r-lib.org/reference/package_coverage.html" class="external-link">covr::package_coverage()</a></code>.</p></li>
 </ul></div>
 <div class="section level4">
 <h4 id="bug-fixes-0-2-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-0-2-0"></a></h4>
-<ul><li><p><strong><code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> links the full bundled VTK by default (<code>modules = NULL</code>).</strong> Downstream packages were failing to install or load on macOS and Linux with undefined-symbol errors such as <code>symbol not found: __ZN17vtkCellGridReader3NewEv</code> whenever they used a VTK feature outside rvtk’s curated 18- or 24-module default list. The pre-built bundles have always contained the full VTK library (161 static archives), so the default is now to link <strong>all</strong> of them. Because the archives are static and the linker extracts only the object files a package references, linking everything adds no runtime code a package does not use. Restricting via <code>modules</code> is now purely an optimisation for link time and package size (closing issue <a href="https://github.com/astamm/rvtk/issues/14" class="external-link">#14</a> for good: <code>vtkParallelDIY</code>, <code>vtkParallelCore</code>, <code>vtkFiltersHyperTree</code>, <code>vtkIOCellGrid</code>, <code>vtkIOPLY</code>, … are all available with the default).</p></li>
-<li><p><strong><code>configure</code>: <code>mktemp</code> incompatibility with BusyBox.</strong> The temporary file for the pre-built archive download was created with a dotted suffix (<code>/tmp/vtk-prebuilt.XXXXXX.tar.gz</code>), which BusyBox <code>mktemp</code> rejects with <code>Invalid argument</code>. The suffix has been removed; the file is renamed internally before extraction.</p></li>
+<ul><li><p><strong><code>configure</code>: fixed <code>mktemp</code> incompatibility with BusyBox.</strong> The temporary file for the pre-built archive download was created with a dotted suffix (<code>/tmp/vtk-prebuilt.XXXXXX.tar.gz</code>), which BusyBox <code>mktemp</code> rejects with <code>Invalid argument</code>. The suffix has been removed; the file is renamed internally before extraction.</p></li>
 <li>
 <p><strong><code>modules</code> argument for <code><a href="../reference/LdFlags.html">LdFlags()</a></code> and <code><a href="../reference/LdFlagsFile.html">LdFlagsFile()</a></code>.</strong> Both linker-flag functions now accept a <code>modules</code> character vector that restricts linking to the named VTK modules (e.g. <code>c("vtkIOLegacy", "vtkCommonCore")</code>). When <code>NULL</code> (the default) all available modules are included, preserving backward compatibility.</p>
-<p>Restricting the list is an <em>optimisation</em> (shorter link times, smaller downstream packages), not a safety requirement: since the macOS static link no longer uses <code>-all_load</code> (see the next bullet), the only objects pulled from the pre-built archives are those your code actually references, so linking all 161 modules by default cannot drag <code>AppKit</code>-only symbols such as <code>_NSEventTrackingRunLoopMode</code> into a downstream <code>.so</code>. Packages that want a smaller build can pass only the modules they need:</p>
+<p>This is particularly important when using the pre-built static bundle on macOS: the bundle contains the full VTK (including rendering modules that reference <code>_NSEventTrackingRunLoopMode</code> from <code>AppKit.framework</code>). Without filtering, <code>-Wl,-all_load</code> forces those symbols into every downstream <code>.so</code>, causing <code>dlopen()</code> failures at <code>R CMD check</code> time for packages that do not actually use any rendering functionality. Downstream packages should pass only the modules they need:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="va">VTK_LIBS</span><span class="op">=</span><span class="st">"</span><span class="va">$(</span><span class="st">"</span><span class="va">${R_HOME}</span><span class="st">/bin/Rscript"</span> <span class="at">--vanilla</span> <span class="at">-e</span> <span class="st">"rvtk::LdFlagsFile(</span></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="st">  path    = 'src/vtk_libs.rsp',</span></span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="st">  modules = c('vtkIOLegacy', 'vtkCommonCore', ...)</span></span>
@@ -92,15 +78,6 @@
 <h4 id="internal-changes-0-2-0">Internal changes<a class="anchor" aria-label="anchor" href="#internal-changes-0-2-0"></a></h4>
 <ul><li>New internal helper <code>filter_libs()</code> implements the module-name matching used by all three platform branches of <code>read_vtk_conf()</code>.</li>
 <li>The optional-<code>cli</code>/interactive prompting decisions in <code><a href="../reference/use_rvtk.html">use_rvtk()</a></code> are now routed through small internal wrappers (<code>rvtk_has_cli()</code>, <code>rvtk_interactive()</code>, <code>rvtk_readline()</code>) so the messaging and overwrite branches can be unit-tested.</li>
-</ul></div>
-<div class="section level4">
-<h4 id="documentation-0-2-0">Documentation<a class="anchor" aria-label="anchor" href="#documentation-0-2-0"></a></h4>
-<ul><li>
-<strong>Pre-built ABI constraints documented</strong> (issue <a href="https://github.com/astamm/rvtk/issues/15" class="external-link">#15</a>). The pre-built static libraries are compiled with GCC and <code>libstdc++</code>. Downstream packages built with Clang <code>-stdlib=libc++</code> may fail to load with <code>__try_use_facet</code> undefined; packages built with newer GCC versions than the build toolchain may fail with <code>__cxa_call_terminate</code>. The README now documents that the archives are GCC / libstdc++ builds and recommends matching the compiler or linking against a system VTK installation.</li>
-<li>
-<strong>macOS deployment target raised</strong> (issue <a href="https://github.com/astamm/rvtk/issues/16" class="external-link">#16</a>). The pre-built macOS archives are now built with <code>-DCMAKE_OSX_DEPLOYMENT_TARGET=13.0</code> (previously they carried <code>LC_BUILD_VERSION minos 26.0</code>, which prevents loading on older macOS). The GitHub Actions workflow sets this for both the arm64 and x86_64 macOS jobs.</li>
-<li>
-<strong>Valgrind report documented</strong> (issue <a href="https://github.com/astamm/rvtk/issues/17" class="external-link">#17</a>). VTK’s pipeline internals allocate objects that valgrind reports as “definitely lost” (~1.5 KB) even in a minimal downstream consumer; this is inherent to the static libraries and does not indicate a leak in downstream code. An optional suppression file is shipped at <code>inst/valgrind/vtk.supp</code> and documented in the README / vignette.</li>
 </ul></div>
 </div>
     <div class="section level2">
